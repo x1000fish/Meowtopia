@@ -294,7 +294,7 @@
             updateUndoStatus();
             if (gateHistory.length > 0) setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50);
         }
-        function undo() { if (isSolved) return; if (gateHistory.length > 0) { gateHistory.pop(); recalculate(); } }
+        function undo() { if (isSolved) return; if (gateHistory.length > 0) { pop.currentTime = 0; pop.play(); gateHistory.pop(); recalculate(); } }
         function resetCircuit() { 
             if (isSolved) return;
             pop.currentTime = 0; pop.play(); gateHistory = []; recalculate(); 
