@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meowtopia - Level 9</title>
+    <title>Meowtopia - Level 9 (Full Logic Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: Arial, sans-serif; background-color: #FEF3C7; color: #000; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
@@ -156,14 +156,31 @@
         function initGates() {
             const grid = document.getElementById('gate-grid');
             let html = '';
-            for(let i=0; i<4; i++) html += `<button class="gate-btn-v2 col-span-2 bg-blue-100" onclick="applyGate('X${i}')">X q${i}</button>`;
+            for(let i=0; i<4; i++) html += `<button class="gate-btn-v2 col-span-2 bg-purple-100" onclick="applyGate('X${i}')">X q${i}</button>`;
             for(let i=0; i<4; i++) {
-                for(let j=0; j<4; j++) if(i !== j) html += `<button class="gate-btn-v2" onclick="applyGate('CX${i}${j}')">CNOT ${i}→${j}</button>`;
+                for(let j=0; j<4; j++) {
+                    if(i !== j) {
+                        html += `<button class="gate-btn-v2" onclick="applyGate('CX1${i}${j}')">1CNOT ${i}→${j}</button>`;
+                        html += `<button class="gate-btn-v2" onclick="applyGate('CX0${i}${j}')">0CNOT ${i}→${j}</button>`;
+                    }
+                }
             }
+            const combos = [
+                { id: '11', name: '1,1', color: 'bg-green-100' },
+                { id: '00', name: '0,0', color: 'bg-green-100' },
+                { id: '01', name: '0,1', color: 'bg-green-100' },
+                { id: '10', name: '1,0', color: 'bg-green-100' }
+            ];
+
             for (let c1 = 0; c1 < 4; c1++) {
-                for (let c2 = c1 + 1; c2 < 4; c2++) {
+                for (let c2 = 0; c2 < 4; c2++) {
+                    if (c1 >= c2) continue;
                     for (let t = 0; t < 4; t++) {
-                        if (t !== c1 && t !== c2) html += `<button class="gate-btn-v2 col-span-2 bg-green-50" onclick="applyGate('TOF${c1}${c2}${t}')">TOF(${c1},${c2}→${t})</button>`;
+                        if (t !== c1 && t !== c2) {
+                            combos.forEach(cb => {
+                                html += `<button class="gate-btn-v2 col-span-2 ${cb.color}" onclick="applyGate('TOF${cb.id}${c1}${c2}${t}')">TOF(${cb.name}) ${c1},${c2}→${t}</button>`;
+                            });
+                        }
                     }
                 }
             }
@@ -229,9 +246,15 @@
             }
             let pm = Array.from({ length: 16 }, (_, p) => {
                 let b = p.toString(2).padStart(4, '0').split('').map(Number); 
-                if (type.startsWith('X')) b[parseInt(type[1])] ^= 1;
-                else if (type.startsWith('CX')) { if (b[parseInt(type[2])] === 1) b[parseInt(type[3])] ^= 1; }
-                else if (type.startsWith('TOF')) { if (b[parseInt(type[3])] === 1 && b[parseInt(type[4])] === 1) b[parseInt(type[5])] ^= 1; }
+                if (type.startsWith('X')) {
+                    b[parseInt(type.substring(1))] ^= 1;
+                } else if (type.startsWith('CX')) {
+                    let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
+                    if (b[c] === ctrlVal) b[t] ^= 1;
+                } else if (type.startsWith('TOF')) {
+                    let cv1 = parseInt(type[3]), cv2 = parseInt(type[4]), c1 = parseInt(type[5]), c2 = parseInt(type[6]), t = parseInt(type[7]);
+                    if (b[c1] === cv1 && b[c2] === cv2) b[t] ^= 1;
+                }
                 return parseInt(b.join(''), 2);
             });
             let newFish = new Array(16);
@@ -265,14 +288,23 @@
                 const u = document.createElement('div'); u.className = 'circuit-unit';
                 u.onclick = () => { if (isSolved) return; pop.currentTime = 0; pop.play(); gateHistory.splice(idx, 1); recalculate(); };
                 let controls = [], target = -1;
+                
                 if (g.startsWith('SWAP_')) {
                     let p = g.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]);
                     target = 3 - Math.round(Math.log2(iA ^ iB));
                     let binary = Math.min(iA, iB).toString(2).padStart(4, '0').split('').map(Number);
                     for (let q = 0; q < 4; q++) if (q !== target) controls.push({ line: q, type: binary[q] });
-                } else if (g.startsWith('X')) target = parseInt(g[1]);
-                else if (g.startsWith('CX')) { controls.push({ line: parseInt(g[2]), type: 1 }); target = parseInt(g[3]); }
-                else if (g.startsWith('TOF')) { controls.push({ line: parseInt(g[3]), type: 1 }, { line: parseInt(g[4]), type: 1 }); target = parseInt(g[5]); }
+                } else if (g.startsWith('X')) {
+                    target = parseInt(g.substring(1));
+                } else if (g.startsWith('CX')) {
+                    controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) });
+                    target = parseInt(g[4]);
+                } else if (g.startsWith('TOF')) {
+                    controls.push({ line: parseInt(g[5]), type: parseInt(g[3]) });
+                    controls.push({ line: parseInt(g[6]), type: parseInt(g[4]) });
+                    target = parseInt(g[7]);
+                }
+
                 if (target !== -1) {
                     let lines = [target, ...controls.map(ctrl => ctrl.line)];
                     let minQ = Math.min(...lines), maxQ = Math.max(...lines);
