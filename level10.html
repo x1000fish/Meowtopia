@@ -43,6 +43,7 @@
         .qubit-label { position: absolute; left: 19px; font-weight: 900; font-size: 16px; color: #000; }
         .circuit-unit { min-width: 50px; height: 180px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; }
         .circuit-unit:hover { background: rgba(239, 68, 68, 0.15); border-radius: 12px; }
+        .circuit-unit.selected-gate { background: rgba(40, 180, 255, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #2a5cad; }
         .control-dot { width: 14px; height: 14px; background: #000; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: #000; left: 50%; transform: translateX(-50%); z-index: 3; }
         .circuit-target { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid #000; left: 50%; transform: translate(-50%, -50%); z-index: 15; }
@@ -100,6 +101,8 @@
     </div>
     <script>
         let steps = 0, time = 0, isPro = false, timerInterval, gateHistory = [], isSolved = false;
+        let selectedIndices = []; 
+        let actionStack = []; 
         let fishAtNode = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]; 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195; 
@@ -110,18 +113,10 @@
         const nodePositions = Array.from({ length: 16 }, (_, i) => {
             let x = (i & 1) ? side : 0;
             let y = (i & 2) ? side : 0;
-            if (i & 4) {
-                x += (i & 1) ? 90 : -80;
-                y += (i & 2) ? 80 : -80;
-            }
-            if (i & 8) {
-                x += hyperOffset;
-                y -= 80;
-            }
+            if (i & 4) { x += (i & 1) ? 90 : -80; y += (i & 2) ? 80 : -80; }
+            if (i & 8) { x += hyperOffset; y -= 80; }
             const pos = { t: y + baseOffsetY, relX: x };
-            Object.defineProperty(pos, 'l', {
-                get: () => pos.relX + (isPro ? offsetPro : offsetNormal)
-            });
+            Object.defineProperty(pos, 'l', { get: () => pos.relX + (isPro ? offsetPro : offsetNormal) });
             return pos;
         });
         window.onload = () => {
@@ -165,21 +160,13 @@
                     }
                 }
             }
-            const combos = [
-                { id: '11', name: '1,1', color: 'bg-green-100' },
-                { id: '00', name: '0,0', color: 'bg-green-100' },
-                { id: '01', name: '0,1', color: 'bg-green-100' },
-                { id: '10', name: '1,0', color: 'bg-green-100' }
-            ];
-
+            const combos = [ { id: '11', name: '1,1', color: 'bg-green-100' }, { id: '00', name: '0,0', color: 'bg-green-100' }, { id: '01', name: '0,1', color: 'bg-green-100' }, { id: '10', name: '1,0', color: 'bg-green-100' } ];
             for (let c1 = 0; c1 < 4; c1++) {
                 for (let c2 = 0; c2 < 4; c2++) {
                     if (c1 >= c2) continue;
                     for (let t = 0; t < 4; t++) {
                         if (t !== c1 && t !== c2) {
-                            combos.forEach(cb => {
-                                html += `<button class="gate-btn-v2 col-span-2 ${cb.color}" onclick="applyGate('TOF${cb.id}${c1}${c2}${t}')">TOF(${cb.name}) ${c1},${c2}→${t}</button>`;
-                            });
+                            combos.forEach(cb => { html += `<button class="gate-btn-v2 col-span-2 ${cb.color}" onclick="applyGate('TOF${cb.id}${c1}${c2}${t}')">TOF(${cb.name}) ${c1},${c2}→${t}</button>`; });
                         }
                     }
                 }
@@ -207,9 +194,7 @@
             if (isDashed) {
                 line.style.height = "0px"; line.style.background = "transparent";
                 line.style.borderTop = "3px dashed #000"; line.style.opacity = "0.4";
-            } else {
-                line.style.height = "3px"; line.style.background = "#000";
-            }
+            } else { line.style.height = "3px"; line.style.background = "#000"; }
             line.onclick = () => swapNodes(i, j);
             document.getElementById('lines-layer').appendChild(line);
         }
@@ -232,10 +217,21 @@
         }
         function applyGate(type) {
             if (isSolved) return;
-            executeLogic(type); 
-            gateHistory.push(type); 
-            steps = gateHistory.length; 
-            finishMove();
+            if (selectedIndices.length > 0) {
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0], count = selectedIndices.length;
+                const oldOnes = gateHistory.slice(start, start + count);
+                gateHistory.splice(start, count, type);
+                actionStack.push({ type: 'replace', index: start, oldGates: oldOnes, newGate: type });
+                selectedIndices = [];
+                recalculate();
+            } else {
+                executeLogic(type); 
+                gateHistory.push(type); 
+                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: type });
+                steps = gateHistory.length; 
+                finishMove();
+            }
         }
         function executeLogic(type) {
             pop.currentTime = 0; pop.play();
@@ -246,9 +242,8 @@
             }
             let pm = Array.from({ length: 16 }, (_, p) => {
                 let b = p.toString(2).padStart(4, '0').split('').map(Number); 
-                if (type.startsWith('X')) {
-                    b[parseInt(type.substring(1))] ^= 1;
-                } else if (type.startsWith('CX')) {
+                if (type.startsWith('X')) { b[parseInt(type.substring(1))] ^= 1; } 
+                else if (type.startsWith('CX')) {
                     let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
                     if (b[c] === ctrlVal) b[t] ^= 1;
                 } else if (type.startsWith('TOF')) {
@@ -267,17 +262,11 @@
             h.forEach(g => { executeLogic(g); gateHistory.push(g); }); 
             steps = gateHistory.length; finishMove(); 
         }
-        function finishMove() { 
-            document.getElementById('step-count').innerText = steps; 
-            updateFishUI(); renderCircuit(); checkWin(); 
-        }
+        function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
         function updateFishUI() { 
             for (let nI = 0; nI < 16; nI++) { 
                 const f = document.getElementById(`fish-${fishAtNode[nI]}`), n = nodePositions[nI]; 
-                if (f && n) { 
-                    f.style.top = (n.t + 27) + "px"; 
-                    f.style.left = (n.l + 15) + "px"; 
-                } 
+                if (f && n) { f.style.top = (n.t + 27) + "px"; f.style.left = (n.l + 15) + "px"; } 
             } 
         }
         function renderCircuit() {
@@ -285,26 +274,38 @@
             const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
             gateHistory.forEach((g, idx) => {
-                const u = document.createElement('div'); u.className = 'circuit-unit';
-                u.onclick = () => { if (isSolved) return; pop.currentTime = 0; pop.play(); gateHistory.splice(idx, 1); recalculate(); };
+                const u = document.createElement('div'); 
+                u.className = 'circuit-unit';
+                if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
+                u.onclick = (e) => { 
+                    if (isSolved) return; 
+                    if (e.ctrlKey || e.metaKey) {
+                        const sIdx = selectedIndices.indexOf(idx);
+                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
+                        else selectedIndices.push(idx);
+                        renderCircuit();
+                    } else {
+                        pop.currentTime = 0; pop.play(); 
+                        const removed = gateHistory[idx];
+                        actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
+                        gateHistory.splice(idx, 1); 
+                        selectedIndices = [];
+                        recalculate(); 
+                    }
+                };
                 let controls = [], target = -1;
-                
                 if (g.startsWith('SWAP_')) {
                     let p = g.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]);
                     target = 3 - Math.round(Math.log2(iA ^ iB));
                     let binary = Math.min(iA, iB).toString(2).padStart(4, '0').split('').map(Number);
                     for (let q = 0; q < 4; q++) if (q !== target) controls.push({ line: q, type: binary[q] });
-                } else if (g.startsWith('X')) {
-                    target = parseInt(g.substring(1));
-                } else if (g.startsWith('CX')) {
-                    controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) });
-                    target = parseInt(g[4]);
-                } else if (g.startsWith('TOF')) {
+                } else if (g.startsWith('X')) { target = parseInt(g.substring(1)); } 
+                else if (g.startsWith('CX')) { controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) }); target = parseInt(g[4]); } 
+                else if (g.startsWith('TOF')) {
                     controls.push({ line: parseInt(g[5]), type: parseInt(g[3]) });
                     controls.push({ line: parseInt(g[6]), type: parseInt(g[4]) });
                     target = parseInt(g[7]);
                 }
-
                 if (target !== -1) {
                     let lines = [target, ...controls.map(ctrl => ctrl.line)];
                     let minQ = Math.min(...lines), maxQ = Math.max(...lines);
@@ -324,15 +325,27 @@
                 c.appendChild(u);
             });
             updateUndoStatus();
-            if (gateHistory.length > 0) setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50);
+            if (selectedIndices.length === 0 && gateHistory.length > 0) {
+                setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50);
+            }
         }
-        function undo() { if (isSolved) return; if (gateHistory.length > 0) { pop.currentTime = 0; pop.play(); gateHistory.pop(); recalculate(); } }
+        function undo() { 
+            if (isSolved || actionStack.length === 0) return; 
+            pop.currentTime = 0; pop.play();
+            const action = actionStack.pop();
+            if (action.type === 'add') { gateHistory.splice(action.index, 1); } 
+            else if (action.type === 'delete') { gateHistory.splice(action.index, 0, ...action.oldGates); } 
+            else if (action.type === 'replace') { gateHistory.splice(action.index, 1, ...action.oldGates); }
+            selectedIndices = []; recalculate(); 
+        }
         function resetCircuit() { 
             if (isSolved) return;
-            pop.currentTime = 0; pop.play(); gateHistory = []; recalculate(); 
+            pop.currentTime = 0; pop.play(); 
+            gateHistory = []; actionStack = []; selectedIndices = []; 
+            recalculate(); 
         }
         function updateUndoStatus() { 
-            const isActive = gateHistory.length > 0 && !isSolved;
+            const isActive = actionStack.length > 0 && !isSolved;
             document.getElementById('undo-btn').classList.toggle('active', isActive); 
         }
         function checkWin() {
