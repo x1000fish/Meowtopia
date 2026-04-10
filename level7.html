@@ -445,7 +445,7 @@
                 if (user) {
                     let d = JSON.parse(localStorage.getItem(user));
                     if (d && (d.level || 1) < 8) {
-                        d.level = 6;
+                        d.level = 8;
                         localStorage.setItem(user, JSON.stringify(d));
                     }
                 }
