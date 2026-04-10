@@ -32,7 +32,6 @@
         .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 0.6; cursor: not-allowed; }
         .btn-undo.active { background: #EF4444 !important; border-color: #000 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #000; }
         .btn-undo.active:hover { background-color: #DC2626 !important; transform: translateY(-2px); box-shadow: 0 6px 0 #000; animation: pulse-red-undo 1.2s infinite ease-in-out !important; }
-        .btn-undo.active.highlight-focus:hover { background-color: #DC2626 !important; color: #fff !important; animation-play-state: paused !important; border-color: #000000 !important; border-width: 3px !important; box-shadow: 0 4px 0 #000, 0 0 15px #ffc822 !important; }
         .btn-undo.disabled { background: #e8a098 !important; border-color: #cb867d !important; color: #ffffff !important; cursor: not-allowed; opacity: 0.5; }
         #pro-panel { width: 0; opacity: 0; height: 500px; overflow: hidden; background: #ffffff; border: 0px solid #000; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .pro-active #pro-panel { width: 320px; opacity: 1; border: 8px solid #000; padding: 20px; }
@@ -52,6 +51,7 @@
         .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #000; z-index: 5; }
         .circuit-unit { min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
         .circuit-unit:hover { background: rgba(239, 68, 68, 0.2); border-radius: 12px; }
+        .circuit-unit.selected-gate { background: rgba(40, 180, 255, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #2a5cad; }
         .control-dot { width: 14px; height: 14px; background: black; border-radius: 50%; position: absolute; z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: black; z-index: 3; }
         .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid #000; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
@@ -74,7 +74,6 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #000; }
         .no-fish-anim .fish-wrapper, .no-fish-anim .node { transition: none !important; }
-        .gate-x-style { background: #BBF7D0 !important; }
         @keyframes yellow-pulse { 0%, 100% { box-shadow: 0 4px 0 #000, 0 0 5px #ffc822; border-color: #000; } 35% { box-shadow: 0 4px 0 #000, 0 0 30px #ffc822; border-color: #ffc822; transform: scale(1.1); } }
         @keyframes tap-anim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pulse-red-undo { 0%, 100% { transform: scale(1); box-shadow: 0 4px 0 #000; } 50% { transform: scale(1.05); box-shadow: 0 0 20px #EF4444, 0 4px 0 #000; } }
@@ -142,6 +141,8 @@
     </div>
     <script>
         let steps = 0, time = 0, isPro = false, fishAtNode = [1, 0, 3, 2], gateHistory = [], tutorialPhase = 0, tutorialCompleted = false, timerInterval, isSolved = false;
+        let actionStack = []; 
+        let selectedIndices = []; 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => {
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
@@ -192,8 +193,32 @@
         function applyGate(g) {
             if (isSolved) return;
             const p = { 0.1: { g: 'X0', n: 0.2 }, 0.3: { g: 'X1', n: 0.4 } };
-            if (p[tutorialPhase] && g === p[tutorialPhase].g) { tutorialPhase = p[tutorialPhase].n; updateTutorialUI(); setTimeout(() => executeGateLogic(g), 800); return; }
-            executeGateLogic(g); if (isPro && !tutorialCompleted) updateTutorialUI();
+            if (p[tutorialPhase] && g === p[tutorialPhase].g) { 
+                tutorialPhase = p[tutorialPhase].n; 
+                updateTutorialUI(); 
+                setTimeout(() => {
+                    executeGateLogic(g);
+                    actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
+                }, 800); 
+                return; 
+            }
+            if (selectedIndices.length > 0) {
+                pop.currentTime = 0; pop.play();
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0];
+                const count = selectedIndices.length;
+                const oldGates = gateHistory.slice(start, start + count);
+                
+                gateHistory.splice(start, count, g);
+                actionStack.push({ type: 'replace', index: start, oldGates: oldGates, newGate: g });
+                selectedIndices = [];
+                recalculatePositions();
+                finishMove();
+            } else {
+                executeGateLogic(g);
+                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
+                if (isPro && !tutorialCompleted) updateTutorialUI();
+            }
         }
         function executeGateLogic(g) {
             pop.currentTime = 0; pop.play();
@@ -204,7 +229,10 @@
                 else if (g === 'CX10' && q1 === 1) q0 = 1 - q0; else if (g === 'C0X10' && q1 === 0) q0 = 1 - q0;
                 return q0 * 2 + q1;
             });
-            fishAtNode = fishAtNode.map(cp => pm[cp]); gateHistory.push(g); steps = gateHistory.length; finishMove();
+            fishAtNode = fishAtNode.map(cp => pm[cp]); 
+            gateHistory.push(g); 
+            steps = gateHistory.length; 
+            finishMove();
         }
         function recalculatePositions() {
             let cp = [1, 0, 3, 2];
@@ -218,7 +246,8 @@
                 });
                 cp = cp.map(p => pm[p]);
             });
-            fishAtNode = cp; steps = gateHistory.length;
+            fishAtNode = cp; 
+            steps = gateHistory.length;
         }
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
         function updateFishUI() {
@@ -230,7 +259,27 @@
         function renderCircuit() {
             const c = document.getElementById('circuit-content'); c.innerHTML = '';
             gateHistory.forEach((g, i) => {
-                const u = document.createElement('div'); u.className = 'circuit-unit'; u.onclick = () => deleteGate(i);
+                const u = document.createElement('div'); 
+                u.className = 'circuit-unit';
+                if (selectedIndices.includes(i)) u.classList.add('selected-gate');
+                u.onclick = (e) => { 
+                    if (isSolved) return;
+                    if (e.ctrlKey || e.metaKey) {
+                        const sIdx = selectedIndices.indexOf(i);
+                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
+                        else selectedIndices.push(i);
+                        renderCircuit();
+                    } else {
+                        pop.currentTime = 0; pop.play(); 
+                        const removed = gateHistory[i];
+                        actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
+                        gateHistory.splice(i, 1); 
+                        selectedIndices = [];
+                        recalculatePositions(); 
+                        finishMove(); 
+                        if (isPro && !tutorialCompleted) updateTutorialUI(); 
+                    }
+                };
                 if (g.startsWith('X')) {
                     const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (g === 'X0' ? 21.2 : 61.2) + 'px'; u.appendChild(t);
                 } else {
@@ -241,25 +290,35 @@
                 }
                 c.appendChild(u);
             });
-            updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper');
-            setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
+            updateUndoStatus(); 
+            const w = document.getElementById('circuit-content-wrapper');
+            if (selectedIndices.length === 0) {
+                setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
+            }
         }
         function undo() { 
-            if (isSolved) return;
+            if (isSolved || actionStack.length === 0) return;
             pop.currentTime = 0; pop.play(); 
-            if (gateHistory.length > 0) { gateHistory.pop(); recalculatePositions(); finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); } 
+            const action = actionStack.pop();
+            if (action.type === 'add') {
+                gateHistory.splice(action.index, 1);
+            } else if (action.type === 'delete') {
+                gateHistory.splice(action.index, 0, ...action.oldGates);
+            } else if (action.type === 'replace') {
+                gateHistory.splice(action.index, 1, ...action.oldGates);
+            }
+            recalculatePositions();
+            selectedIndices = [];
+            finishMove();
+            if (isPro && !tutorialCompleted) updateTutorialUI();
         }
         function resetCircuit() { 
             if (isSolved) return;
-            pop.currentTime = 0; pop.play(); fishAtNode = [1, 0, 3, 2]; gateHistory = []; steps = 0; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
-        }
-        function deleteGate(i) { 
-            if (isSolved) return;
-            pop.currentTime = 0; pop.play(); gateHistory.splice(i, 1); recalculatePositions(); finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
+            pop.currentTime = 0; pop.play(); fishAtNode = [1, 0, 3, 2]; gateHistory = []; actionStack = []; selectedIndices = []; steps = 0; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
         }
         function updateUndoStatus() {
             const ub = document.getElementById('undo-btn'); if (!ub) return;
-            if (gateHistory.length > 0 && !isSolved) { ub.classList.add('active'); ub.classList.remove('disabled'); ub.style.pointerEvents = "auto"; }
+            if (actionStack.length > 0 && !isSolved) { ub.classList.add('active'); ub.classList.remove('disabled'); ub.style.pointerEvents = "auto"; }
             else { ub.classList.remove('active'); ub.classList.add('disabled'); ub.style.pointerEvents = "none"; }
         }
         function checkWin() {
@@ -276,10 +335,7 @@
                 }, 600);
             }
         }
-        function swapOnly(nA, nB, gT) { 
-            if (isSolved) return;
-            applyGate(gT); 
-        }
+        function swapOnly(nA, nB, gT) { if (isSolved) return; applyGate(gT); }
     </script>
 </body>
 </html>
