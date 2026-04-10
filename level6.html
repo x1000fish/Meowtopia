@@ -438,22 +438,14 @@
         function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true;
-                selectedIndices = [];
-                updateUndoStatus();
                 if (timerInterval) clearInterval(timerInterval);
+                updateUndoStatus();
                 const user = sessionStorage.getItem('currentUser');
-                if (user) {
-                    let d = JSON.parse(localStorage.getItem(user));
-                    if (d && (d.level || 1) < 7) {
-                        d.level = 7;
-                        localStorage.setItem(user, JSON.stringify(d));
-                    }
-                }
-                setTimeout(() => {
-                    meow.currentTime = 0;
-                    meow.play();
-                    document.getElementById('victoryMsg').innerText = `STEP：${document.getElementById('step-count').innerText} | TIME：${document.getElementById('timer').innerText}s`;
-                    document.getElementById('victoryModal').style.display = 'flex';
+                if (user) { let d = JSON.parse(localStorage.getItem(user)); if (d && (d.level || 1) < 10) { d.level = 10; localStorage.setItem(user, JSON.stringify(d)); } }
+                setTimeout(() => { 
+                    meow.currentTime = 0; meow.play(); 
+                    document.getElementById('victoryMsg').innerText = `STEP：${document.getElementById('step-count').innerText} | TIME：${document.getElementById('timer').innerText}s`; 
+                    document.getElementById('victoryModal').style.display = 'flex'; 
                 }, 600);
             }
         }
