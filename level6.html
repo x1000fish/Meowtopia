@@ -38,8 +38,9 @@
         #circuit-content-wrapper::-webkit-scrollbar { display: none; }
         #circuit-content { display: flex; height: 100%; padding: 0 10px; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#000,#000), linear-gradient(#000,#000), linear-gradient(#000,#000); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 30px, 0 70px, 0 110px; }
         .qubit-label { position: absolute; left: 18px; font-weight: 900; font-size: 16px; color: #000; }
-        .circuit-unit { min-width: 55px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; }
+        .circuit-unit { min-width: 55px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
         .circuit-unit:hover { background: rgba(239, 68, 68, 0.15); border-radius: 12px; }
+        .circuit-unit.selected { background: rgba(40, 180, 255, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #2a5cad; }
         .control-dot { width: 14px; height: 14px; background: #000; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: #000; left: 50%; transform: translateX(-50%); z-index: 3; }
         .circuit-target { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid #000; left: 50%; transform: translate(-50%, -50%); z-index: 15; }
@@ -126,38 +127,45 @@
         </div>
     </div>
     <script>
-        let steps = 0, 
-            time = 0, 
-            isPro = false, 
-            timerInterval, 
-            gateHistory = [], 
+        let steps = 0,
+            time = 0,
+            isPro = false,
+            timerInterval,
+            gateHistory = [],
+            historyStack = [[]],
+            selectedIndices = [],
             fishAtNode = [1, 0, 3, 2, 5, 7, 4, 6],
             isSolved = false;
-        const pop = new Audio('pop.m4a'), 
-            meow = new Audio('meow.m4a'), 
+        const pop = new Audio('pop.m4a'),
+            meow = new Audio('meow.m4a'),
             getDynamicOffset = () => parseInt(getComputedStyle(document.body).getPropertyValue('--cube-offset-x')) || 0;
         const nodePositions = [
-            { t: 150, get l() { return 135 + getDynamicOffset() } }, { t: 150, get l() { return 350 + getDynamicOffset() } },
-            { t: 330, get l() { return 135 + getDynamicOffset() } }, { t: 330, get l() { return 350 + getDynamicOffset() } },
-            { t: 20,  get l() { return -10 + getDynamicOffset() } }, { t: 20,  get l() { return 510 + getDynamicOffset() } },
-            { t: 460, get l() { return -10 + getDynamicOffset() } }, { t: 460, get l() { return 510 + getDynamicOffset() } }
+            { t: 150, get l() { return 135 + getDynamicOffset() } },
+            { t: 150, get l() { return 350 + getDynamicOffset() } },
+            { t: 330, get l() { return 135 + getDynamicOffset() } },
+            { t: 330, get l() { return 350 + getDynamicOffset() } },
+            { t: 20,  get l() { return -10 + getDynamicOffset() } },
+            { t: 20,  get l() { return 510 + getDynamicOffset() } },
+            { t: 460, get l() { return -10 + getDynamicOffset() } },
+            { t: 460, get l() { return 510 + getDynamicOffset() } }
         ];
         window.onload = () => {
-            initGameLayout(); 
-            drawStaticLines(); 
-            updateFishUI(); 
+            initGameLayout();
+            drawStaticLines();
+            updateFishUI();
             updateUndoStatus();
-            timerInterval = setInterval(() => { 
-                time++; 
-                document.getElementById('timer').innerText = time; 
+            timerInterval = setInterval(() => {
+                time++;
+                document.getElementById('timer').innerText = time;
             }, 1000);
-            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => { 
-                e.preventDefault(); 
-                e.currentTarget.scrollLeft += e.deltaY; 
+            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
+                e.preventDefault();
+                e.currentTarget.scrollLeft += e.deltaY;
             });
         };
         function initGameLayout() {
-            const nL = document.getElementById('nodes-layer'), fL = document.getElementById('fishes-layer');
+            const nL = document.getElementById('nodes-layer'),
+                fL = document.getElementById('fishes-layer');
             for (let i = 0; i < 8; i++) {
                 let bin = i.toString(2).padStart(3, '0');
                 nL.innerHTML += `<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px; left:${nodePositions[i].l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${i+1}.svg"></div>`;
@@ -165,17 +173,23 @@
             }
         }
         function drawStaticLines() {
-            const layer = document.getElementById('lines-layer'); 
+            const layer = document.getElementById('lines-layer');
             layer.innerHTML = '';
-            [[0,1],[1,3],[3,2],[2,0],[4,5],[5,7],[7,6],[6,4],[0,4],[1,5],[2,6],[3,7]].forEach(e => createLine(e[0], e[1]));
+            [[0, 1], [1, 3], [3, 2], [2, 0], [4, 5], [5, 7], [7, 6], [6, 4], [0, 4], [1, 5], [2, 6], [3, 7]].forEach(e => createLine(e[0], e[1]));
         }
         function createLine(i, j) {
-            const n1 = nodePositions[i], n2 = nodePositions[j], x1 = n1.l + 52, y1 = n1.t + 52, x2 = n2.l + 52, y2 = n2.t + 52;
-            const len = Math.sqrt((x2-x1)**2 + (y2-y1)**2), ang = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
-            const line = document.createElement('div'); 
+            const n1 = nodePositions[i],
+                n2 = nodePositions[j],
+                x1 = n1.l + 52,
+                y1 = n1.t + 52,
+                x2 = n2.l + 52,
+                y2 = n2.t + 52;
+            const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2),
+                ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+            const line = document.createElement('div');
             line.className = 'connection-line';
             line.style.cssText = `width:${len}px; height:4px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
-            line.onclick = () => swapNodes(i, j); 
+            line.onclick = () => swapNodes(i, j);
             document.getElementById('lines-layer').appendChild(line);
         }
         function swapNodes(idxA, idxB) {
@@ -184,43 +198,74 @@
             let target = (idxA ^ idxB === 4) ? 0 : (idxA ^ idxB === 2) ? 1 : 2;
             let ctrl = [0, 1, 2].filter(c => c !== target);
             let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
-            gateHistory.push(`TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}_SWAP_${idxA}_${idxB}`);
-            let temp = fishAtNode[idxA];
-            fishAtNode[idxA] = fishAtNode[idxB];
-            fishAtNode[idxB] = temp;
-            steps = gateHistory.length;
-            finishMove();
+            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}_SWAP_${idxA}_${idxB}`;
+            if(selectedIndices.length > 0) {
+                replaceLogic(gateStr);
+            } else {
+                gateHistory.push(gateStr);
+                historyStack.push([...gateHistory]);
+                let temp = fishAtNode[idxA];
+                fishAtNode[idxA] = fishAtNode[idxB];
+                fishAtNode[idxB] = temp;
+                steps = gateHistory.length;
+                finishMove();
+            }
         }
         function togglePro() {
-            isPro = !isPro; 
-            document.getElementById('body-root').classList.toggle('pro-active', isPro); 
+            isPro = !isPro;
+            document.getElementById('body-root').classList.toggle('pro-active', isPro);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
-            let start = Date.now(), loop = () => { 
-                updateNodePositionsUI(); 
-                drawStaticLines(); 
-                updateFishUI(); 
-                if (Date.now() - start < 600) requestAnimationFrame(loop); 
-            };
+            let start = Date.now(),
+                loop = () => {
+                    updateNodePositionsUI();
+                    drawStaticLines();
+                    updateFishUI();
+                    if (Date.now() - start < 600) requestAnimationFrame(loop);
+                };
             requestAnimationFrame(loop);
         }
         function updateNodePositionsUI() {
-            for (let i = 0; i < 8; i++) { 
-                let n = document.getElementById(`node-${i}`); 
-                if (n) { n.style.top = nodePositions[i].t + "px"; n.style.left = nodePositions[i].l + "px"; } 
+            for (let i = 0; i < 8; i++) {
+                let n = document.getElementById(`node-${i}`);
+                if (n) {
+                    n.style.top = nodePositions[i].t + "px";
+                    n.style.left = nodePositions[i].l + "px";
+                }
             }
         }
-        function applyGate(type) { 
+        function replaceLogic(newGate) {
+            let targetIdx = Math.min(...selectedIndices);
+            let newHistory = [];
+            for(let i=0; i<gateHistory.length; i++) {
+                if (i === targetIdx) {
+                    newHistory.push(newGate);
+                } else if (!selectedIndices.includes(i)) {
+                    newHistory.push(gateHistory[i]);
+                }
+            }
+            gateHistory = newHistory;
+            selectedIndices = [];
+            historyStack.push([...gateHistory]);
+            recalculate();
+        }
+        function applyGate(type) {
             if (isSolved) return;
-            executeLogic(type); 
-            gateHistory.push(type); 
-            steps = gateHistory.length; 
-            finishMove(); 
+            pop.currentTime = 0; pop.play();
+            if (selectedIndices.length > 0) {
+                replaceLogic(type);
+            } else {
+                executeLogic(type);
+                gateHistory.push(type);
+                historyStack.push([...gateHistory]);
+                steps = gateHistory.length;
+                finishMove();
+            }
         }
         function executeLogic(type) {
-            pop.currentTime = 0;
-            pop.play();
             if (type.includes('_SWAP_')) {
-                let p = type.split('_'), iA = parseInt(p[2]), iB = parseInt(p[3]);
+                let p = type.split('_'),
+                    iA = parseInt(p[2]),
+                    iB = parseInt(p[3]);
                 let temp = fishAtNode[iA];
                 fishAtNode[iA] = fishAtNode[iB];
                 fishAtNode[iB] = temp;
@@ -228,24 +273,32 @@
             }
             let pm = Array.from({ length: 8 }, (_, p) => {
                 let b = p.toString(2).padStart(3, '0').split('').map(Number);
-                if (type === 'X0') b[0] ^= 1; else if (type === 'X1') b[1] ^= 1; else if (type === 'X2') b[2] ^= 1;
-                else if (type === 'CX01' && b[0]) b[1] ^= 1; else if (type === 'CX10' && b[1]) b[0] ^= 1;
-                else if (type === 'CX02' && b[0]) b[2] ^= 1; else if (type === 'CX20' && b[2]) b[0] ^= 1;
-                else if (type === 'CX12' && b[1]) b[2] ^= 1; else if (type === 'CX21' && b[2]) b[1] ^= 1;
-                else if (type === 'C0X01' && !b[0]) b[1] ^= 1; else if (type === 'C0X10' && !b[1]) b[0] ^= 1;
-                else if (type === 'C0X02' && !b[0]) b[2] ^= 1; else if (type === 'C0X20' && !b[2]) b[0] ^= 1;
-                else if (type === 'C0X12' && !b[1]) b[2] ^= 1; else if (type === 'C0X21' && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF012' && b[0] && b[1]) b[2] ^= 1; 
+                if (type === 'X0') b[0] ^= 1;
+                else if (type === 'X1') b[1] ^= 1;
+                else if (type === 'X2') b[2] ^= 1;
+                else if (type === 'CX01' && b[0]) b[1] ^= 1;
+                else if (type === 'CX10' && b[1]) b[0] ^= 1;
+                else if (type === 'CX02' && b[0]) b[2] ^= 1;
+                else if (type === 'CX20' && b[2]) b[0] ^= 1;
+                else if (type === 'CX12' && b[1]) b[2] ^= 1;
+                else if (type === 'CX21' && b[2]) b[1] ^= 1;
+                else if (type === 'C0X01' && !b[0]) b[1] ^= 1;
+                else if (type === 'C0X10' && !b[1]) b[0] ^= 1;
+                else if (type === 'C0X02' && !b[0]) b[2] ^= 1;
+                else if (type === 'C0X20' && !b[2]) b[0] ^= 1;
+                else if (type === 'C0X12' && !b[1]) b[2] ^= 1;
+                else if (type === 'C0X21' && !b[2]) b[1] ^= 1;
+                else if (type === 'TOF012' && b[0] && b[1]) b[2] ^= 1;
                 else if (type === 'TOF0p1p2' && !b[0] && !b[1]) b[2] ^= 1;
-                else if (type === 'TOF0p12' && !b[0] && b[1]) b[2] ^= 1; 
+                else if (type === 'TOF0p12' && !b[0] && b[1]) b[2] ^= 1;
                 else if (type === 'TOF01p2' && b[0] && !b[1]) b[2] ^= 1;
-                else if (type === 'TOF021' && b[0] && b[2]) b[1] ^= 1; 
+                else if (type === 'TOF021' && b[0] && b[2]) b[1] ^= 1;
                 else if (type === 'TOF0p2p1' && !b[0] && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF0p21' && !b[0] && b[2]) b[1] ^= 1; 
+                else if (type === 'TOF0p21' && !b[0] && b[2]) b[1] ^= 1;
                 else if (type === 'TOF02p1' && b[0] && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF120' && b[1] && b[2]) b[0] ^= 1; 
+                else if (type === 'TOF120' && b[1] && b[2]) b[0] ^= 1;
                 else if (type === 'TOF1p2p0' && !b[1] && !b[2]) b[0] ^= 1;
-                else if (type === 'TOF1p20' && !b[1] && b[2]) b[0] ^= 1; 
+                else if (type === 'TOF1p20' && !b[1] && b[2]) b[0] ^= 1;
                 else if (type === 'TOF12p0' && b[1] && !b[2]) b[0] ^= 1;
                 return parseInt(b.join(''), 2);
             });
@@ -256,85 +309,151 @@
             }
             fishAtNode = newFishAtNode;
         }
-        function recalculate() { 
-            fishAtNode = [1, 0, 3, 2, 5, 7, 4, 6]; 
-            let h = [...gateHistory]; 
-            gateHistory = []; 
-            h.forEach(g => { executeLogic(g); gateHistory.push(g); }); 
-            steps = gateHistory.length; 
-            finishMove(); 
+        function recalculate() {
+            fishAtNode = [1, 0, 3, 2, 5, 7, 4, 6];
+            let h = [...gateHistory];
+            gateHistory = [];
+            h.forEach(g => {
+                executeLogic(g);
+                gateHistory.push(g);
+            });
+            steps = gateHistory.length;
+            finishMove();
         }
-        function finishMove() { 
-            document.getElementById('step-count').innerText = steps; 
-            updateFishUI(); 
-            renderCircuit(); 
-            checkWin(); 
+        function finishMove() {
+            document.getElementById('step-count').innerText = steps;
+            updateFishUI();
+            renderCircuit();
+            checkWin();
         }
-        function updateFishUI() { 
-            for (let nI = 0; nI < 8; nI++) { 
-                const fI = fishAtNode[nI], f = document.getElementById(`fish-${fI}`), n = nodePositions[nI]; 
-                if (f && n) { f.style.top = (n.t + 78) + "px"; f.style.left = (n.l + 22) + "px"; } 
-            } 
+        function updateFishUI() {
+            for (let nI = 0; nI < 8; nI++) {
+                const fI = fishAtNode[nI],
+                    f = document.getElementById(`fish-${fI}`),
+                    n = nodePositions[nI];
+                if (f && n) {
+                    f.style.top = (n.t + 78) + "px";
+                    f.style.left = (n.l + 22) + "px";
+                }
+            }
         }
         function renderCircuit() {
-            const c = document.getElementById('circuit-content'); 
+            const c = document.getElementById('circuit-content');
             c.innerHTML = '';
             gateHistory.forEach((g, idx) => {
-                const u = document.createElement('div'); 
-                u.className = 'circuit-unit'; 
-                u.onclick = () => { 
+                const u = document.createElement('div');
+                u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                u.onclick = (e) => {
                     if (isSolved) return;
-                    pop.currentTime = 0; pop.play(); gateHistory.splice(idx, 1); recalculate(); 
+                    pop.currentTime = 0; pop.play();
+                    if (e.ctrlKey) {
+                        if (selectedIndices.includes(idx)) {
+                            selectedIndices = selectedIndices.filter(i => i !== idx);
+                        } else {
+                            selectedIndices.push(idx);
+                        }
+                        renderCircuit();
+                    } else {
+                        selectedIndices = [];
+                        gateHistory.splice(idx, 1);
+                        historyStack.push([...gateHistory]);
+                        recalculate();
+                    }
                 };
-                let ctrl = [], target = -1, zero = [];
+                let ctrl = [],
+                    target = -1,
+                    zero = [];
                 if (g.startsWith('X')) target = parseInt(g[1]);
-                else if (g.startsWith('CX')) { ctrl = [parseInt(g[2])]; target = parseInt(g[3]); }
-                else if (g.startsWith('C0X')) { ctrl = [parseInt(g[3])]; target = parseInt(g[4]); zero = [parseInt(g[3])]; }
-                else if (g.startsWith('TOF')) {
-                    let s = g.split('_')[0].replace('TOF',''), parts = [];
-                    for(let i=0; i<s.length; i++) { if(s[i+1]==='p') { parts.push({v:parseInt(s[i]), p:true}); i++; } else parts.push({v:parseInt(s[i]), p:false}); }
-                    target = parts.pop().v; parts.forEach(p => { ctrl.push(p.v); if(p.p) zero.push(p.v); });
+                else if (g.startsWith('CX')) {
+                    ctrl = [parseInt(g[2])];
+                    target = parseInt(g[3]);
+                } else if (g.startsWith('C0X')) {
+                    ctrl = [parseInt(g[3])];
+                    target = parseInt(g[4]);
+                    zero = [parseInt(g[3])];
+                } else if (g.startsWith('TOF')) {
+                    let s = g.split('_')[0].replace('TOF', ''),
+                        parts = [];
+                    for (let i = 0; i < s.length; i++) {
+                        if (s[i + 1] === 'p') {
+                            parts.push({ v: parseInt(s[i]), p: true });
+                            i++;
+                        } else parts.push({ v: parseInt(s[i]), p: false });
+                    }
+                    target = parts.pop().v;
+                    parts.forEach(p => {
+                        ctrl.push(p.v);
+                        if (p.p) zero.push(p.v);
+                    });
                 }
-                if(ctrl.length > 0) {
-                    let min = Math.min(...ctrl, target), max = Math.max(...ctrl, target);
-                    const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.cssText = `top:${30+min*40}px; height:${(max-min)*40}px;`; u.appendChild(v);
-                    ctrl.forEach(cl => { const d = document.createElement('div'); d.className = 'control-dot'; d.style.top = (24+cl*40)+'px'; if(zero.includes(cl)) { d.style.background='#fff'; d.style.border='2.5px solid #000'; } u.appendChild(d); });
+                if (ctrl.length > 0) {
+                    let min = Math.min(...ctrl, target),
+                        max = Math.max(...ctrl, target);
+                    const v = document.createElement('div');
+                    v.className = 'connection-v-line';
+                    v.style.cssText = `top:${30+min*40}px; height:${(max-min)*40}px;`;
+                    u.appendChild(v);
+                    ctrl.forEach(cl => {
+                        const d = document.createElement('div');
+                        d.className = 'control-dot';
+                        d.style.top = (24 + cl * 40) + 'px';
+                        if (zero.includes(cl)) {
+                            d.style.background = '#fff';
+                            d.style.border = '2.5px solid #000';
+                        }
+                        u.appendChild(d);
+                    });
                 }
-                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.top = (31+target*40)+'px'; u.appendChild(t); c.appendChild(u);
+                const t = document.createElement('div');
+                t.className = 'circuit-target';
+                t.style.top = (29 + target * 40) + 'px';
+                u.appendChild(t);
+                c.appendChild(u);
             });
-            updateUndoStatus(); 
-            const w = document.getElementById('circuit-content-wrapper'); 
-            setTimeout(() => w && w.scrollTo({left: w.scrollWidth, behavior:'smooth'}), 100);
+            updateUndoStatus();
+            const w = document.getElementById('circuit-content-wrapper');
+            setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
         }
-        function undo() { 
+        function undo() {
+            if (isSolved || historyStack.length <= 1) return;
+            pop.currentTime = 0; pop.play();
+            historyStack.pop();
+            gateHistory = [...historyStack[historyStack.length - 1]];
+            selectedIndices = [];
+            recalculate();
+        }
+        function resetCircuit() {
             if (isSolved) return;
-            if (gateHistory.length > 0) { pop.currentTime = 0; pop.play(); gateHistory.pop(); recalculate(); } 
+            pop.currentTime = 0; pop.play();
+            gateHistory = [];
+            historyStack = [[]];
+            selectedIndices = [];
+            recalculate();
         }
-        function resetCircuit() { 
-            if (isSolved) return;
-            pop.currentTime = 0; pop.play(); gateHistory = []; recalculate(); 
-        }
-        function updateUndoStatus() { 
-            const ub = document.getElementById('undo-btn'); 
-            const canUndo = gateHistory.length > 0 && !isSolved;
-            ub.classList.toggle('active', canUndo); 
-            ub.style.pointerEvents = canUndo ? "auto" : "none"; 
+        function updateUndoStatus() {
+            const ub = document.getElementById('undo-btn'); if(!ub) return;
+            if(historyStack.length > 1 && !isSolved){ ub.classList.add('active'); ub.style.pointerEvents="auto"; } 
+            else { ub.classList.remove('active'); ub.style.pointerEvents="none"; }
         }
         function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true;
-                if (timerInterval) clearInterval(timerInterval);
+                selectedIndices = [];
                 updateUndoStatus();
+                if (timerInterval) clearInterval(timerInterval);
                 const user = sessionStorage.getItem('currentUser');
-                if (user) { 
-                    let d = JSON.parse(localStorage.getItem(user)); 
-                    if (d && (d.level || 1) < 7) { d.level = 7; localStorage.setItem(user, JSON.stringify(d)); } 
+                if (user) {
+                    let d = JSON.parse(localStorage.getItem(user));
+                    if (d && (d.level || 1) < 7) {
+                        d.level = 6;
+                        localStorage.setItem(user, JSON.stringify(d));
+                    }
                 }
-                setTimeout(() => { 
-                    meow.currentTime = 0; 
-                    meow.play(); 
-                    document.getElementById('victoryMsg').innerText = `STEP：${document.getElementById('step-count').innerText} | TIME：${document.getElementById('timer').innerText}s`; 
-                    document.getElementById('victoryModal').style.display = 'flex'; 
+                setTimeout(() => {
+                    meow.currentTime = 0;
+                    meow.play();
+                    document.getElementById('victoryMsg').innerText = `STEP：${document.getElementById('step-count').innerText} | TIME：${document.getElementById('timer').innerText}s`;
+                    document.getElementById('victoryModal').style.display = 'flex';
                 }, 600);
             }
         }
