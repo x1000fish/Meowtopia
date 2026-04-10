@@ -52,6 +52,7 @@
         .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #000; z-index: 5; }
         .circuit-unit { min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
         .circuit-unit:hover { background: rgba(239, 68, 68, 0.2); border-radius: 12px; }
+        .circuit-unit.selected-gate { background: rgba(40, 180, 255, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #2a5cad; }
         .control-dot { width: 14px; height: 14px; background: black; border-radius: 50%; position: absolute; z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: black; z-index: 3; }
         .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid #000; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
@@ -135,10 +136,13 @@
             <p id="victoryMsg" class="text-xl font-bold mb-6"></p>
             <button onclick="location.href='index.html'" class="game-btn btn-green w-full mb-4">KEEP GOING</button>
             <button onclick="document.getElementById('victoryModal').style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
+        </div>
     </div>
     <script>
         let steps = 0, time = 0, isPro = false, fishAtNode = [0, 1, 3, 2], gateHistory = [], tutorialPhase = 0, tutorialCompleted = false, timerInterval;
         let isGameOver = false;
+        let actionStack = []; 
+        let selectedIndices = []; 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => { timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000); updateFishUI(); updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper'); w.addEventListener('wheel', (e) => { e.preventDefault(); w.scrollLeft += e.deltaY; }); };
         function togglePro() {
@@ -178,47 +182,131 @@
             if (isGameOver) return;
             if (g === 'X0' || g === 'X1') return;
             const ph = { 1: { g: 'C0X01', n: 1.5 }, 2: { g: 'CX01', n: 2.5 }, 4: { g: 'CX10', n: 4.5 }, 6: { g: 'C0X10', n: 6.5 }, 7: { g: 'CX10', n: 7.5 } };
-            if (ph[tutorialPhase] && g === ph[tutorialPhase].g) { const cp = tutorialPhase; tutorialPhase = ph[cp].n; updateTutorialUI(); setTimeout(() => executeGateLogic(g), 800); return; }
-            executeGateLogic(g); if (isPro && !tutorialCompleted) updateTutorialUI();
+            if (ph[tutorialPhase] && g === ph[tutorialPhase].g) { 
+                const cp = tutorialPhase; tutorialPhase = ph[cp].n; updateTutorialUI(); 
+                setTimeout(() => {
+                    executeGateLogic(g);
+                    actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
+                }, 800); 
+                return; 
+            }
+            if (selectedIndices.length > 0) {
+                pop.currentTime = 0; pop.play();
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0];
+                const count = selectedIndices.length;
+                const oldGates = gateHistory.slice(start, start + count);
+                gateHistory.splice(start, count, g);
+                actionStack.push({ type: 'replace', index: start, oldGates: oldGates, newGate: g });
+                selectedIndices = [];
+                recalculatePositions();
+                finishMove();
+            } else {
+                executeGateLogic(g);
+                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
+                if (isPro && !tutorialCompleted) updateTutorialUI();
+            }
         }
         function executeGateLogic(g) {
             pop.currentTime = 0; pop.play();
-            const getMap = (gate) => [0, 1, 2, 3].map(p => { let q0 = Math.floor(p/2), q1 = p%2; if (gate === 'X0') q0 = 1-q0; else if (gate === 'X1') q1 = 1-q1; else if (gate === 'CX01' && q0 === 1) q1 = 1-q1; else if (gate === 'C0X01' && q0 === 0) q1 = 1-q1; else if (gate === 'CX10' && q1 === 1) q0 = 1-q0; else if (gate === 'C0X10' && q1 === 0) q0 = 1-q0; return q0*2 + q1; });
-            const pm = getMap(g); fishAtNode = fishAtNode.map(cp => pm[cp]); gateHistory.push(g); steps = gateHistory.length; finishMove();
+            const pm = [0, 1, 2, 3].map(p => { 
+                let q0 = Math.floor(p/2), q1 = p%2; 
+                if (g === 'X0') q0 = 1-q0; 
+                else if (g === 'X1') q1 = 1-q1; 
+                else if (g === 'CX01' && q0 === 1) q1 = 1-q1; 
+                else if (g === 'C0X01' && q0 === 0) q1 = 1-q1; 
+                else if (g === 'CX10' && q1 === 1) q0 = 1-q0; 
+                else if (g === 'C0X10' && q1 === 0) q0 = 1-q0; 
+                return q0*2 + q1; 
+            });
+            fishAtNode = fishAtNode.map(cp => pm[cp]); 
+            gateHistory.push(g); 
+            steps = gateHistory.length; 
+            finishMove();
         }
         function recalculatePositions() {
-            let cp = [0, 1, 3, 2]; gateHistory.forEach(g => { const pm = [0, 1, 2, 3].map(p => { let q0 = Math.floor(p/2), q1 = p%2; if (g === 'X0') q0 = 1-q0; else if (g === 'X1') q1 = 1-q1; else if (g === 'CX01' && q0 === 1) q1 = 1-q1; else if (g === 'C0X01' && q0 === 0) q1 = 1-q1; else if (g === 'CX10' && q1 === 1) q0 = 1-q0; else if (g === 'C0X10' && q1 === 0) q0 = 1-q0; return q0*2 + q1; }); cp = cp.map(p => pm[p]); });
-            fishAtNode = cp; steps = gateHistory.length;
+            let cp = [0, 1, 3, 2]; 
+            gateHistory.forEach(g => { 
+                const pm = [0, 1, 2, 3].map(p => { 
+                    let q0 = Math.floor(p/2), q1 = p%2; 
+                    if (g === 'X0') q0 = 1-q0; 
+                    else if (g === 'X1') q1 = 1-q1; 
+                    else if (g === 'CX01' && q0 === 1) q1 = 1-q1; 
+                    else if (g === 'C0X01' && q0 === 0) q1 = 1-q1; 
+                    else if (g === 'CX10' && q1 === 1) q0 = 1-q0; 
+                    else if (g === 'C0X10' && q1 === 0) q0 = 1-q0; 
+                    return q0*2 + q1; 
+                }); 
+                cp = cp.map(p => pm[p]); 
+            });
+            fishAtNode = cp; 
+            steps = gateHistory.length;
         }
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
         function updateFishUI() { for (let i = 0; i < 4; i++) { const f = document.getElementById(`fish-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`); if (f && n) { f.style.top = (n.offsetTop + 90) + "px"; f.style.left = (n.offsetLeft + 30) + "px"; } } }
         function renderCircuit() {
             const c = document.getElementById('circuit-content'); c.innerHTML = '';
             gateHistory.forEach((g, idx) => {
-                const u = document.createElement('div'); u.className = 'circuit-unit'; u.onclick = () => deleteGate(idx);
+                const u = document.createElement('div'); 
+                u.className = 'circuit-unit';
+                if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
+                u.onclick = (e) => { 
+                    if (isGameOver) return;
+                    if (e.ctrlKey || e.metaKey) {
+                        const sIdx = selectedIndices.indexOf(idx);
+                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
+                        else selectedIndices.push(idx);
+                        renderCircuit();
+                    } else {
+                        pop.currentTime = 0; pop.play(); 
+                        const removed = gateHistory[idx];
+                        actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
+                        gateHistory.splice(idx, 1); 
+                        selectedIndices = [];
+                        recalculatePositions(); 
+                        if (tutorialPhase === 8) tutorialPhase = 100; 
+                        finishMove(); 
+                        if (isPro && !tutorialCompleted) updateTutorialUI(); 
+                    }
+                };
                 const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01 ? 20 : 60, tY = is01 ? 60 : 20;
                 const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY, tY) + 'px'; v.style.height = '41px'; u.appendChild(v);
                 const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY - 7) + 'px'; if (is0) { d.style.background = 'white'; d.style.border = '2.5px solid black'; } u.appendChild(d);
-                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t); c.appendChild(u);
+                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t); 
+                c.appendChild(u);
             });
-            updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper'); setTimeout(() => w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
+            updateUndoStatus(); 
+            const w = document.getElementById('circuit-content-wrapper'); 
+            if (selectedIndices.length === 0) {
+                setTimeout(() => w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
+            }
         }
         function undo() { 
-            if (isGameOver) return;
-            pop.currentTime = 0; pop.play(); if (gateHistory.length > 0) { gateHistory.pop(); recalculatePositions(); if (tutorialPhase === 3) tutorialPhase = 4; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); } 
+            if (isGameOver || actionStack.length === 0) return;
+            pop.currentTime = 0; pop.play();
+            
+            const action = actionStack.pop();
+            if (action.type === 'add') {
+                gateHistory.splice(action.index, 1);
+            } else if (action.type === 'delete') {
+                gateHistory.splice(action.index, 0, ...action.oldGates);
+            } else if (action.type === 'replace') {
+                gateHistory.splice(action.index, 1, ...action.oldGates);
+            }
+            recalculatePositions();
+            if (tutorialPhase === 3) tutorialPhase = 4;
+            selectedIndices = [];
+            finishMove();
+            if (isPro && !tutorialCompleted) updateTutorialUI();
         }
         function resetCircuit() { 
             if (isGameOver) return;
-            pop.currentTime = 0; pop.play(); fishAtNode = [0, 1, 3, 2]; gateHistory = []; steps = 0; if (tutorialPhase === 5) tutorialPhase = 6; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
-        }
-        function deleteGate(idx) { 
-            if (isGameOver) return;
-            pop.currentTime = 0; pop.play(); gateHistory.splice(idx, 1); recalculatePositions(); if (tutorialPhase === 8) tutorialPhase = 100; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
+            pop.currentTime = 0; pop.play(); fishAtNode = [0, 1, 3, 2]; gateHistory = []; actionStack = []; selectedIndices = []; steps = 0; if (tutorialPhase === 5) tutorialPhase = 6; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
         }
         function updateUndoStatus() { 
             const ub = document.getElementById('undo-btn'); 
             if (!ub) return; 
-            if (gateHistory.length > 0 && !isGameOver) { 
+            if (actionStack.length > 0 && !isGameOver) { 
                 ub.classList.add('active'); 
                 ub.classList.remove('disabled'); 
                 ub.style.pointerEvents = "auto"; 
