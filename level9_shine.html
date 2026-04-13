@@ -65,85 +65,58 @@
         .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #000; }
         #gate-scroll-area { margin-top: 5px; max-height: 420px; overflow-y: auto; width: 100%; padding: 5px; scrollbar-width: none; }
 
-        /* ── Gate Picker Popup ── */
-        #gate-picker {
+        /* ── Wheel Selector ── */
+        #wheel-selector{
             position: fixed;
-            z-index: 999;
             display: none;
-            flex-direction: column;
-            gap: 5px;
+            align-items: center;
+            justify-content: center;
+            gap: -20px;
+            pointer-events: none;
+            z-index: 999;
+            transform: translate(-50%, -50%);
+        }
+
+        #wheel-selector.visible{
+            display: flex;
+        }
+
+        .wheel-option{
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             background: #fff;
             border: 4px solid #000;
-            border-radius: 20px;
-            padding: 10px 12px;
-            box-shadow: 4px 6px 0 #000;
-            min-width: 160px;
-            pointer-events: auto;
-        }
-        #gate-picker.visible { display: flex; }
-        .picker-title {
-            font-size: 11px;
-            font-weight: 900;
-            color: #666;
-            text-align: center;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 4px;
-        }
-        .picker-btn {
-            background: #f0f0f0;
-            border: 2.5px solid #000;
-            border-radius: 14px;
-            padding: 6px 10px;
-            font-weight: 800;
-            font-size: 12px;
             color: #000;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.1s;
-            white-space: nowrap;
+            font-size: 24px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 0 #000;
+            transition:
+                transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.18s ease,
+                box-shadow 0.18s ease,
+                opacity 0.18s ease;
+            transform: scale(0.5);
+            opacity: 0.55;
         }
-        .picker-btn:hover { background: #ffc822; transform: translateX(3px); box-shadow: 2px 2px 0 #000; }
-        .picker-btn.tof  { border-left: 4px solid #7c3aed; }
-        .picker-btn.cnot { border-left: 4px solid #2563eb; }
-        .picker-btn.x    { border-left: 4px solid #16a34a; }
 
-        /* Mode hint badge shown inside canvas on hover */
-        .mode-hint {
-            position: absolute;
-            bottom: 12px; left: 50%; transform: translateX(-50%);
-            background: #000; color: #fff;
-            border-radius: 20px; padding: 4px 14px;
-            font-size: 12px; font-weight: 900;
-            pointer-events: none; opacity: 0;
-            transition: opacity 0.2s;
-            white-space: nowrap; z-index: 100;
+        .wheel-option.active{
+            background: #ffc822;
+            transform: scale(1.15);
+            box-shadow: 0 0 18px rgba(251,191,36,0.9), 0 4px 0 #000;
+            opacity: 1;
         }
-        .game-canvas:hover .mode-hint { opacity: 1; }
     </style>
 </head>
 <body id="body-root">
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
-    <div id="wheel-indicator" style="
-        position:absolute;
-        top:65%;
-        left:60%;
-        transform:translate(-50%,-50%);
-        font-size:80px;
-        font-weight:900;
-        color:#ffc822;
-        text-shadow:3px 3px 0 #000;
-        pointer-events:none;
-        opacity:0;
-        transition:0.2s;
-        z-index:200;
-    "></div>
-    <!-- Gate Picker Popup -->
-    <div id="gate-picker">
-        <div class="picker-title" id="picker-title">Choose Gate</div>
-        <div id="picker-options"></div>
+    <div id="wheel-selector">
+        <div class="wheel-option" data-slot="0">1</div>
+        <div class="wheel-option" data-slot="1">2</div>
+        <div class="wheel-option" data-slot="2">3</div>
     </div>
 
     <div class="w-full max-w-6xl">
@@ -166,7 +139,6 @@
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
-                <div class="mode-hint" id="mode-hint"></div>
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
@@ -200,8 +172,10 @@
     let fishAtNode = [8,9,10,11,12,13,14,15, 0,1,2,3,4,5,6,7];
     let lineMode = 1;
     let hoverLine = null;   // 當前滑鼠在線
-    let currentOptionIndex = 0; // 0,1,2
-    let currentOptions = [];
+    let wheelOptions = [];
+    let wheelIndex = 0;
+    let wheelMouseX = 0;
+    let wheelMouseY = 0;
 
     const pop  = new Audio('pop.m4a');
     const meow = new Audio('meow.m4a');
@@ -225,60 +199,33 @@
         drawStaticLines();
         updateFishUI();
         updateUndoStatus();
-        updateModeHint();
-        timerInterval = setInterval(()=>{time++; document.getElementById('timer').innerText=time;},1000);
-        document.getElementById('circuit-content-wrapper').addEventListener('wheel',e=>{e.preventDefault(); e.currentTarget.scrollLeft+=e.deltaY;});
-        // Close picker on outside click
-        document.addEventListener('click', e=>{
-            const picker = document.getElementById('gate-picker');
-            if(!picker.contains(e.target) && !e.target.classList.contains('connection-line')){
-                hidePicker();
-            }
-        });
-        document.addEventListener('wheel', (e) => {
-            if (!hoverLine) return;
+
+        timerInterval = setInterval(()=>{
+            time++;
+            document.getElementById('timer').innerText=time;
+        },1000);
+
+        document.getElementById('circuit-content-wrapper').addEventListener('wheel',e=>{
             e.preventDefault();
-            if (e.deltaY > 0) {
-                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-            } else {
-                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+            e.currentTarget.scrollLeft+=e.deltaY;
+        });
+
+        document.addEventListener('wheel', e => {
+            if(!hoverLine || wheelOptions.length === 0) return;
+            e.preventDefault();
+            rotateWheelSelector(e.deltaY > 0 ? 1 : -1);
+        }, { passive: false });
+
+        document.addEventListener('click', e => {
+            if(!e.target.classList.contains('connection-line')){
+                hoverLine = null;
+                hideWheelSelector();
             }
-            showWheelIndicator();
         });
     };
 
-    
-    const modeHints = {
-        1: '✋ Mode 1 — Click line to SWAP two nodes',
-        2: '🟣 Mode 2 — Click line to pick a Toffoli gate',
-        4: '🔵 Mode 4 — Click line to pick a CNOT gate',
-        8: '🟢 Mode 8 — Click line to apply X gate',
-    };
-    function showWheelIndicator(){
-        const el = document.getElementById('wheel-indicator');
-        el.innerText = currentOptionIndex + 1;
-        el.style.opacity = 1;
-
-        // 同時高亮對應線
-        clearHighlight();
-        const opt = currentOptions[currentOptionIndex];
-        if(opt) highlightPairs(opt.highlightPairs);
-    }
-    function hideWheelIndicator(){
-        const el = document.getElementById('wheel-indicator');
-        el.style.opacity = 0;
-        clearHighlight();
-    }
-    function confirmCurrentSelection(){
-        if(!hoverLine || currentOptions.length===0) return;
-        const opt = currentOptions[currentOptionIndex];
-        if(opt){
-            applyGate(opt.gateType);
-        }
-        hideWheelIndicator();
-    }
     function cycleLineMode(){
-        hidePicker();
+        hideWheelSelector();
         if(lineMode===1) lineMode=2;
         else if(lineMode===2) lineMode=4;
         else if(lineMode===4) lineMode=8;
@@ -287,13 +234,7 @@
         btn.innerText=`Mode: ${lineMode}`;
         btn.className=`multi-toggle-btn mode-${lineMode}`;
         pop.currentTime=0; pop.play();
-        updateModeHint();
     }
-
-    function updateModeHint(){
-        document.getElementById('mode-hint').innerText = modeHints[lineMode]||'';
-    }
-
 
     function buildGateOptions(i, j, dim){
         const targetQ = 3 - dim;
@@ -359,7 +300,75 @@
         for(let k=0;k<16;k++) if((k&bit)===0) pairs.push([k,k^bit]);
         return pairs;
     }
+    function showWheelSelector(x, y, options){
+        if(!options || options.length === 0) return;
 
+        wheelMouseX = x;
+        wheelMouseY = y;
+        wheelOptions = options;
+        wheelIndex = 0;
+
+        const selector = document.getElementById('wheel-selector');
+        selector.style.left = `${x}px`;
+        selector.style.top = `${y}px`;
+        selector.classList.add('visible');
+
+        renderWheelSelector();
+    }
+
+    function hideWheelSelector(){
+        const selector = document.getElementById('wheel-selector');
+        selector.classList.remove('visible');
+        wheelOptions = [];
+        wheelIndex = 0;
+        clearHighlight();
+    }
+
+    function rotateWheelSelector(dir){
+        if(!wheelOptions || wheelOptions.length === 0) return;
+        if(dir > 0){
+            wheelIndex = (wheelIndex + 1) % wheelOptions.length;
+        }else{
+            wheelIndex = (wheelIndex - 1 + wheelOptions.length) % wheelOptions.length;
+        }
+        renderWheelSelector();
+    }
+
+    function renderWheelSelector(){
+        const selector = document.getElementById('wheel-selector');
+        const nodes = selector.querySelectorAll('.wheel-option');
+        if(!nodes.length || wheelOptions.length === 0) return;
+
+        clearHighlight();
+
+        nodes.forEach((node, visualSlot) => {
+            node.textContent = visualSlot + 1;
+            node.className = 'wheel-option';
+
+            if (visualSlot === wheelIndex) {
+                node.classList.add('active');
+
+                const opt = wheelOptions[visualSlot];
+                if (opt && opt.highlightPairs) {
+                    highlightPairs(opt.highlightPairs);
+                }
+            }
+        });
+
+        selector.style.transform = 'translate(-50%, -50%) scale(1.05)';
+        setTimeout(() => {
+            selector.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 120);
+    }
+
+    function confirmWheelSelection(){
+        if(!wheelOptions || wheelOptions.length === 0) return;
+        const selected = wheelOptions[wheelIndex];
+        if(selected){
+            hideWheelSelector();
+            applyGate(selected.gateType);
+        }
+    }
    
     function highlightPairs(pairs){
         clearHighlight();
@@ -372,17 +381,6 @@
     function clearHighlight(){
         document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight'));
     }
-   
-    let pickerPendingI=null, pickerPendingJ=null, pickerPendingDim=null;
-
-    function hidePicker(){
-        const picker=document.getElementById('gate-picker');
-        picker.classList.remove('visible');
-        picker.style.display='none';
-        pickerPendingI=pickerPendingJ=pickerPendingDim=null;
-    }
-
-   
    
     function getModePairs(i, j, dim){
         const bit=1<<dim;
@@ -460,57 +458,80 @@
         const x1=n1.l+45, y1=n1.t+45, x2=n2.l+45, y2=n2.t+45;
         const len=Math.sqrt((x2-x1)**2+(y2-y1)**2);
         const ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
+
         const line=document.createElement('div');
         line.className='connection-line';
         line.id=`line-${Math.min(i,j)}-${Math.max(i,j)}`;
         line.style.cssText=`width:${len}px;left:${x1}px;top:${y1}px;transform:rotate(${ang}deg);transform-origin:0 50%;`;
+
         if(dim===3){
-            line.style.height='8px';  // keep clickable
+            line.style.height='8px';
             line.style.background='transparent';
             line.style.borderTop='3px dashed #000';
             line.style.opacity='0.4';
         } else {
-            line.style.height='3px'; line.style.background='#000';
+            line.style.height='3px';
+            line.style.background='#000';
         }
 
-        line.onmouseenter=()=>{
-            if(lineMode===1) return;
-            highlightPairs(getModePairs(i,j,dim));
-        };
-        line.onmouseleave=()=>{ if(lineMode!==1) clearHighlight(); };
-        line.onclick=(e)=>{
-            e.stopPropagation();
-            confirmCurrentSelection();
-        };
-        line.onmouseenter = () => {
-            hoverLine = {i,j,dim};
-            currentOptions = buildGateOptions(i,j,dim);
-            currentOptionIndex = 0;
-            showWheelIndicator();
+        line.onmouseenter = (e) => {
+            if(isSolved) return;
+            hoverLine = { i, j, dim };
+
+            if(lineMode === 1){
+                clearHighlight();
+                highlightPairs([[Math.min(i,j), Math.max(i,j)]]);
+                return;
+            }
+
+            if(lineMode === 8){
+                highlightPairs(getAllPairs(dim));
+                return;
+            }
+
+            const options = buildGateOptions(i, j, dim);
+            showWheelSelector(e.clientX, e.clientY, options);
         };
 
         line.onmouseleave = () => {
-            hoverLine = null;
-            hideWheelIndicator();
+            if(lineMode === 1 || lineMode === 8){
+                clearHighlight();
+            }
+            // 這裡先不 hide，讓玩家可以停留後滾輪再點
         };
+
+        line.onclick = (e) => {
+            e.stopPropagation();
+            handleLineClick(i, j, dim);
+        };
+
         document.getElementById('lines-layer').appendChild(line);
     }
-
   
-    function handleLineClick(e, i, j, dim){
+    function handleLineClick(i, j, dim){
         if(isSolved) return;
-        hidePicker();
 
-        if(lineMode===1){
-            // Direct swap — no picker needed
+        if(lineMode === 1){
+            hideWheelSelector();
             applyGate(`SWAP_${i}_${j}`);
-        } else if(lineMode===8){
-            // X gate — only one choice, apply immediately
-            applyGate(`X${3-dim}`);
-        } else {
-            // Mode 2 or 4 — show picker so player chooses the exact gate
-            showPicker(e.clientX, e.clientY, i, j, dim);
+            return;
         }
+
+        if(lineMode === 8){
+            hideWheelSelector();
+            applyGate(`X${3-dim}`);
+            return;
+        }
+
+        // Mode 2 / 4：如果目前 hover 的就是這條線，點一下就確認
+        if(hoverLine && hoverLine.i === i && hoverLine.j === j && hoverLine.dim === dim && wheelOptions.length > 0){
+            confirmWheelSelection();
+            return;
+        }
+
+        // fallback
+        const options = buildGateOptions(i, j, dim);
+        showWheelSelector(window.innerWidth / 2, window.innerHeight / 2, options);
     }
 
   
@@ -655,7 +676,7 @@
     }
 
     function togglePro(){
-        hidePicker();
+        hideWheelSelector();
         isPro=!isPro;
         document.getElementById('body-root').classList.toggle('pro-active',isPro);
         document.getElementById('mode-toggle').innerText=isPro?'⚡️':'👁️';
@@ -670,7 +691,6 @@
         };
         requestAnimationFrame(go);
     }
-
  
     function checkWin(){
         if(fishAtNode.every((pos,i)=>pos===i)){
