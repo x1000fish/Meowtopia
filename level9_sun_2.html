@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meowtopia - Level 9</title>
+    <title>Meowtopia - Level 9 (UI Optimized)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: Arial, sans-serif; background-color: #FEF3C7; color: #000; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
@@ -43,9 +43,7 @@
         .btn-reset { background: #e0e0e0; color: #000; }
         .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 0.6; cursor: not-allowed; pointer-events: none; }
         .btn-undo.active { background: #EF4444 !important; border-color: #000 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #000; pointer-events: auto; }
-        .gate-btn-v2:hover, .func-btn:hover { background-color: #fee58b !important; border-color: #000 !important; transform: translateY(-2px); box-shadow: 0 3px 0 #000; }
-        .btn-undo.active:hover { background-color: #f05a5a !important; }
-
+        
         #circuit-area { width: 1155px; height: 0; opacity: 0; background: #fff; border: 0px solid #000; border-radius: 30px; margin-top: 20px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; }
         .pro-active #circuit-area { height: 250px; opacity: 1; border: 8px solid #000; padding: 15px; }
         #circuit-content-wrapper { position: relative; height: 180px; overflow-x: auto; margin-left: 45px; scrollbar-width: none; }
@@ -63,75 +61,37 @@
         .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: #fff; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #000; z-index: 500; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #000; }
-        #gate-scroll-area { margin-top: 5px; max-height: 420px; overflow-y: auto; width: 100%; padding: 5px; scrollbar-width: none; }
 
-        /* ── Gate Picker Popup ── */
-        #gate-picker {
-            position: fixed;
-            z-index: 999;
-            display: none;
-            flex-direction: column;
-            gap: 5px;
-            background: #fff;
-            border: 4px solid #000;
-            border-radius: 20px;
-            padding: 10px 12px;
-            box-shadow: 4px 6px 0 #000;
-            min-width: 160px;
-            pointer-events: auto;
-        }
-        #gate-picker.visible { display: flex; }
-        .picker-title {
-            font-size: 11px;
-            font-weight: 900;
-            color: #666;
-            text-align: center;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 4px;
-        }
-        .picker-btn {
-            background: #f0f0f0;
-            border: 2.5px solid #000;
-            border-radius: 14px;
-            padding: 6px 10px;
-            font-weight: 800;
-            font-size: 12px;
-            color: #000;
-            cursor: pointer;
-            text-align: left;
-            transition: all 0.1s;
-            white-space: nowrap;
-        }
-        .picker-btn:hover { background: #ffc822; transform: translateX(3px); box-shadow: 2px 2px 0 #000; }
-        .picker-btn.tof  { border-left: 4px solid #7c3aed; }
-        .picker-btn.cnot { border-left: 4px solid #2563eb; }
-        .picker-btn.x    { border-left: 4px solid #16a34a; }
-
-        /* Mode hint badge shown inside canvas on hover */
-        .mode-hint {
+        /* iOS Pill Indicator 調整：縮小並上移 */
+        #ios-indicator {
             position: absolute;
-            bottom: 12px; left: 50%; transform: translateX(-50%);
-            background: #000; color: #fff;
-            border-radius: 20px; padding: 4px 14px;
-            font-size: 12px; font-weight: 900;
-            pointer-events: none; opacity: 0;
-            transition: opacity 0.2s;
-            white-space: nowrap; z-index: 100;
+            top: 10px; /* 從 25px 往上移到 10px */
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px) scale(0.8);
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            padding: 6px 18px; /* 縮小內距，原為 12px 28px */
+            display: flex;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-        .game-canvas:hover .mode-hint { opacity: 1; }
+        #ios-indicator.active {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+        .ind-fraction { color: #000; font-size: 16px; font-weight: 900; } /* 縮小字體，原為 22px */
+        
+        .ind-label { display: none !important; }
     </style>
 </head>
 <body id="body-root">
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
-
-    <!-- Gate Picker Popup -->
-    <div id="gate-picker">
-        <div class="picker-title" id="picker-title">Choose Gate</div>
-        <div id="picker-options"></div>
-    </div>
 
     <div class="w-full max-w-6xl">
         <div class="flex justify-between w-full px-4 mb-4 items-center">
@@ -142,7 +102,7 @@
         <div class="main-layout">
             <div id="pro-panel">
                 <div class="panel-section-title">Quantum Gates</div>
-                <div id="gate-scroll-area">
+                <div id="gate-scroll-area" class="w-full overflow-y-auto pr-1" style="max-height: 420px; scrollbar-width: none;">
                     <div class="grid grid-cols-2 gap-1 w-full" id="gate-grid"></div>
                 </div>
                 <div class="panel-section-title">Control</div>
@@ -150,10 +110,15 @@
                 <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Step</button>
             </div>
             <div class="game-canvas" id="main-canvas">
+                <div id="ios-indicator">
+                    <span class="ind-fraction" id="ind-fraction">1 / 3</span>
+                    <span class="ind-label" id="ind-label"></span> 
+                </div>
+
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
-                <div class="mode-hint" id="mode-hint"></div>
+                <div class="mode-hint" id="mode-hint" style="position:absolute; bottom:10px; left:50%; transform:translateX(-50%); background:#000; color:#fff; padding:5px 15px; border-radius:20px; font-size:12px; opacity:0; pointer-events:none; transition:0.2s;"></div>
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
@@ -171,8 +136,7 @@
 
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
-            <h2 class="text-5xl font-black mb-4">MEOW!</h2>
-            <h2 class="text-5xl font-black mb-4">🐾</h2>
+            <h2 class="text-5xl font-black mb-4">MEOW! 🐾</h2>
             <p id="victoryMsg" class="text-xl font-bold mb-6"></p>
             <button onclick="location.href='index.html'" class="game-btn btn-green w-full mb-4">KEEP GOING</button>
             <button onclick="document.getElementById('victoryModal').style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
@@ -180,17 +144,18 @@
     </div>
 
     <script>
-    
     let steps = 0, time = 0, isPro = false, timerInterval;
-    let gateHistory = [], isSolved = false;
-    let selectedIndices = [], actionStack = [];
+    let gateHistory = [], isSolved = false, selectedIndices = [], actionStack = [];
     let fishAtNode = [8,9,10,11,12,13,14,15, 0,1,2,3,4,5,6,7];
     let lineMode = 1;
 
-    const pop  = new Audio('pop.m4a');
+    let hoverLine = null; 
+    let currentOptionIndex = 0;
+    let currentOptions = [];
+
+    const pop = new Audio('pop.m4a');
     const meow = new Audio('meow.m4a');
 
-   
     const baseOffsetY = 195, side = 120, hyperOffset = 400;
     const offsetNormal = 240, offsetPro = 100;
     const nodePositions = Array.from({length:16},(_,i)=>{
@@ -202,250 +167,87 @@
         return pos;
     });
 
-    
     window.onload = () => {
         initGameLayout();
         initGates();
         drawStaticLines();
         updateFishUI();
         updateUndoStatus();
-        updateModeHint();
         timerInterval = setInterval(()=>{time++; document.getElementById('timer').innerText=time;},1000);
         document.getElementById('circuit-content-wrapper').addEventListener('wheel',e=>{e.preventDefault(); e.currentTarget.scrollLeft+=e.deltaY;});
-        // Close picker on outside click
-        document.addEventListener('click', e=>{
-            const picker = document.getElementById('gate-picker');
-            if(!picker.contains(e.target) && !e.target.classList.contains('connection-line')){
-                hidePicker();
-            }
-        });
-    };
-
-    
-    const modeHints = {
-        1: '✋ Mode 1 — Click line to SWAP two nodes',
-        2: '🟣 Mode 2 — Click line to pick a Toffoli gate',
-        4: '🔵 Mode 4 — Click line to pick a CNOT gate',
-        8: '🟢 Mode 8 — Click line to apply X gate',
+        
+        document.addEventListener('wheel', (e) => {
+            if (!hoverLine || lineMode === 1 || lineMode === 8) return;
+            e.preventDefault();
+            if (e.deltaY > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+            else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+            showIndicator();
+        }, { passive: false });
     };
 
     function cycleLineMode(){
-        hidePicker();
-        if(lineMode===1) lineMode=2;
-        else if(lineMode===2) lineMode=4;
-        else if(lineMode===4) lineMode=8;
-        else lineMode=1;
-        const btn=document.getElementById('mode-btn');
-        btn.innerText=`Mode: ${lineMode}`;
-        btn.className=`multi-toggle-btn mode-${lineMode}`;
-        pop.currentTime=0; pop.play();
+        const modes = [1, 2, 4, 8];
+        lineMode = modes[(modes.indexOf(lineMode) + 1) % modes.length];
+        const btn = document.getElementById('mode-btn');
+        btn.innerText = `Mode: ${lineMode}`;
+        btn.className = `multi-toggle-btn mode-${lineMode}`;
+        pop.currentTime = 0; pop.play();
+        hideIndicator();
         updateModeHint();
     }
 
     function updateModeHint(){
-        document.getElementById('mode-hint').innerText = modeHints[lineMode]||'';
+        const hints = { 1:'✋ SWAP nodes', 2:'', 4:'🔵 CNOT (Scroll)', 8:'🟢 X Gate' };
+        const el = document.getElementById('mode-hint');
+        el.innerText = hints[lineMode] || '';
+        el.style.opacity = (lineMode === 2) ? 0 : 0.7;
     }
 
+    function showIndicator() {
+        const pill = document.getElementById('ios-indicator');
+        const frac = document.getElementById('ind-fraction');
+        const label = document.getElementById('ind-label');
+        const opt = currentOptions[currentOptionIndex];
+        if (!opt) return;
 
-    function buildGateOptions(i, j, dim){
+        frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`;
+        label.innerText = opt.label; 
+        pill.classList.add('active');
+        
+        clearHighlight();
+        highlightPairs(opt.highlightPairs);
+    }
+
+    function hideIndicator() {
+        document.getElementById('ios-indicator').classList.remove('active');
+        clearHighlight();
+    }
+
+    function buildGateOptions(i, j, dim) {
         const targetQ = 3 - dim;
         const ctrlPool = [0,1,2,3].filter(q=>q!==targetQ);
         const bit = 1 << dim;
         const options = [];
 
-        if(lineMode === 8){
-            options.push({
-                gateType: `X${targetQ}`,
-                label: `X  q${targetQ}`,
-                ctrlClass: 'x',
-                highlightPairs: getAllPairs(dim),
-            });
-        } else if(lineMode === 4){
-            // 3 CNOT options — one per ctrl candidate
-            ctrlPool.forEach(c=>{
+        if(lineMode === 4) {
+            ctrlPool.forEach(c => {
                 const val = (i >> (3-c)) & 1;
-                // highlight: same dim, same ctrl value
-                const cBit = 1<<(3-c);
-                const cVal = i & cBit;
-                const pairs = [];
-                for(let k=0;k<16;k++){
-                    if((k&bit)===0 && (k&cBit)===cVal) pairs.push([k, k^bit]);
-                }
-                options.push({
-                    gateType: `CX${val}${c}${targetQ}`,
-                    label: `${val?'1':'0'}CNOT  q${c}→q${targetQ}`,
-                    ctrlClass: 'cnot',
-                    highlightPairs: pairs,
-                });
+                const cBit = 1 << (3-c), cVal = i & cBit;
+                let pairs = [];
+                for(let k=0;k<16;k++) if((k&bit)===0 && (k&cBit)===cVal) pairs.push([k, k^bit]);
+                options.push({ gateType: `CX${val}${c}${targetQ}`, label: `CNOT: q${c} → q${targetQ}`, highlightPairs: pairs });
             });
-        } else if(lineMode === 2){
-            // 3 Toffoli options — C(3,2) pairs
-            const combos = [
-                [ctrlPool[0], ctrlPool[1]],
-                [ctrlPool[0], ctrlPool[2]],
-                [ctrlPool[1], ctrlPool[2]],
-            ];
-            combos.forEach(([c0,c1])=>{
-                const v0 = (i>>(3-c0))&1;
-                const v1 = (i>>(3-c1))&1;
-                const cBit0=1<<(3-c0), cBit1=1<<(3-c1);
-                const cVal0=i&cBit0,   cVal1=i&cBit1;
-                const pairs=[];
-                for(let k=0;k<16;k++){
-                    if((k&bit)===0 && (k&cBit0)===cVal0 && (k&cBit1)===cVal1)
-                        pairs.push([k,k^bit]);
-                }
-                options.push({
-                    gateType: `TOF${v0}${v1}${c0}${c1}${targetQ}`,
-                    label: `TOF(${v0},${v1}) q${c0},q${c1}→q${targetQ}`,
-                    ctrlClass: 'tof',
-                    highlightPairs: pairs,
-                });
+        } else if(lineMode === 2) {
+            const combos = [[ctrlPool[0],ctrlPool[1]], [ctrlPool[0],ctrlPool[2]], [ctrlPool[1],ctrlPool[2]]];
+            combos.forEach(([c0,c1]) => {
+                const v0 = (i>>(3-c0))&1, v1 = (i>>(3-c1))&1;
+                const b0 = 1<<(3-c0), b1 = 1<<(3-c1), val0 = i&b0, val1 = i&b1;
+                let pairs = [];
+                for(let k=0;k<16;k++) if((k&bit)===0 && (k&b0)===val0 && (k&b1)===val1) pairs.push([k,k^bit]);
+                options.push({ gateType: `TOF${v0}${v1}${c0}${c1}${targetQ}`, label: `TOF: q${c0},q${c1} → q${targetQ}`, highlightPairs: pairs });
             });
         }
         return options;
-    }
-
-    function getAllPairs(dim){
-        const bit=1<<dim, pairs=[];
-        for(let k=0;k<16;k++) if((k&bit)===0) pairs.push([k,k^bit]);
-        return pairs;
-    }
-
-   
-    function highlightPairs(pairs){
-        clearHighlight();
-        pairs.forEach(([a,b])=>{
-            const lo=Math.min(a,b), hi=Math.max(a,b);
-            const el=document.getElementById(`line-${lo}-${hi}`);
-            if(el) el.classList.add('line-highlight');
-        });
-    }
-    function clearHighlight(){
-        document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight'));
-    }
-
-   
-    let pickerPendingI=null, pickerPendingJ=null, pickerPendingDim=null;
-
-    function showPicker(mouseX, mouseY, i, j, dim){
-        pickerPendingI=i; pickerPendingJ=j; pickerPendingDim=dim;
-        const options = buildGateOptions(i,j,dim);
-        const picker  = document.getElementById('gate-picker');
-        const title   = document.getElementById('picker-title');
-        const opts    = document.getElementById('picker-options');
-
-        // Build title
-        const targetQ = 3-dim;
-        const dimLabel = ['q3 dim','q2 dim','q1 dim','q0 dim'][dim] || `dim${dim}`;
-        title.innerText = `q${targetQ} edge · ${lineMode===2?'Toffoli':lineMode===4?'CNOT':'X'}`;
-
-        opts.innerHTML='';
-        options.forEach(opt=>{
-            const btn=document.createElement('button');
-            btn.className=`picker-btn ${opt.ctrlClass}`;
-            btn.innerText=opt.label;
-            btn.onmouseenter=()=>highlightPairs(opt.highlightPairs);
-            btn.onmouseleave=()=>clearHighlight();
-            btn.onclick=(e)=>{
-                e.stopPropagation();
-                hidePicker();
-                clearHighlight();
-                applyGate(opt.gateType);
-            };
-            opts.appendChild(btn);
-        });
-
-        // Position picker near cursor but keep in viewport
-        picker.style.display='flex';
-        const pw=picker.offsetWidth||180, ph=picker.offsetHeight||200;
-        let px=mouseX+14, py=mouseY-10;
-        if(px+pw>window.innerWidth-10)  px=mouseX-pw-14;
-        if(py+ph>window.innerHeight-10) py=window.innerHeight-ph-10;
-        if(py<10) py=10;
-        picker.style.left=px+'px';
-        picker.style.top =py+'px';
-        picker.classList.add('visible');
-    }
-
-    function hidePicker(){
-        const picker=document.getElementById('gate-picker');
-        picker.classList.remove('visible');
-        picker.style.display='none';
-        pickerPendingI=pickerPendingJ=pickerPendingDim=null;
-    }
-
-   
-   
-    function getModePairs(i, j, dim){
-        const bit=1<<dim;
-        const targetQ=3-dim;
-        const ctrlPool=[0,1,2,3].filter(q=>q!==targetQ);
-        const pairs=[];
-        for(let k=0;k<16;k++){
-            if((k&bit)===0){
-                let match=true;
-                if(lineMode===4){
-                    const c0=ctrlPool[0], cBit=1<<(3-c0);
-                    if((k&cBit)!==(i&cBit)) match=false;
-                } else if(lineMode===2){
-                    // highlight the 2 lines that share BOTH first two ctrl values
-                    const c0=ctrlPool[0],c1=ctrlPool[1];
-                    const b0=1<<(3-c0),b1=1<<(3-c1);
-                    if((k&b0)!==(i&b0)||(k&b1)!==(i&b1)) match=false;
-                } else if(lineMode===1){
-                    if(k!==i) match=false;
-                }
-                if(match) pairs.push([k,k^bit]);
-            }
-        }
-        return pairs;
-    }
-
-   
-    function initGameLayout(){
-        const nL=document.getElementById('nodes-layer'), fL=document.getElementById('fishes-layer');
-        nL.innerHTML=''; fL.innerHTML='';
-        for(let i=0;i<16;i++){
-            const bin=i.toString(2).padStart(4,'0');
-            const catHat=(i>=8)?`<img src="./image/hat.png" class="hat-img cat-hat">`:'';
-            nL.innerHTML+=`<div class="node ${i>=8?'q3-set':''}" id="node-${i}" style="top:${nodePositions[i].t}px;left:${nodePositions[i].l}px;">
-                <div class="fixed-number">${bin}</div>${catHat}
-                <img src="./image/Cat${(i%8)+1}.svg">
-            </div>`;
-            const fishSrc=`./image/Fish${(i%8)+1}.svg`;
-            const fishHat=(i>=8)?`<img src="./image/hat.png" class="hat-img fish-hat">`:'';
-            fL.innerHTML+=`<div id="fish-${i}" class="fish-wrapper ${i>=8?'q3-set':''}">
-                <div class="fish-label">${bin}</div>${fishHat}
-                <img src="${fishSrc}" class="fish-bg-shape">
-                <img src="${fishSrc}" class="fish-img">
-            </div>`;
-        }
-    }
-
-    function initGates(){
-        const grid=document.getElementById('gate-grid');
-        let html='';
-        for(let i=0;i<4;i++) html+=`<button class="gate-btn-v2 col-span-2 bg-purple-100" onclick="applyGate('X${i}')">X q${i}</button>`;
-        for(let i=0;i<4;i++) for(let j=0;j<4;j++) if(i!==j){
-            html+=`<button class="gate-btn-v2" onclick="applyGate('CX1${i}${j}')">1CNOT ${i}→${j}</button>`;
-            html+=`<button class="gate-btn-v2" onclick="applyGate('CX0${i}${j}')">0CNOT ${i}→${j}</button>`;
-        }
-        const combos=[{id:'11',name:'1,1'},{id:'00',name:'0,0'},{id:'01',name:'0,1'},{id:'10',name:'1,0'}];
-        for(let c1=0;c1<4;c1++) for(let c2=0;c2<4;c2++){
-            if(c1>=c2) continue;
-            for(let t=0;t<4;t++) if(t!==c1&&t!==c2)
-                combos.forEach(cb=>{ html+=`<button class="gate-btn-v2 col-span-2 bg-green-100" onclick="applyGate('TOF${cb.id}${c1}${c2}${t}')">TOF(${cb.name}) ${c1},${c2}→${t}</button>`; });
-        }
-        grid.innerHTML=html;
-    }
-
-    function drawStaticLines(){
-        const layer=document.getElementById('lines-layer');
-        layer.innerHTML='';
-        for(let i=0;i<16;i++) for(let b=0;b<4;b++){
-            let j=i^(1<<b); if(j>i) createLine(i,j,b);
-        }
     }
 
     function createLine(i,j,dim){
@@ -457,42 +259,47 @@
         line.className='connection-line';
         line.id=`line-${Math.min(i,j)}-${Math.max(i,j)}`;
         line.style.cssText=`width:${len}px;left:${x1}px;top:${y1}px;transform:rotate(${ang}deg);transform-origin:0 50%;`;
-        if(dim===3){
-            line.style.height='8px';  // keep clickable
-            line.style.background='transparent';
-            line.style.borderTop='3px dashed #000';
-            line.style.opacity='0.4';
-        } else {
-            line.style.height='3px'; line.style.background='#000';
-        }
+        if(dim===3){ line.style.height='8px'; line.style.background='transparent'; line.style.borderTop='3px dashed #000'; line.style.opacity='0.4'; }
+        else { line.style.height='3px'; line.style.background='#000'; }
 
-        line.onmouseenter=()=>{
-            if(lineMode===1) return;
-            highlightPairs(getModePairs(i,j,dim));
+        line.onmouseenter = () => {
+            if(lineMode === 1) return;
+            hoverLine = {i,j,dim};
+            if(lineMode === 8) {
+                highlightPairs(getAllPairs(dim));
+            } else {
+                currentOptions = buildGateOptions(i,j,dim);
+                currentOptionIndex = 0;
+                showIndicator();
+            }
         };
-        line.onmouseleave=()=>{ if(lineMode!==1) clearHighlight(); };
-        line.onclick=(e)=>{ e.stopPropagation(); handleLineClick(e, i, j, dim); };
+        line.onmouseleave = () => { hoverLine = null; hideIndicator(); };
+        line.onclick = (e) => {
+            e.stopPropagation();
+            if(isSolved) return;
+            if(lineMode === 1) applyGate(`SWAP_${i}_${j}`);
+            else if(lineMode === 8) applyGate(`X${3-dim}`);
+            else if(currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+        };
         document.getElementById('lines-layer').appendChild(line);
     }
 
-  
-    function handleLineClick(e, i, j, dim){
-        if(isSolved) return;
-        hidePicker();
-
-        if(lineMode===1){
-            // Direct swap — no picker needed
-            applyGate(`SWAP_${i}_${j}`);
-        } else if(lineMode===8){
-            // X gate — only one choice, apply immediately
-            applyGate(`X${3-dim}`);
-        } else {
-            // Mode 2 or 4 — show picker so player chooses the exact gate
-            showPicker(e.clientX, e.clientY, i, j, dim);
-        }
+    function getAllPairs(dim){
+        const bit=1<<dim, pairs=[];
+        for(let k=0;k<16;k++) if((k&bit)===0) pairs.push([k,k^bit]);
+        return pairs;
     }
 
-  
+    function highlightPairs(pairs){
+        clearHighlight();
+        pairs.forEach(([a,b])=>{
+            const el=document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`);
+            if(el) el.classList.add('line-highlight');
+        });
+    }
+
+    function clearHighlight(){ document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight')); }
+
     function applyGate(type){
         if(isSolved) return;
         if(selectedIndices.length>0){
@@ -551,7 +358,6 @@
             if(f&&n){f.style.top=(n.t+27)+'px'; f.style.left=(n.l+15)+'px';}
         }
     }
-
 
     function renderCircuit(){
         const c=document.getElementById('circuit-content');
@@ -613,7 +419,6 @@
             setTimeout(()=>wrapper.scrollTo({left:wrapper.scrollWidth,behavior:'smooth'}),50);
     }
 
-
     function undo(){
         if(isSolved||actionStack.length===0) return;
         pop.currentTime=0; pop.play();
@@ -623,18 +428,22 @@
         else if(action.type==='replace') gateHistory.splice(action.index,1,...action.oldGates);
         selectedIndices=[]; recalculate();
     }
+
     function resetCircuit(){
         if(isSolved) return;
         pop.currentTime=0; pop.play();
         gateHistory=[]; actionStack=[]; selectedIndices=[]; recalculate();
     }
+
     function updateUndoStatus(){
         const isActive=actionStack.length>0&&!isSolved;
-        document.getElementById('undo-btn').classList.toggle('active',isActive);
+        const btn = document.getElementById('undo-btn');
+        btn.classList.toggle('active',isActive);
+        btn.style.opacity = isActive ? "1" : "0.6";
+        btn.style.pointerEvents = isActive ? "auto" : "none";
     }
 
     function togglePro(){
-        hidePicker();
         isPro=!isPro;
         document.getElementById('body-root').classList.toggle('pro-active',isPro);
         document.getElementById('mode-toggle').innerText=isPro?'⚡️':'👁️';
@@ -650,17 +459,58 @@
         requestAnimationFrame(go);
     }
 
- 
+    function initGameLayout(){
+        const nL=document.getElementById('nodes-layer'), fL=document.getElementById('fishes-layer');
+        nL.innerHTML=''; fL.innerHTML='';
+        for(let i=0;i<16;i++){
+            const bin=i.toString(2).padStart(4,'0');
+            const catHat=(i>=8)?`<img src="./image/hat.png" class="hat-img cat-hat">`:'';
+            nL.innerHTML+=`<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px;left:${nodePositions[i].l}px;">
+                <div class="fixed-number">${bin}</div>${catHat}
+                <img src="./image/Cat${(i%8)+1}.svg">
+            </div>`;
+            const fishSrc=`./image/Fish${(i%8)+1}.svg`;
+            const fishHat=(i>=8)?`<img src="./image/hat.png" class="hat-img fish-hat">`:'';
+            fL.innerHTML+=`<div id="fish-${i}" class="fish-wrapper">
+                <div class="fish-label">${bin}</div>${fishHat}
+                <img src="${fishSrc}" class="fish-bg-shape">
+                <img src="${fishSrc}" class="fish-img">
+            </div>`;
+        }
+    }
+
+    function initGates(){
+        const grid=document.getElementById('gate-grid');
+        let html='';
+        for(let i=0;i<4;i++) html+=`<button class="gate-btn-v2 col-span-2 bg-purple-100" onclick="applyGate('X${i}')">X q${i}</button>`;
+        for(let i=0;i<4;i++) for(let j=0;j<4;j++) if(i!==j){
+            html+=`<button class="gate-btn-v2" onclick="applyGate('CX1${i}${j}')">1CNOT ${i}→${j}</button>`;
+            html+=`<button class="gate-btn-v2" onclick="applyGate('CX0${i}${j}')">0CNOT ${i}→${j}</button>`;
+        }
+        const combos=[{id:'11',name:'1,1'},{id:'00',name:'0,0'},{id:'01',name:'0,1'},{id:'10',name:'1,0'}];
+        for(let c1=0;c1<4;c1++) for(let c2=0;c2<4;c2++){
+            if(c1>=c2) continue;
+            for(let t=0;t<4;t++) if(t!==c1&&t!==c2)
+                combos.forEach(cb=>{ html+=`<button class="gate-btn-v2 col-span-2 bg-green-100" onclick="applyGate('TOF${cb.id}${c1}${c2}${t}')">TOF(${cb.name}) ${c1},${c2}→${t}</button>`; });
+        }
+        grid.innerHTML=html;
+    }
+
+    function drawStaticLines(){
+        const layer=document.getElementById('lines-layer');
+        layer.innerHTML='';
+        for(let i=0;i<16;i++) for(let b=0;b<4;b++){
+            let j=i^(1<<b); if(j>i) createLine(i,j,b);
+        }
+    }
+
     function checkWin(){
         if(fishAtNode.every((pos,i)=>pos===i)){
             isSolved=true;
             if(timerInterval) clearInterval(timerInterval);
-            updateUndoStatus();
-            const user=sessionStorage.getItem('currentUser');
-            if(user){let d=JSON.parse(localStorage.getItem(user)); if(d&&(d.level||1)<10){d.level=10; localStorage.setItem(user,JSON.stringify(d));}}
             setTimeout(()=>{
                 meow.currentTime=0; meow.play();
-                document.getElementById('victoryMsg').innerText=`STEP：${document.getElementById('step-count').innerText} | TIME：${document.getElementById('timer').innerText}s`;
+                document.getElementById('victoryMsg').innerText=`STEP：${steps} | TIME：${time}s`;
                 document.getElementById('victoryModal').style.display='flex';
             },600);
         }
