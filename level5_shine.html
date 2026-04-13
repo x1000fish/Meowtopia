@@ -79,17 +79,40 @@
             text-align: center;
             min-width: 220px;
         }
-
         .tutorial-focus{
             position: relative !important;
             z-index: 1000 !important;
             box-shadow: 0 0 0 4px #fff, 0 0 24px #ffc822 !important;
             animation: tutorialPulse 1.2s infinite ease-in-out;
         }
-
         @keyframes tutorialPulse{
             0%,100% { transform: scale(1); }
             50% { transform: scale(1.04); }
+        }
+        .tutorial-line-focus{
+            z-index: 1000 !important;
+            box-shadow: 0 0 0 3px #fff, 0 0 20px #ffc822 !important;
+            animation: tutorialLinePulse 1.2s infinite ease-in-out;
+        }
+        @keyframes tutorialLinePulse{
+            0%,100% {
+                opacity: 1;
+                box-shadow: 0 0 0 3px #fff, 0 0 12px #ffc822;
+            }
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 0 3px #fff, 0 0 24px #ffc822;
+            }
+        }
+        .tutorial-fish-focus{
+            z-index: 1001 !important;
+            filter: drop-shadow(0 0 10px #ffc822) drop-shadow(0 0 20px #ffc822);
+            animation: tutorialFishPulse 1.2s infinite ease-in-out;
+        }
+
+        @keyframes tutorialFishPulse{
+            0%,100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
         }
         /* --- 滾輪選擇指示器 --- */
         #ios-indicator {
@@ -112,15 +135,24 @@
             pointer-events: none;
             border: 1px solid rgba(255,255,255,0.35);
         }
-
         #ios-indicator.active {
             opacity: 1;
             transform: translate(-50%, -120%) scale(1);
         }
-
         .ind-fraction {
             color: #000;
             font-size: 18px;
+            font-weight: 900;
+        }
+        .next-btn{
+            margin-top: 8px;
+            background: #000;
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
             font-weight: 900;
         }
     </style>
@@ -248,38 +280,29 @@
             drawStaticLines();
             updateFishUI();
             updateUndoStatus();
-
             timerInterval = setInterval(() => {
                 time++;
                 document.getElementById('timer').innerText = time;
             }, 1000);
-
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
             });
-
             document.addEventListener('wheel', (e) => {
                 if (!hoverLine || lineMode === 1) return;
                 e.preventDefault();
-
                 if (e.deltaY > 0) {
                     currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
                 } else {
                     currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 }
-
                 showIndicator();
-
-                if (tutorialActive && tutorialStep === 4) {
-                    tutorialStep = 5;
+                if (tutorialActive && (tutorialStep === 3 || tutorialStep === 4 || tutorialStep === 5)) {
                     updateWheelTutorial();
                 }
             }, { passive: false });
-
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
-
             canvas.addEventListener('mousemove', (e) => {
                 if (!indicator.classList.contains('active')) return;
                 const rect = canvas.getBoundingClientRect();
@@ -385,18 +408,62 @@
             document.querySelectorAll('.tutorial-focus').forEach(el => {
                 el.classList.remove('tutorial-focus');
             });
+            document.querySelectorAll('.tutorial-line-focus').forEach(el => {
+                el.classList.remove('tutorial-line-focus');
+            });
+            document.querySelectorAll('.tutorial-fish-focus').forEach(el => {
+                el.classList.remove('tutorial-fish-focus');
+            });
         }
-        function showTutorialHint(targetEl, text, offsetX = 0, offsetY = 70) {
+        function highlightTutorialPairs(pairs) {
+            const highlightedNodes = new Set();
+            pairs.forEach(([a, b]) => {
+                highlightedNodes.add(a);
+                highlightedNodes.add(b);
+                const key = Math.min(a, b) + '-' + Math.max(a, b);
+                edges.forEach((edge, index) => {
+                    const edgeKey = Math.min(edge[0], edge[1]) + '-' + Math.max(edge[0], edge[1]);
+                    if (edgeKey === key) {
+                        const lineEl = document.getElementById(`line-edge-${index}`);
+                        if (lineEl) lineEl.classList.add('tutorial-line-focus');
+                    }
+                });
+            });
+            highlightedNodes.forEach(nodeIdx => {
+                const fishIdx = fishAtNode.findIndex(pos => pos === nodeIdx);
+                if (fishIdx !== -1) {
+                    const fishEl = document.getElementById(`fish-${fishIdx}`);
+                    if (fishEl) fishEl.classList.add('tutorial-fish-focus');
+                }
+            });
+        }
+        function showTutorialHint(targetEl, text, offsetX = 0, offsetY = 70, fixed = false, showNext = false) {
             const hint = document.getElementById('tutorial-hint');
-            const rect = targetEl.getBoundingClientRect();
-            hint.innerHTML = text;
+            hint.innerHTML = showNext
+                ? `${text}<br><button class="next-btn" onclick="nextTutorialStep()">Next</button>`
+                : text;
             hint.style.display = 'block';
+            hint.style.transform = 'translateX(-50%)';
+            if (fixed) {
+                hint.style.left = '50%';
+                hint.style.top = '360px';
+                return;
+            }
+            const rect = targetEl.getBoundingClientRect();
             hint.style.left = (rect.left + rect.width / 2 + offsetX) + 'px';
             hint.style.top = (rect.bottom + offsetY) + 'px';
-            hint.style.transform = 'translateX(-50%)';
         }
         function hideTutorialHint() {
             document.getElementById('tutorial-hint').style.display = 'none';
+        }
+        function nextTutorialStep() {
+            if (!tutorialActive) return;
+            if (tutorialStep === 3) {
+                tutorialStep = 4;
+            } else if (tutorialStep === 4) {
+                tutorialStep = 5;
+            }
+            updateWheelTutorial();
         }
         function startWheelTutorial() {
             tutorialActive = true;
@@ -410,25 +477,38 @@
             if (!tutorialActive) return;
             const modeBtn = document.getElementById('mode-btn');
             const topLine = document.getElementById('line-edge-0');
+            const currentOpt = currentOptions[currentOptionIndex];
             if (tutorialStep === 1) {
                 modeBtn.classList.add('tutorial-focus');
                 showTutorialHint(modeBtn, 'Click here to switch from Mode 1 to Mode 2', 0, 18);
             }
             else if (tutorialStep === 2) {
-                topLine.classList.add('tutorial-focus');
+                topLine.classList.add('tutorial-line-focus');
                 showTutorialHint(topLine, 'Move your mouse to the top line', 0, 30);
             }
             else if (tutorialStep === 3) {
-                topLine.classList.add('tutorial-focus');
-                showTutorialHint(topLine, 'This shows the 1st swap option', 0, 30);
+                if (currentOpt) {
+                    highlightTutorialPairs(currentOpt.highlightPairs);
+                } else {
+                    topLine.classList.add('tutorial-line-focus');
+                }
+                showTutorialHint(topLine, 'This is the 1st swap option.', 0, 30, false, true);
             }
             else if (tutorialStep === 4) {
-                topLine.classList.add('tutorial-focus');
-                showTutorialHint(topLine, 'Use the mouse wheel to switch to the next option', 0, 30);
+                if (currentOpt) {
+                    highlightTutorialPairs(currentOpt.highlightPairs);
+                } else {
+                    topLine.classList.add('tutorial-line-focus');
+                }
+                showTutorialHint(topLine, 'Use the mouse wheel to switch to the next option.', 0, 30, false, true);
             }
             else if (tutorialStep === 5) {
-                topLine.classList.add('tutorial-focus');
-                showTutorialHint(topLine, 'Click to confirm the swap', 0, 30);
+                if (currentOpt) {
+                    highlightTutorialPairs(currentOpt.highlightPairs);
+                } else {
+                    topLine.classList.add('tutorial-line-focus');
+                }
+                showTutorialHint(topLine, 'Click to confirm the swap.', 0, 30);
             }
         }
         function finishWheelTutorial() {
@@ -476,7 +556,7 @@
                 y1 = n1.t + 52,
                 x2 = n2.l + 52,
                 y2 = n2.t + 52;
-            const shrink = 45;
+            const shrink = 40;
             const dx = x2 - x1;
             const dy = y2 - y1;
             const dist = Math.sqrt(dx * dx + dy * dy);
@@ -507,12 +587,6 @@
                 if (tutorialActive && tutorialStep === 2 && index === 0) {
                     tutorialStep = 3;
                     updateWheelTutorial();
-                    setTimeout(() => {
-                        if (tutorialActive && tutorialStep === 3) {
-                            tutorialStep = 4;
-                            updateWheelTutorial();
-                        }
-                    }, 1600);
                 }
             };
             line.onmouseleave = () => {
