@@ -159,31 +159,41 @@
         }
 
         // 核心邏輯：根據線段回傳該維度下應被高亮的線段組
-        function getModePairs(i, j, dim) {
-            const bit = 1 << dim;
+       function getModePairs(i, j, dim) {
+            const targetQ = 3 - dim; // 目標位元 (q0~q3)
+            const bit = 1 << dim;    // 維度對應的 bitmask
+            const allQ = [0, 1, 2, 3];
+            const ctrlPool = allQ.filter(q => q !== targetQ); // 除去目標位元後的候選控制位元
             const pairs = [];
-            const mask = (lineMode === 8) ? 0 : (lineMode === 4) ? 1 : (lineMode === 2) ? 3 : 0;
-            
-            if (lineMode === 1) {
-                pairs.push([i, j]);
-            } else {
-                // 找出與點擊線段共享相同特徵的線段
-                for (let k = 0; k < 16; k++) {
-                    if ((k & bit) === 0) { // 只處理一側，避免重複
-                        let target = k ^ bit;
-                        // 檢查 k 和點擊的 i 是否在其他位元上符合模式間隔
-                        // Mode 8: 全部 (同維度 8 條)
-                        // Mode 4: 每 2 對取 1 (同維度 4 條)
-                        // Mode 2: 每 4 對取 1 (同維度 2 條)
-                        if (lineMode === 8 || (k & mask) === (i & mask)) {
-                            pairs.push([k, target]);
-                        }
+        
+            // 遍歷所有節點，尋找在該維度上平行的線段
+            for (let k = 0; k < 16; k++) {
+                if ((k & bit) === 0) { // 只處理線段的一端，避免重複計算
+                    let match = true;
+                    
+                    if (lineMode === 4) {
+                        // Mode 4 (CNOT): 固定 1 個控制位元 (ctrlPool[0])
+                        let c0 = ctrlPool[0];
+                        let valI = (i >> (3 - c0)) & 1;
+                        let valK = (k >> (3 - c0)) & 1;
+                        if (valK !== valI) match = false;
+                    } else if (lineMode === 2) {
+                        // Mode 2 (Toffoli): 固定 2 個控制位元 (ctrlPool[0], ctrlPool[1])
+                        let c0 = ctrlPool[0], c1 = ctrlPool[1];
+                        let valI0 = (i >> (3 - c0)) & 1, valI1 = (i >> (3 - c1)) & 1;
+                        let valK0 = (k >> (3 - c0)) & 1, valK1 = (k >> (3 - c1)) & 1;
+                        if (valK0 !== valI0 || valK1 !== valI1) match = false;
+                    } else if (lineMode === 1) {
+                        // Mode 1 (SWAP/Manual): 只匹配點擊的那一條線
+                        if (k !== i) match = false;
                     }
+                    // Mode 8 (X): 不過濾，match 保持 true，會回傳該維度全部 8 條線
+        
+                    if (match) pairs.push([k, k ^ bit]);
                 }
             }
             return pairs;
         }
-
         function initGameLayout() {
             const nL = document.getElementById('nodes-layer'), fL = document.getElementById('fishes-layer');
             nL.innerHTML = ''; fL.innerHTML = '';
@@ -270,44 +280,35 @@
             document.getElementById('lines-layer').appendChild(line);
         }
 
-        function handleLineClick(i, j, dim) {
+      function handleLineClick(i, j, dim) {
             if (isSolved) return;
-            const targetQ = 3 - dim; // 轉換為 qubit 索引 (q0 是最高位)
+            const targetQ = 3 - dim;
+            const allQ = [0, 1, 2, 3];
+            const ctrlPool = allQ.filter(q => q !== targetQ);
             let gateType = "";
-
+        
             if (lineMode === 8) {
-                // Mode 8: 產生一個 X Gate
+                // Mode 8: X Gate (全部翻轉)
                 gateType = `X${targetQ}`;
             } else if (lineMode === 4) {
-                // Mode 4: 產生一個 CNOT Gate
-                // 判斷哪一位元是控制位元 (排除目標位元)
-                let ctrlQ = -1;
-                for(let q=0; q<4; q++) {
-                    if(q !== targetQ && (lineMode === 4)) {
-                        // 這裡簡化邏輯：取點擊點的某個位元作為控制
-                        ctrlQ = q; 
-                        break;
-                    }
-                }
-                let val = (i >> (3 - ctrlQ)) & 1;
-                gateType = `CX${val}${ctrlQ}${targetQ}`;
+                // Mode 4: CNOT Gate (1 個控制位)
+                let c0 = ctrlPool[0];
+                let val = (i >> (3 - c0)) & 1; // 根據點擊點的位元值決定是 0-CNOT 還是 1-CNOT
+                gateType = `CX${val}${c0}${targetQ}`;
             } else if (lineMode === 2) {
-                // Mode 2: 產生一個 TOF Gate
-                let ctrls = [];
-                for(let q=0; q<4; q++) {
-                    if(q !== targetQ) ctrls.push(q);
-                }
-                let v1 = (i >> (3 - ctrls[0])) & 1;
-                let v2 = (i >> (3 - ctrls[1])) & 1;
-                gateType = `TOF${v1}${v2}${ctrls[0]}${ctrls[1]}${targetQ}`;
+                // Mode 2: Toffoli Gate (2 個控制位)
+                let c0 = ctrlPool[0], c1 = ctrlPool[1];
+                let v0 = (i >> (3 - c0)) & 1;
+                let v1 = (i >> (3 - c1)) & 1;
+                // 這裡對應你 applyGate 的 TOF 格式: TOF + val1 + val2 + ctrl1 + ctrl2 + target
+                gateType = `TOF${v0}${v1}${c0}${c1}${targetQ}`;
             } else {
-                // Mode 1: 正常的 SWAP
+                // Mode 1: SWAP
                 gateType = `SWAP_${i}_${j}`;
             }
-
+        
             applyGate(gateType);
         }
-
         function applyGate(type) {
             if (isSolved) return;
             if (selectedIndices.length > 0) {
