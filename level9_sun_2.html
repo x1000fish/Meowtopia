@@ -93,11 +93,14 @@
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
 
     <div class="w-full max-w-6xl">
-        <div class="flex justify-between w-full px-4 mb-4 items-center">
+        <div class="flex w-full px-4 mb-4 items-center">
             <div class="text-3xl font-black">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span></div>
-            <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-            <div class="text-3xl font-black text-green-600">LEVEL 9</div>
+            <div class="flex items-center gap-12 ml-auto">
+                <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
+                <div class="text-3xl font-black text-green-600">LEVEL 9</div>
+            </div>
         </div>
+        
         <div class="main-layout">
             <div id="pro-panel">
                 <div class="panel-section-title">Quantum Gates</div>
