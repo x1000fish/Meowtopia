@@ -210,13 +210,6 @@
         updateModeHint();
     }
 
-    function updateModeHint(){
-        const hints = { 1:'✋ SWAP nodes', 2:'', 4:'🔵 CNOT (Scroll)', 8:'🟢 X Gate' };
-        const el = document.getElementById('mode-hint');
-        el.innerText = hints[lineMode] || '';
-        el.style.opacity = (lineMode === 2) ? 0 : 0.7;
-    }
-
     function showIndicator() {
         const pill = document.getElementById('ios-indicator');
         const frac = document.getElementById('ind-fraction');
