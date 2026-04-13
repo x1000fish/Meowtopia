@@ -344,40 +344,83 @@
                     (tutorialPhase === 4.3 && i === 2)
                 );
                 if (isTutorialHighlight) u.classList.add('highlight-focus');
-                u.onclick = (e) => { 
-                    if (isSolved) return;
-                    if (tutorialPhase > 0 && tutorialPhase < 100) {
-                        if (!e.ctrlKey && !e.metaKey) return; 
-                        if (tutorialPhase === 1.1 && i !== 1) return;
-                        if (tutorialPhase === 2.1 && i !== 0) return;
-                        if (tutorialPhase === 3.1 && i !== 0 && i !== 1) return;
-                    }
-                    if (e.ctrlKey || e.metaKey) {
-                        const sIdx = selectedIndices.indexOf(i);
-                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
-                        else selectedIndices.push(i);
+            u.onclick = (e) => { 
+                if (isSolved) return;
+            
+                // --- 教學模式強制引導區 ---
+                if (tutorialPhase > 0 && tutorialPhase < 100) {
+                    // 1. 強制按住 Ctrl/Cmd 才能點擊
+                    if (!e.ctrlKey && !e.metaKey) return; 
+            
+                    // 2. 防呆攔截：如果已經選好了 Gate (進入了 .2 階段)，就不准再點擊電路圖上的任何東西
+                    // 這會強制玩家只能去點擊左邊的 Quantum Gate 按鈕進行替換
+                    if ([1.2, 2.2, 3.2].includes(tutorialPhase)) return;
+            
+                    // 3. Phase 1.1：限制「只能」選中 index 1 (右邊那個)
+                    if (tutorialPhase === 1.1) {
+                        if (i !== 1) return; // 點 index 0 或其他的沒反應
+                        selectedIndices = [1]; // 強制清空並設為只有 index 1
+                        tutorialPhase = 1.2;   // 立即變更狀態
                         renderCircuit();
-                        if (tutorialPhase === 1.1 && selectedIndices.includes(1)) { tutorialPhase = 1.2; updateTutorialUI(); }
-                        else if (tutorialPhase === 2.1 && selectedIndices.includes(0)) { tutorialPhase = 2.2; updateTutorialUI(); }
-                        else if (tutorialPhase === 3.1 && selectedIndices.includes(0) && selectedIndices.includes(1)) { tutorialPhase = 3.2; updateTutorialUI(); }
-                    } else {
-                        pop.currentTime = 0; pop.play(); 
-                        const removed = gateHistory[i]; actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
-                        gateHistory.splice(i, 1); selectedIndices = [];
-                        recalculatePositions(); finishMove(); 
-                        if (isPro && !tutorialCompleted) updateTutorialUI(); 
+                        updateTutorialUI();
+                        return;
                     }
-                };
-                if (g.startsWith('X')) {
-                    const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (g === 'X0' ? 21.2 : 61.2) + 'px'; u.appendChild(t);
-                } else {
-                    const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01 ? 20 : 60, tY = is01 ? 60 : 20;
-                    const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY, tY) + 'px'; v.style.height = '41px'; u.appendChild(v);
-                    const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY - 7) + 'px'; if (is0) { d.style.background = 'white'; d.style.border = '2.5px solid black'; } 
-                    u.appendChild(d);
-                    const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t);
+            
+                    // 4. Phase 2.1：限制「只能」選中 index 0 (左邊那個)
+                    if (tutorialPhase === 2.1) {
+                        if (i !== 0) return;
+                        selectedIndices = [0];
+                        tutorialPhase = 2.2;
+                        renderCircuit();
+                        updateTutorialUI();
+                        return;
+                    }
+            
+                    // 5. Phase 3.1：限制只能選 index 0 或 1 (合併教學)
+                    if (tutorialPhase === 3.1 && i !== 0 && i !== 1) return;
                 }
-                c.appendChild(u);
+            
+                // --- 以下為常規邏輯 (只有在沒被教學防呆攔截時才會執行) ---
+                if (e.ctrlKey || e.metaKey) {
+                    const sIdx = selectedIndices.indexOf(i);
+                    if (sIdx > -1) {
+                        // 教學模式中禁止取消選取，防止玩家點掉後不知道怎麼繼續
+                        if (tutorialPhase > 0 && tutorialPhase < 100) return; 
+                        selectedIndices.splice(sIdx, 1);
+                    } else {
+                        selectedIndices.push(i);
+                    }
+                    
+                    renderCircuit();
+            
+                    // 檢查 Phase 3.1 是否完成「選取兩個」的條件
+                    if (tutorialPhase === 3.1 && selectedIndices.includes(0) && selectedIndices.includes(1)) {
+                        tutorialPhase = 3.2;
+                        updateTutorialUI();
+                    }
+                } else {
+                    // 單擊刪除邏輯
+                    pop.currentTime = 0; pop.play(); 
+                    const removed = gateHistory[i]; 
+                    actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
+                    gateHistory.splice(i, 1); 
+                    selectedIndices = [];
+                    recalculatePositions(); 
+                    finishMove(); 
+                    if (isPro && !tutorialCompleted) updateTutorialUI(); 
+                }
+            };  
+                
+            if (g.startsWith('X')) {
+                    const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (g === 'X0' ? 21.2 : 61.2) + 'px'; u.appendChild(t);
+            } else {
+                   const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01 ? 20 : 60, tY = is01 ? 60 : 20;
+                   const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY, tY) + 'px'; v.style.height = '41px'; u.appendChild(v);
+                   const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY - 7) + 'px'; if (is0) { d.style.background = 'white'; d.style.border = '2.5px solid black'; } 
+                   u.appendChild(d);
+                   const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t);
+            }
+                   c.appendChild(u);
             });
             updateUndoStatus(); 
             const w = document.getElementById('circuit-content-wrapper');
@@ -405,7 +448,7 @@
         }
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
-                isGameOver = true;
+                isSolved = true;
                 updateUndoStatus();
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = parseInt(document.getElementById('timer').innerText);
