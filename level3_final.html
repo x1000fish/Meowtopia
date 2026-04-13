@@ -32,10 +32,13 @@
         .gate-btn-v2:hover, .func-btn:hover { background-color: #fee58b !important; border-color: #000 !important; color: #000 !important; box-shadow: 0 0 5px rgba(0, 0, 0, 0.7), 0 3px 0 #000 !important; transform: translateY(-2px); }
         .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #000; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
         .btn-reset { background: #e0e0e0; color: #000; }
-        .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 0.6; cursor: not-allowed; }
+        
+        /* 移除半透明效果，改為完全不透明 */
+        .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 1; cursor: not-allowed; }
         .btn-undo.active { background: #EF4444 !important; border-color: #000 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #000; }
         .btn-undo.active:hover { background-color: #DC2626 !important; transform: translateY(-2px); box-shadow: 0 6px 0 #000; animation: pulse-red-undo 1.2s infinite ease-in-out !important; }
-        .btn-undo.disabled { background: #e8a098 !important; border-color: #cb867d !important; color: #ffffff !important; cursor: not-allowed; opacity: 0.5; }
+        .btn-undo.disabled { background: #e8a098 !important; border-color: #cb867d !important; color: #ffffff !important; cursor: not-allowed; opacity: 1; }
+        
         #pro-panel { width: 0; opacity: 0; height: 500px; overflow: hidden; background: #ffffff; border: 0px solid #000; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .pro-active #pro-panel { width: 320px; opacity: 1; border: 8px solid #000; padding: 20px; }
         .panel-section-title { font-weight: 900; font-size: 18px; margin-bottom: 10px; margin-top: 10px; color: #000; text-align: center; white-space: nowrap; overflow: hidden; }
@@ -64,7 +67,10 @@
         #guide-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 450; display: flex; }
         #guide-hint-text { position: fixed; background: #ffc822; color: #000; padding: 4px 12px; border-radius: 9999px; font-weight: 900; font-size: 16px; z-index: 1000; display: none; transition: all 0.3s; min-width: 150px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center; }
         .next-btn { margin-top: 8px; background: #000; color: #fff; padding: 4px 12px; border-radius: 10px; font-size: 14px; cursor: pointer; border: none; font-weight: 900; }
-        .lock-btn { opacity: 0.4; cursor: not-allowed !important; pointer-events: none !important; filter: grayscale(1); }
+        
+        /* 移除半透明效果，改為完全不透明 */
+        .lock-btn { opacity: 1; cursor: not-allowed !important; pointer-events: none !important; filter: grayscale(1); }
+        
         .highlight-focus { position: relative !important; z-index: 950 !important; pointer-events: auto !important; animation: pulse-btn-border 1.5s infinite ease-in-out !important; }
         .highlight-static { position: relative !important; z-index: 950 !important; border-color: #ffc822 !important; box-shadow: 0 0 25px #ffc822 !important; pointer-events: auto !important; }
         .highlight-canvas-obj { position: absolute !important; z-index: 950 !important; box-shadow: 0 0 30px 10px #ffc822 !important; pointer-events: auto !important; }
@@ -97,8 +103,12 @@
     <div class="w-full max-w-4xl">
         <div class="flex justify-between w-full px-4 mb-4 items-center">
             <div class="text-3xl font-black">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
-            <button id="mode-2-btn" class="multi-toggle-btn" onclick="toggleMode2()">Mode: 1</button>
-            <div class="text-3xl font-black text-green-600">LEVEL 3</div>
+            
+            <div class="flex items-center gap-12 ml-auto">
+                <button id="mode-2-btn" class="multi-toggle-btn" onclick="toggleMode2()">Mode: 1</button>
+                <div class="text-3xl font-black text-green-600">LEVEL 3</div>
+            </div>
+
         </div>
         <div class="main-layout">
             <div id="pro-panel">
