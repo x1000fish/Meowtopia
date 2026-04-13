@@ -62,12 +62,12 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #000; }
 
-        /* --- 修改後的指示器樣式 --- */
+       
         #ios-indicator {
             position: absolute;
             top: 0;
             left: 0;
-            transform: translate(-50%, -120%) scale(0.8); /* 起始縮小 */
+            transform: translate(-50%, -120%) scale(0.8); 
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(15px);
             border-radius: 50px;
@@ -83,7 +83,7 @@
         }
         #ios-indicator.active {
             opacity: 1;
-            transform: translate(-50%, -120%) scale(1); /* 顯示時放大到 1 */
+            transform: translate(-50%, -120%) scale(1); 
         }
         .ind-fraction { color: #000; font-size: 16px; font-weight: 900; }
         .ind-label { display: none !important; }
@@ -178,7 +178,7 @@
         timerInterval = setInterval(()=>{time++; document.getElementById('timer').innerText=time;},1000);
         document.getElementById('circuit-content-wrapper').addEventListener('wheel',e=>{e.preventDefault(); e.currentTarget.scrollLeft+=e.deltaY;});
         
-        // 滾輪切換選項邏輯
+        
         document.addEventListener('wheel', (e) => {
             if (!hoverLine || lineMode === 1 || lineMode === 8) return;
             e.preventDefault();
@@ -187,7 +187,7 @@
             showIndicator();
         }, { passive: false });
 
-        // --- 新增：監聽鼠標移動，讓指示器跟隨 ---
+        
         const canvas = document.getElementById('main-canvas');
         const indicator = document.getElementById('ios-indicator');
         canvas.addEventListener('mousemove', (e) => {
@@ -195,9 +195,9 @@
                 const rect = canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                // 更新 CSS 定位
+                
                 indicator.style.left = x + 'px';
-                indicator.style.top = (y - 15) + 'px'; // 向上偏移一點，避免擋住指針
+                indicator.style.top = (y - 15) + 'px'; 
             }
         });
     };
