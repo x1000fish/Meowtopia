@@ -180,7 +180,7 @@
     </div>
 
     <script>
-  
+    
     let steps = 0, time = 0, isPro = false, timerInterval;
     let gateHistory = [], isSolved = false;
     let selectedIndices = [], actionStack = [];
@@ -190,7 +190,7 @@
     const pop  = new Audio('pop.m4a');
     const meow = new Audio('meow.m4a');
 
- 
+   
     const baseOffsetY = 195, side = 120, hyperOffset = 400;
     const offsetNormal = 240, offsetPro = 100;
     const nodePositions = Array.from({length:16},(_,i)=>{
@@ -221,7 +221,7 @@
         });
     };
 
-   
+    
     const modeHints = {
         1: '✋ Mode 1 — Click line to SWAP two nodes',
         2: '🟣 Mode 2 — Click line to pick a Toffoli gate',
@@ -245,6 +245,7 @@
     function updateModeHint(){
         document.getElementById('mode-hint').innerText = modeHints[lineMode]||'';
     }
+
 
     function buildGateOptions(i, j, dim){
         const targetQ = 3 - dim;
@@ -311,7 +312,8 @@
         return pairs;
     }
 
-    
+   
+    function highlightPairs(pairs){
         clearHighlight();
         pairs.forEach(([a,b])=>{
             const lo=Math.min(a,b), hi=Math.max(a,b);
@@ -323,7 +325,7 @@
         document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight'));
     }
 
-    
+   
     let pickerPendingI=null, pickerPendingJ=null, pickerPendingDim=null;
 
     function showPicker(mouseX, mouseY, i, j, dim){
@@ -373,7 +375,8 @@
         pickerPendingI=pickerPendingJ=pickerPendingDim=null;
     }
 
-    
+   
+   
     function getModePairs(i, j, dim){
         const bit=1<<dim;
         const targetQ=3-dim;
@@ -399,7 +402,7 @@
         return pairs;
     }
 
-    
+   
     function initGameLayout(){
         const nL=document.getElementById('nodes-layer'), fL=document.getElementById('fishes-layer');
         nL.innerHTML=''; fL.innerHTML='';
@@ -472,7 +475,7 @@
         document.getElementById('lines-layer').appendChild(line);
     }
 
-    
+  
     function handleLineClick(e, i, j, dim){
         if(isSolved) return;
         hidePicker();
@@ -489,7 +492,7 @@
         }
     }
 
-    
+  
     function applyGate(type){
         if(isSolved) return;
         if(selectedIndices.length>0){
@@ -549,7 +552,7 @@
         }
     }
 
-  
+
     function renderCircuit(){
         const c=document.getElementById('circuit-content');
         const wrapper=document.getElementById('circuit-content-wrapper');
@@ -610,7 +613,7 @@
             setTimeout(()=>wrapper.scrollTo({left:wrapper.scrollWidth,behavior:'smooth'}),50);
     }
 
-    
+
     function undo(){
         if(isSolved||actionStack.length===0) return;
         pop.currentTime=0; pop.play();
@@ -630,7 +633,6 @@
         document.getElementById('undo-btn').classList.toggle('active',isActive);
     }
 
-   
     function togglePro(){
         hidePicker();
         isPro=!isPro;
@@ -648,6 +650,7 @@
         requestAnimationFrame(go);
     }
 
+ 
     function checkWin(){
         if(fishAtNode.every((pos,i)=>pos===i)){
             isSolved=true;
