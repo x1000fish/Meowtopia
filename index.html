@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <style>
         body { font-family: Arial, sans-serif; background-color: #FEF3C7; color: #000; }
-        .game-title { font-family: 'Titan One', cursive; font-size: 5.5rem; text-transform: uppercase; background: rgb(255, 255, 255);/* linear-gradient(45deg, #ff8190, #ffb584, #ffe26d, #7ff4aa, #a3cafb, #d2a8fc); */ -webkit-background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: 4px #000;  filter: drop-shadow(2px 2px 0px #000) drop-shadow(4px 4px 0px #000) ;/*drop-shadow(6px 6px 0px #000) drop-shadow(8px 8px 15px rgba(0,0,0,0.4)); */ letter-spacing: 2px; }
+        .game-title { font-family: 'Titan One', cursive; font-size: 5.5rem; text-transform: uppercase; background: rgb(255, 255, 255); -webkit-background-clip: text; -webkit-text-fill-color: transparent; -webkit-text-stroke: 4px #000;  filter: drop-shadow(2px 2px 0px #000) drop-shadow(4px 4px 0px #000) ; letter-spacing: 2px; }
         .flip-card { width: 500px; height: 520px; perspective: 1000px; }
         .flip-card-inner { position: relative; width: 100%; height: 100%; transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; }
         .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
@@ -29,14 +29,14 @@
         #game-map { width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
         .player-bar { width: 120%; background: white; border: 5px solid #000; border-radius: 20px; padding: 15px 25px; display: flex; align-items: center; justify-content: space-between; box-shadow: 5px 5px 0px #000; margin-bottom: 40px; }
         .map-container { display: grid; grid-template-columns: repeat(6, 1fr); gap: 30px; padding: 20px; }
-        .level-node { width: 100px; height: 100px; background: white; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; box-shadow: 0 6px 0 #000; cursor: pointer; transition: all 0.1s; text-decoration: none; color: black; }
-        .level-node:hover:not(.locked) { transform: scale(1.1); background: #c2b683; }
+        .level-node { width: 80px; height: 80px; background: white; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 900; box-shadow: 0 6px 0 #000; cursor: pointer; transition: all 0.1s; text-decoration: none; color: black; }
+        .level-node:hover:not(.locked) { transform: scale(1.1); background: #FEF3C7; }
         .level-node.locked { background: #eee8d3; color: #bdb8a7; cursor: not-allowed; box-shadow: 0 6px 0 #6e6d69; }
         .stamp { position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; border: 4px solid rgba(34, 197, 94, 0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; transform: rotate(-15deg); color: rgba(34, 197, 94, 0.3); font-weight: 900; font-size: 12px; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
-    <h1 class="game-title text-7xl md:text-8xl mb-12 text-center">Meowtopia</h1>
+    <h1 class="game-title text-7xl md:text-88xl mb-12 text-center">Meowtopia</h1>
     <div class="flip-card" id="auth-card">
         <div class="flip-card-inner">
             <div class="flip-card-front">
@@ -45,7 +45,7 @@
                     <div class="input-box-group"><div class="side-label">NAME</div><input type="text" id="login-user" class="game-input" placeholder="Your name..."></div>
                     <div class="input-box-group"><div class="side-label">PASS</div><input type="password" id="login-pass" class="game-input" placeholder="●●●●●●"></div>
                 </div>
-                <button onclick="handleLogin()" class="game-btn btn-red w-full">START! ➔</button>
+                <button id="btn-login" onclick="handleLogin()" class="game-btn btn-red w-full">START! ➔</button>
                 <p class="switch-link" onclick="toggleAuth()">New cat? Register</p>
             </div>
             <div class="flip-card-back">
@@ -55,7 +55,7 @@
                     <div class="input-box-group"><div class="side-label" style="background: #22C55E;">IDENTITY</div><input type="text" id="reg-user" class="game-input" placeholder="Name your cat"></div>
                     <div class="input-box-group"><div class="side-label" style="background: #22C55E;">SECRET</div><input type="password" id="reg-pass" class="game-input" placeholder="Enter password"></div>
                     <div class="input-box-group"><div class="side-label" style="background: #22C55E;">CONFIRM</div><input type="password" id="reg-confirm" class="game-input" placeholder="Repeat password"></div>
-                    <button onclick="handleRegister()" class="game-btn btn-green w-full mt-4">JOIN NOW! ✨</button>
+                    <button id="btn-reg" onclick="handleRegister()" class="game-btn btn-green w-full mt-4">JOIN NOW! ✨</button>
                     <p class="switch-link" onclick="toggleAuth()">Go back to login</p>
                 </div>
             </div>
@@ -65,52 +65,106 @@
         <div class="player-bar">
             <div class="flex items-center gap-4">
                 <div class="w-16 h-16 bg-red-100 border-4 border-black rounded-full flex items-center justify-center text-3xl">🐱</div>
-                <div><div id="display-username" class="text-2xl font-black">User 1</div><div class="text-sm font-bold text-gray-500 uppercase tracking-widest">Cat Explorer</div></div>
+                <div><div id="display-username" class="text-2xl font-black">User</div><div class="text-sm font-bold text-gray-500 uppercase tracking-widest">Cat Explorer</div></div>
             </div>
-            <div class="text-right"><div class="text-sm font-black text-green-600">UNLOCKED</div><div class="text-4xl font-black">LEVEL 1</div></div>
+            <div class="text-right"><div class="text-sm font-black text-green-600">PROGRESS</div><div id="display-level" class="text-4xl font-black">LV. 1</div></div>
         </div>
-        <div class="map-container">
-            <a href="level1.html" class="level-node">1</a><a class="level-node locked">2</a><a class="level-node locked">3</a><a class="level-node locked">4</a>
-            <a class="level-node locked">5</a><a class="level-node locked">6</a><a class="level-node locked">7</a><a class="level-node locked">8</a><a class="level-node locked">9</a><a class="level-node locked">10</a><a class="level-node locked">11</a><a class="level-node locked">?</a>
-        </div>
+        <div class="map-container" id="level-grid"></div>
         <button onclick="handleLogout()" class="game-btn btn-red mt-12 px-12">LOGOUT</button>
     </div>
     <script>
-        window.onload = () => { const u = sessionStorage.getItem('currentUser'); if (u) showMap(u); };
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
+        window.onload = () => { 
+            const u = sessionStorage.getItem('currentUser'); 
+            const lv = sessionStorage.getItem('currentLevel');
+            if (u && lv) showMap(u, parseInt(lv)); 
+        };
         function toggleAuth() { document.getElementById('auth-card').classList.toggle('flipped'); }
-        function handleLogin() {
-            const u = document.getElementById('login-user').value.trim(), p = document.getElementById('login-pass').value;
+        async function handleLogin() {
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value.trim();
             if (!u || !p) return alert("Please enter both username and password!");
-            const d = localStorage.getItem(u);
-            if (d === null) { alert("Account does not exist!"); return toggleAuth(); }
+            
+            const btn = document.getElementById('btn-login');
+            btn.innerText = "WAITING... ⌛";
+            btn.disabled = true;
             try {
-                const ud = JSON.parse(d);
-                if (ud.password === p) { sessionStorage.setItem('currentUser', u); showMap(u); } 
-                else alert("Wrong password!");
-            } catch (e) { if (d === p) { sessionStorage.setItem('currentUser', u); showMap(u); } else alert("Wrong password!"); }
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'auth', username: u, password: p })
+                });
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    sessionStorage.setItem('currentUser', u);
+                    sessionStorage.setItem('currentLevel', result.level);
+                    showMap(u, result.level);
+                } else if (result.status === 'wrong_password') {
+                    alert("Wrong password!");
+                } else {
+                    alert("Account not found! Please register first.");
+                    if (!document.getElementById('auth-card').classList.contains('flipped')) toggleAuth();
+                }
+            } catch (e) {
+                alert("Connection failed! Please check your network or GAS deployment.");
+            } finally {
+                btn.innerText = "START! ➔";
+                btn.disabled = false;
+            }
         }
-        function handleRegister() {
-            const u = document.getElementById('reg-user').value.trim(), p = document.getElementById('reg-pass').value, c = document.getElementById('reg-confirm').value;
-            if (!u || !p || !c) return alert("Please fill in all fields!");
+        async function handleRegister() {
+            const u = document.getElementById('reg-user').value.trim();
+            const p = document.getElementById('reg-pass').value.trim();
+            const c = document.getElementById('reg-confirm').value.trim();
+            if (!u || !p || !c) return alert("Please fill all fields!");
             if (p !== c) return alert("Passwords do not match!");
-            if (localStorage.getItem(u) !== null) return alert("Username taken!");
-            localStorage.setItem(u, JSON.stringify({password: p, level: 1}));
-            alert("Success! Please login."); toggleAuth();
-            ['reg-user','reg-pass','reg-confirm'].forEach(id => document.getElementById(id).value = '');
+            const btn = document.getElementById('btn-reg');
+            btn.innerText = "WAITING... ⌛";
+            btn.disabled = true;
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'register', username: u, password: p })
+                });
+                const result = await response.text();
+                
+                if (result === 'success') {
+                    alert("Registration successful! Please login.");
+                    toggleAuth();
+                } else if (result === 'exists') {
+                    alert("Username already taken! Please choose another one.");
+                } else {
+                    alert("Registration failed. Please try again later.");
+                }
+            } catch (e) { 
+                alert("Connection failed!"); 
+            } finally {
+                btn.innerText = "JOIN NOW! ✨";
+                btn.disabled = false;
+            }
         }
-        function showMap(user) {
+        function showMap(user, lv) {
             document.getElementById('auth-card').classList.add('hidden');
             document.getElementById('game-map').classList.remove('hidden');
             document.getElementById('display-username').innerText = user;
-            const ud = JSON.parse(localStorage.getItem(user)), lv = ud.level || 1;
-            document.querySelector('.text-4xl.font-black').innerText = `LEVEL ${lv}`;
-            document.querySelectorAll('.level-node').forEach((n, i) => {
-                const cur = i + 1;
-                if (cur <= lv) { n.classList.remove('locked'); n.setAttribute('href', `level${cur}.html`); n.onclick = null; } 
-                else { n.classList.add('locked'); n.removeAttribute('href'); n.onclick = () => alert("Locked!"); }
-            });
+            document.getElementById('display-level').innerText = `LV. ${lv}`;
+            const grid = document.getElementById('level-grid');
+            grid.innerHTML = ''; 
+            for (let i = 1; i <= 12; i++) {
+                const node = document.createElement('a');
+                node.className = 'level-node';
+                node.innerText = i === 12 ? '?' : i;
+                if (i <= lv) {
+                    node.href = `level${i}.html`;
+                } else {
+                    node.classList.add('locked');
+                    node.onclick = () => alert("Level Locked! Please complete previous stages.");
+                }
+                grid.appendChild(node);
+            }
         }
-        function handleLogout() { sessionStorage.removeItem('currentUser'); location.reload(); }
+
+        function handleLogout() { sessionStorage.clear(); location.reload(); }
     </script>
 </body>
 </html>
