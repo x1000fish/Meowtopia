@@ -62,21 +62,22 @@
         :root { --cube-offset-x: 175px; }
         .pro-active { --cube-offset-x: 42px; }
         #tutorial-mask{ position: fixed; inset: 0; background: rgba(0,0,0,0.58); z-index: 900; display: none; pointer-events: none; }
-        #tutorial-pointer{ position: fixed; z-index: 1002; display: none; font-size: 42px; pointer-events: none; animation: pointerFloat 1.1s ease-in-out infinite; }
-        @keyframes pointerFloat{ 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        #tutorial-hint{ position: fixed; right: 250px; top: 260px; transform: none; background: #ffc822; color: #000; padding: 14px 18px; border-radius: 28px; font-size: 16px; font-weight: 900; z-index: 1001; display: none; box-shadow: 0 10px 20px rgba(0,0,0,0.18); text-align: center; min-width: 260px; max-width: 320px; line-height: 1.4; }
-        .tutorial-focus{ position: relative !important; z-index: 1000 !important; box-shadow: 0 0 24px #ffc822 !important; animation: tutorialPulse 1.2s infinite ease-in-out; }
-        @keyframes tutorialPulse{ 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-        .tutorial-fish-focus{ z-index: 1001 !important; filter: drop-shadow(0 0 8px #ffc822) drop-shadow(0 0 18px #ffc822); animation: tutorialFishPulse 1.2s infinite ease-in-out; }
         @keyframes tutorialFishPulse{ 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        .tutorial-node-focus{ z-index: 1000 !important; box-shadow: 0 0 20px #ffc822, 0 0 40px rgba(255, 200, 34, 0.9) !important; animation: tutorialNodePulse 1.2s infinite ease-in-out; }
         @keyframes tutorialNodePulse{ 0%,100% { transform: scale(1); box-shadow: 0 0 20px #ffc822, 0 0 40px rgba(255, 200, 34, 0.75); } 50% { transform: scale(1.04); box-shadow: 0 0 28px #ffc822, 0 0 52px rgba(255, 200, 34, 1); } }
-        .tutorial-line-focus{ z-index: 1000 !important; box-shadow: 0 0 16px #ffc822 !important; animation: tutorialLinePulse 1.2s infinite ease-in-out; }
-        @keyframes tutorialLinePulse{ 0%,100% { opacity: 1; box-shadow: 0 0 10px #ffc822; } 50% { opacity: 1; box-shadow: 0 0 22px #ffc822; } }
         #ios-indicator { position: absolute; top: 0; left: 0; transform: translate(-50%, -120%) scale(0.8); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(15px); border-radius: 50px; padding: 6px 18px; display: flex; align-items: center; box-shadow: 0 8px 24px rgba(0,0,0,0.12); opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; pointer-events: none; border: 1px solid rgba(255,255,255,0.35); }
         #ios-indicator.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
         .ind-fraction { color: #000; font-size: 18px; font-weight: 900; }
         .next-btn{ margin-top: 8px; background: #000; color: #fff; padding: 4px 12px; border-radius: 10px; font-size: 14px; cursor: pointer; border: none; font-weight: 900; }
+        .tutorial-focus { position: relative !important; z-index: 950 !important; pointer-events: auto !important; animation: pulse-btn-border 1.5s infinite ease-in-out !important; }
+        @keyframes tutorialPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+        #tutorial-pointer { position: fixed; z-index: 1002; display: none; font-size: 42px; pointer-events: none; animation: pointerFloat 1.1s ease-in-out infinite; }
+        @keyframes pointerFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes pulse-btn-border { 0%, 100% { border-color: #000; transform: scale(1); } 50% { border-color: #ffc822; transform: scale(1.05); box-shadow: 0 0 15px #ffc822; } }
+        .tutorial-node-focus { z-index: 1000 !important; box-shadow: 0 0 20px #ffc822, 0 0 40px rgba(255, 200, 34, 0.9) !important; }
+        .tutorial-fish-focus { z-index: 1001 !important; }
+        .tutorial-line-focus { z-index: 1000 !important; box-shadow: 0 0 16px #ffc822 !important; animation: tutorialLinePulse 1.2s infinite ease-in-out; }
+        @keyframes tutorialLinePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 10px #ffc822; } 50% { opacity: 1; box-shadow: 0 0 22px #ffc822; } }
+        #tutorial-hint { position: fixed; z-index: 10001; display: none; opacity: 0; background: #ffc822; color: #000; font-weight: 900; padding: 4px 12px; border-radius: 9999px; font-size: 16px; text-align: center; transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1), top 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; }
     </style>
 </head>
 <body id="body-root">
@@ -172,8 +173,7 @@
         let steps = 0, time = 0, isPro = false, timerInterval, gateHistory = [], historyStack = [[]],
             selectedIndices = [], fishAtNode = [7, 6, 5, 4, 3, 2, 1, 0], isSolved = false,
             lineMode = 1, hoverLine = null, currentOptionIndex = 0, currentOptions = [],
-            tutorialStep = 0, tutorialActive = false;
-            
+            tutorialStep = 0, tutorialActive = false, scrollCount = 0;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a'),
             getDynamicOffset = () => parseInt(getComputedStyle(document.body).getPropertyValue('--cube-offset-x')) || 0;
         const nodePositions = [
@@ -196,14 +196,32 @@
                 e.preventDefault(); e.currentTarget.scrollLeft += e.deltaY;
             });
             document.addEventListener('wheel', (e) => {
-                if (!hoverLine || lineMode === 1) return;
-                if (tutorialActive && tutorialStep < 4) return;
-                e.preventDefault();
-                currentOptionIndex = e.deltaY > 0 ? (currentOptionIndex + 1) % currentOptions.length : (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                showIndicator();
-                if (tutorialActive && tutorialStep === 4 && currentOptions.length > 1) tutorialStep = 5;
-                if (tutorialActive && (tutorialStep >= 3 && tutorialStep <= 5)) updateWheelTutorial();
-            }, { passive: false });
+    if (!hoverLine || lineMode === 1) return;
+    if (tutorialActive && tutorialStep < 2) return;
+    
+    // 關鍵修改：如果已經到了第 5 步提示點擊了，鎖定滾輪，不准切換組合
+    if (tutorialActive && tutorialStep === 5) return;
+
+    e.preventDefault();
+    currentOptionIndex = e.deltaY > 0 
+        ? (currentOptionIndex + 1) % currentOptions.length 
+        : (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+    
+    showIndicator();
+    
+    if (tutorialActive) {
+        if (tutorialStep === 3) {
+            tutorialStep = 4;
+            scrollCount = 0;
+        }
+        if (tutorialStep === 4) {
+            scrollCount++;
+            // 滾動足夠次數後進入第 5 步，此時上面的 return 會開始生效，鎖定選項
+            if (scrollCount >= 3) tutorialStep = 5;
+        }
+        updateWheelTutorial();
+    }
+}, { passive: false });
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
@@ -214,12 +232,82 @@
             });
             setTimeout(startWheelTutorial, 500);
         };
+        function startWheelTutorial() {
+            tutorialActive = true; 
+            tutorialStep = 1;
+            const hint = document.getElementById('tutorial-hint');
+            const indicator = document.getElementById('ios-indicator');
+            if(hint) hint.style.display = 'none';
+            if(indicator) indicator.classList.remove('active');
+            document.getElementById('tutorial-mask').style.display = 'block';
+            setTimeout(() => {
+                updateWheelTutorial();
+            }, 50);
+        }
+        function updateWheelTutorial() {
+            clearTutorialFocus(); hideTutorialHint();
+            if (!tutorialActive) return;   
+            const modeBtn = document.getElementById('mode-btn');
+            const topLine = document.getElementById('line-edge-0');
+            const currentOpt = currentOptions[currentOptionIndex];
+            if (tutorialStep === 1) {
+                const hint = document.getElementById('tutorial-hint');
+                const modeBtn = document.getElementById('mode-btn');
+                if (modeBtn && hint) {
+                    modeBtn.classList.add('tutorial-focus');
+                    const rect = modeBtn.getBoundingClientRect();
+                    hint.style.position = 'fixed';
+                    hint.style.transform = 'none'; 
+                    hint.style.margin = '0';
+                    hint.style.zIndex = '10001';
+                    hint.style.left = (rect.left - 40) + 'px';
+                    hint.style.top = (rect.top + 55) + 'px';
+                    showTutorialHint('CLICK TO CHANGE MODE');
+                    hint.style.left = (rect.left - 40) + 'px';
+                    hint.style.top = (rect.top + 55) + 'px';
+                    hint.style.display = 'block'; 
+                }
+            } else if (tutorialStep === 2) {
+                showTutorialHint('HOVER THE LINE');
+                const hint = document.getElementById('tutorial-hint');
+                hint.style.left = '50%';
+                hint.style.top = '42%';
+                hint.style.transform = 'translateX(-50%)';
+                highlightTutorialPairs([[0, 1]]); 
+                if (topLine) showTutorialPointer(topLine, -25, 2);
+            } else if (tutorialStep === 3) {
+                showTutorialHint('THERE ARE TWO OPTIONS<br>SCROLL TO CHOOSE!');
+                const hint = document.getElementById('tutorial-hint');
+                hint.style.left = '50%';
+                hint.style.top = '13%';
+                hint.style.transform = 'translateX(-50%)';
+                if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
+            } else if (tutorialStep === 4) {
+                showTutorialHint('AND SCROLL...');
+                const hint = document.getElementById('tutorial-hint');
+                hint.style.left = '50%';
+                hint.style.top = '15%';
+                hint.style.transform = 'translateX(-50%)';
+                if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
+            } else if (tutorialStep === 5) {
+                showTutorialHint('CLICK TO CONFIRM');
+                const hint = document.getElementById('tutorial-hint');
+                hint.style.left = '50%';
+                hint.style.top = '15%';
+                hint.style.transform = 'translateX(-50%)';
+                if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
+            }
+        }
+        function finishWheelTutorial() {
+            tutorialActive = false; tutorialStep = 0; scrollCount = 0;
+            document.getElementById('tutorial-mask').style.display = 'none';
+            hideTutorialHint(); clearTutorialFocus(); hideIndicator();
+        }
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=5`);
                 const data = await response.json();
-                console.log("Fetched Data:", data);
                 if (data && Array.isArray(data) && data.length > 0) {
                     leaderboardData = data;
                     renderRank('steps');
@@ -232,16 +320,9 @@
             }
         }
         function renderRank(type) {
-            const tabSteps = document.getElementById('tab-steps');
-            const tabTime = document.getElementById('tab-time');
-            const listArea = document.getElementById('rankList');
-            if (type === 'steps') {
-                tabSteps.className = 'rank-tab active';
-                tabTime.className = 'rank-tab bg-gray-100';
-            } else {
-                tabSteps.className = 'rank-tab bg-gray-100';
-                tabTime.className = 'rank-tab active';
-            }
+            const tabSteps = document.getElementById('tab-steps'), tabTime = document.getElementById('tab-time'), listArea = document.getElementById('rankList');
+            if (type === 'steps') { tabSteps.className = 'rank-tab active'; tabTime.className = 'rank-tab bg-gray-100'; } 
+            else { tabSteps.className = 'rank-tab bg-gray-100'; tabTime.className = 'rank-tab active'; }
             if (!leaderboardData || leaderboardData.length === 0) return;
             const sorted = [...leaderboardData].sort((a, b) => a[type] - b[type]);
             let html = "";
@@ -249,11 +330,7 @@
                 const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : (index + 1) + ".";
                 const displayName = item.username || item.name || 'Anonymous';
                 const displayValue = type === 'steps' ? item.steps + '🐾' : item.time + 's';
-                html += `
-                    <div class="rank-item">
-                        <span class="truncate" style="max-width: 90px;">${medal} ${displayName}</span>
-                        <span class="text-blue-600">${displayValue}</span>
-                    </div>`;
+                html += `<div class="rank-item"><span class="truncate" style="max-width: 90px;">${medal} ${displayName}</span><span class="text-blue-600">${displayValue}</span></div>`;
             });
             listArea.innerHTML = html;
         }
@@ -282,17 +359,12 @@
         }
         function buildGateOptions3Bit(idxA, idxB) {
             const diff = idxA ^ idxB, targetBit = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
-            const otherBits = [0, 1, 2].filter(b => b !== targetBit);
-            const options = [];
+            const otherBits = [0, 1, 2].filter(b => b !== targetBit), options = [];
             if (lineMode === 4) {
-                options.push({
-                    gateType: `X${targetBit}`,
-                    highlightPairs: edges.filter(([u, v]) => (u ^ v) === diff).map(([u, v]) => [u, v])
-                });
+                options.push({ gateType: `X${targetBit}`, highlightPairs: edges.filter(([u, v]) => (u ^ v) === diff).map(([u, v]) => [u, v]) });
             } else if (lineMode === 2) {
                 [0, 1].forEach(i => {
-                    const ctrlBit = otherBits[i], ctrlMask = 1 << (2 - ctrlBit);
-                    const ctrlVal = ((idxA & ctrlMask) !== 0) ? 1 : 0;
+                    const ctrlBit = otherBits[i], ctrlMask = 1 << (2 - ctrlBit), ctrlVal = ((idxA & ctrlMask) !== 0) ? 1 : 0;
                     const gate = ctrlVal ? `CX${ctrlBit}${targetBit}` : `C0X${ctrlBit}${targetBit}`;
                     const pairs = edges.filter(([u, v]) => (u ^ v) === diff && (u & ctrlMask) === (idxA & ctrlMask)).map(([u, v]) => [u, v]);
                     options.push({ gateType: gate, highlightPairs: pairs });
@@ -322,10 +394,12 @@
                 if (fIdx !== -1) document.getElementById(`fish-${fIdx}`)?.classList.add('tutorial-fish-focus');
             });
         }
-        function showTutorialHint(text, showNext = false) {
+        function showTutorialHint(text) {
             const hint = document.getElementById('tutorial-hint');
-            hint.innerHTML = showNext ? `${text}<br><button class="next-btn" onclick="nextTutorialStep()">Next</button>` : text;
+            if (!hint) return;
+            hint.innerHTML = text;
             hint.style.display = 'block';
+            hint.style.opacity = '1';
         }
         function hideTutorialHint() { document.getElementById('tutorial-hint').style.display = 'none'; hideTutorialPointer(); }
         function showTutorialPointer(targetEl, offsetX = -10, offsetY = -50) {
@@ -336,45 +410,6 @@
             pointer.style.display = 'block';
         }
         function hideTutorialPointer() { document.getElementById('tutorial-pointer').style.display = 'none'; }
-        function nextTutorialStep() {
-            if (!tutorialActive) return;
-            if (tutorialStep === 3) tutorialStep = 4;
-            else if (tutorialStep === 4) tutorialStep = 5;
-            updateWheelTutorial();
-        }
-        function startWheelTutorial() {
-            tutorialActive = true; tutorialStep = 1;
-            document.getElementById('tutorial-mask').style.display = 'block';
-            updateWheelTutorial();
-        }
-        function updateWheelTutorial() {
-            clearTutorialFocus(); hideTutorialHint();
-            if (!tutorialActive) return;
-            const modeBtn = document.getElementById('mode-btn'), topLine = document.getElementById('line-edge-0'), currentOpt = currentOptions[currentOptionIndex];
-            if (tutorialStep === 1) {
-                if (modeBtn) { modeBtn.classList.add('tutorial-focus'); }
-            } else if (tutorialStep === 2) {
-                highlightTutorialPairs([[0, 1]]); 
-                if (topLine) {
-                    showTutorialPointer(topLine, 0, 2);
-                }
-                showTutorialHint('move your mouse to the top line.');
-            }else if (tutorialStep === 3) {
-                if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
-                showTutorialHint('this is the 1st swap option.', true);
-            } else if (tutorialStep === 4) {
-                if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
-                showTutorialHint('use the mouse wheel to switch to the next option.', true);
-            } else if (tutorialStep === 5) {
-                if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
-                showTutorialHint('click to confirm the swap.');
-            }
-        }
-        function finishWheelTutorial() {
-            tutorialActive = false; tutorialStep = 0;
-            document.getElementById('tutorial-mask').style.display = 'none';
-            hideTutorialHint(); clearTutorialFocus(); hideIndicator();
-        }
         function showIndicator() {
             const pill = document.getElementById('ios-indicator'), frac = document.getElementById('ind-fraction'), opt = currentOptions[currentOptionIndex];
             if (!opt) return;
@@ -407,29 +442,45 @@
             line.style.cssText = `width:${len}px; height:4px; left:${sx1}px; top:${sy1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
             line.onmouseenter = () => {
                 if (isSolved) return;
-                if (tutorialActive && tutorialStep === 2 && index !== 0) return;
+                if (tutorialActive && (tutorialStep === 5 || tutorialStep === 2) && index !== 0) return;
                 hoverLine = { i, j, index };
                 if (lineMode === 1) return;
-                currentOptions = buildGateOptions3Bit(i, j); currentOptionIndex = 0;
+                currentOptions = buildGateOptions3Bit(i, j); 
+                if (!tutorialActive || (tutorialStep !== 4 && tutorialStep !== 5)) {
+                    currentOptionIndex = 0;
+                }
                 showIndicator();
-                if (tutorialActive && tutorialStep === 2 && index === 0) { tutorialStep = 3; updateWheelTutorial(); }
+                if (tutorialActive && tutorialStep === 2 && index === 0) {
+                    setTimeout(() => {
+                        if (tutorialActive && tutorialStep === 2) {
+                            tutorialStep = 3;
+                            updateWheelTutorial();
+                        }
+                    }, 300); 
+                }
             };
-            line.onmouseleave = () => {
-                hoverLine = null;
-                hideIndicator();
-            };
+            line.onmouseleave = () => { hoverLine = null; hideIndicator(); };
             line.onclick = () => handleLineClick(i, j);
             document.getElementById('lines-layer').appendChild(line);
         }
         function handleLineClick(idxA, idxB) {
             if (isSolved || (tutorialActive && tutorialStep !== 5)) return;
-            if (lineMode === 1) return swapNodes(idxA, idxB);
-            
+            if (tutorialActive && tutorialStep === 5) {
+                const currentEdgeIdx = hoverLine ? hoverLine.index : -1;
+                if (currentEdgeIdx !== 0) return;
+            }
+            if (lineMode === 1) {
+                return swapNodes(idxA, idxB);
+            }
             if (currentOptions[currentOptionIndex]) {
                 applyGate(currentOptions[currentOptionIndex].gateType);
                 hoverLine = null;
-                if (tutorialActive && tutorialStep === 5) setTimeout(finishWheelTutorial, 500);
-                else hideIndicator();
+                if (tutorialActive && tutorialStep === 5) {
+                    tutorialStep = 0; 
+                    setTimeout(finishWheelTutorial, 500);
+                } else {
+                    hideIndicator();
+                }
             }
         }
         function swapNodes(idxA, idxB) {
@@ -439,85 +490,43 @@
             let ctrl = [0, 1, 2].filter(c => c !== target);
             let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
             const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}_SWAP_${idxA}_${idxB}`;
-            
             if(selectedIndices.length > 0) replaceLogic(gateStr);
-            else {
-                gateHistory.push(gateStr);
-                [fishAtNode[idxA], fishAtNode[idxB]] = [fishAtNode[idxB], fishAtNode[idxA]];
-                historyStack.push([...gateHistory]); steps = gateHistory.length; finishMove();
-            }
+            else { gateHistory.push(gateStr); [fishAtNode[idxA], fishAtNode[idxB]] = [fishAtNode[idxB], fishAtNode[idxA]]; historyStack.push([...gateHistory]); steps = gateHistory.length; finishMove(); }
         }
         function togglePro() {
             isPro = !isPro; document.getElementById('body-root').classList.toggle('pro-active', isPro);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
-            let start = Date.now(), loop = () => {
-                updateNodePositionsUI(); drawStaticLines(); updateFishUI();
-                if (Date.now() - start < 600) requestAnimationFrame(loop);
-            };
+            let start = Date.now(), loop = () => { updateNodePositionsUI(); drawStaticLines(); updateFishUI(); if (Date.now() - start < 600) requestAnimationFrame(loop); };
             requestAnimationFrame(loop);
         }
         function updateNodePositionsUI() {
-            for (let i = 0; i < 8; i++) {
-                let n = document.getElementById(`node-${i}`);
-                if (n) { n.style.top = nodePositions[i].t + "px"; n.style.left = nodePositions[i].l + "px"; }
-            }
-        }
-        function replaceLogic(newGate) {
-            let targetIdx = Math.min(...selectedIndices), newHistory = [];
-            for(let i=0; i<gateHistory.length; i++) {
-                if (i === targetIdx) newHistory.push(newGate);
-                else if (!selectedIndices.includes(i)) newHistory.push(gateHistory[i]);
-            }
-            gateHistory = newHistory; selectedIndices = []; historyStack.push([...gateHistory]); recalculate();
+            for (let i = 0; i < 8; i++) { let n = document.getElementById(`node-${i}`); if (n) { n.style.top = nodePositions[i].t + "px"; n.style.left = nodePositions[i].l + "px"; } }
         }
         function applyGate(type) {
             if (isSolved) return;
             pop.currentTime = 0; pop.play();
             if (selectedIndices.length > 0) replaceLogic(type);
-            else {
-                executeLogic(type); gateHistory.push(type);
-                historyStack.push([...gateHistory]); steps = gateHistory.length; finishMove();
-            }
+            else { executeLogic(type); gateHistory.push(type); historyStack.push([...gateHistory]); steps = gateHistory.length; finishMove(); }
         }
         function executeLogic(type) {
-            if (type.includes('_SWAP_')) {
-                let [, , iA, iB] = type.split('_');
-                [fishAtNode[iA], fishAtNode[iB]] = [fishAtNode[iB], fishAtNode[iA]];
-                return;
-            }
+            if (type.includes('_SWAP_')) { let [, , iA, iB] = type.split('_'); [fishAtNode[iA], fishAtNode[iB]] = [fishAtNode[iB], fishAtNode[iA]]; return; }
             let pm = Array.from({ length: 8 }, (_, p) => {
                 let b = p.toString(2).padStart(3, '0').split('').map(Number);
-                if (type.startsWith('X')) { b[type[1]] ^= 1; }
+                if (type.startsWith('X')) b[type[1]] ^= 1;
                 else if (type.startsWith('CX')) { if (b[type[2]]) b[type[3]] ^= 1; }
                 else if (type.startsWith('C0X')) { if (!b[type[3]]) b[type[4]] ^= 1; }
                 else if (type.startsWith('TOF')) {
-                    let s = type.split('_')[0].slice(3);
-                    let c1 = s[0], c1p = s[1] === 'p', i = c1p ? 2 : 1;
-                    let c2 = s[i], c2p = s[i+1] === 'p', t = c2p ? s[i+2] : s[i+1];
-                    if ((c1p ? !b[c1] : b[c1]) && (c2p ? !b[c2] : b[c2])) b[t] ^= 1;
+                    let s = type.split('_')[0].replace('TOF', ''), parts = [];
+                    for (let i = 0; i < s.length; i++) { if (s[i + 1] === 'p') { parts.push({ v: parseInt(s[i]), p: true }); i++; } else parts.push({ v: parseInt(s[i]), p: false }); }
+                    let t = parts.pop().v; let cond = parts.every(p => p.p ? !b[p.v] : b[p.v]); if (cond) b[t] ^= 1;
                 }
                 return parseInt(b.join(''), 2);
             });
-            let newFish = new Array(8);
-            for (let i = 0; i < 8; i++) newFish[pm[i]] = fishAtNode[i];
-            fishAtNode = newFish;
+            let newFish = new Array(8); for (let i = 0; i < 8; i++) newFish[pm[i]] = fishAtNode[i]; fishAtNode = newFish;
         }
-        function recalculate() {
-            fishAtNode = [7, 6, 5, 4, 3, 2, 1, 0];
-            let h = [...gateHistory]; gateHistory = [];
-            h.forEach(g => { executeLogic(g); gateHistory.push(g); });
-            steps = gateHistory.length; finishMove();
-        }
-        function finishMove() {
-            document.getElementById('step-count').innerText = steps;
-            updateFishUI(); renderCircuit(); checkWin();
-        }
-        function updateFishUI() {
-            for (let nI = 0; nI < 8; nI++) {
-                const f = document.getElementById(`fish-${fishAtNode[nI]}`), n = nodePositions[nI];
-                if (f && n) { f.style.top = (n.t + 78) + "px"; f.style.left = (n.l + 22) + "px"; }
-            }
-        }
+        function recalculate() { fishAtNode = [7, 6, 5, 4, 3, 2, 1, 0]; let h = [...gateHistory]; gateHistory = []; h.forEach(g => { executeLogic(g); gateHistory.push(g); }); steps = gateHistory.length; finishMove(); }
+        function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
+        function updateFishUI() { for (let nI = 0; nI < 8; nI++) { const f = document.getElementById(`fish-${fishAtNode[nI]}`), n = nodePositions[nI]; if (f && n) { f.style.top = (n.t + 78) + "px"; f.style.left = (n.l + 22) + "px"; } } }
         function renderCircuit() {
             const c = document.getElementById('circuit-content'); c.innerHTML = '';
             gateHistory.forEach((g, idx) => {
@@ -526,14 +535,8 @@
                 u.onclick = (e) => {
                     if (isSolved) return;
                     pop.currentTime = 0; pop.play();
-                    if (e.ctrlKey) {
-                        if (selectedIndices.includes(idx)) selectedIndices = selectedIndices.filter(i => i !== idx);
-                        else selectedIndices.push(idx);
-                        renderCircuit();
-                    } else {
-                        selectedIndices = []; gateHistory.splice(idx, 1);
-                        historyStack.push([...gateHistory]); recalculate();
-                    }
+                    if (e.ctrlKey) { if (selectedIndices.includes(idx)) selectedIndices = selectedIndices.filter(i => i !== idx); else selectedIndices.push(idx); renderCircuit(); }
+                    else { selectedIndices = []; gateHistory.splice(idx, 1); historyStack.push([...gateHistory]); recalculate(); }
                 };
                 let ctrl = [], target = -1, zero = [];
                 if (g.startsWith('X')) target = parseInt(g[1]);
@@ -541,77 +544,27 @@
                 else if (g.startsWith('C0X')) { ctrl = [parseInt(g[3])]; target = parseInt(g[4]); zero = [parseInt(g[3])]; }
                 else if (g.startsWith('TOF')) {
                     let s = g.split('_')[0].replace('TOF', ''), parts = [];
-                    for (let i = 0; i < s.length; i++) {
-                        if (s[i + 1] === 'p') { parts.push({ v: parseInt(s[i]), p: true }); i++; } 
-                        else parts.push({ v: parseInt(s[i]), p: false });
-                    }
-                    target = parts.pop().v;
-                    parts.forEach(p => { ctrl.push(p.v); if (p.p) zero.push(p.v); });
+                    for (let i = 0; i < s.length; i++) { if (s[i + 1] === 'p') { parts.push({ v: parseInt(s[i]), p: true }); i++; } else parts.push({ v: parseInt(s[i]), p: false }); }
+                    target = parts.pop().v; parts.forEach(p => { ctrl.push(p.v); if (p.p) zero.push(p.v); });
                 }
                 if (ctrl.length > 0) {
                     let min = Math.min(...ctrl, target), max = Math.max(...ctrl, target);
-                    const v = document.createElement('div');
-                    v.className = 'connection-v-line'; v.style.cssText = `top:${30+min*40}px; height:${(max-min)*40}px;`;
-                    u.appendChild(v);
-                    ctrl.forEach(cl => {
-                        const d = document.createElement('div'); d.className = 'control-dot'; d.style.top = (24 + cl * 40) + 'px';
-                        if (zero.includes(cl)) { d.style.background = '#fff'; d.style.border = '2.5px solid #000'; }
-                        u.appendChild(d);
-                    });
+                    const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.cssText = `top:${30+min*40}px; height:${(max-min)*40}px;`; u.appendChild(v);
+                    ctrl.forEach(cl => { const d = document.createElement('div'); d.className = 'control-dot'; d.style.top = (24 + cl * 40) + 'px'; if (zero.includes(cl)) { d.style.background = '#fff'; d.style.border = '2.5px solid #000'; } u.appendChild(d); });
                 }
-                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.top = (31 + target * 40) + 'px';
-                u.appendChild(t); c.appendChild(u);
+                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.top = (31 + target * 40) + 'px'; u.appendChild(t); c.appendChild(u);
             });
-            updateUndoStatus();
-            const w = document.getElementById('circuit-content-wrapper');
-            setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
+            updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper'); setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
         }
-        function undo() {
-            if (isSolved || historyStack.length <= 1) return;
-            pop.currentTime = 0; pop.play(); historyStack.pop();
-            gateHistory = [...historyStack[historyStack.length - 1]];
-            selectedIndices = []; recalculate();
-        }
-        function resetCircuit() {
-            if (isSolved) return;
-            pop.currentTime = 0; pop.play();
-            gateHistory = []; historyStack = [[]]; selectedIndices = []; recalculate();
-        }
-        function updateUndoStatus() {
-            const ub = document.getElementById('undo-btn'); if(!ub) return;
-            if(historyStack.length > 1 && !isSolved) { ub.classList.add('active'); ub.style.pointerEvents="auto"; } 
-            else { ub.classList.remove('active'); ub.style.pointerEvents="none"; }
-        }
+        function undo() { if (isSolved || historyStack.length <= 1) return; pop.currentTime = 0; pop.play(); historyStack.pop(); gateHistory = [...historyStack[historyStack.length - 1]]; selectedIndices = []; recalculate(); }
+        function resetCircuit() { if (isSolved) return; pop.currentTime = 0; pop.play(); gateHistory = []; historyStack = [[]]; selectedIndices = []; recalculate(); }
+        function updateUndoStatus() { const ub = document.getElementById('undo-btn'); if(!ub) return; if(historyStack.length > 1 && !isSolved) { ub.classList.add('active'); ub.style.pointerEvents="auto"; } else { ub.classList.remove('active'); ub.style.pointerEvents="none"; } }
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
-                isSolved = true;
-                updateUndoStatus();
-                if (timerInterval) clearInterval(timerInterval);
-                const ft = time;
-                const st = steps; 
-                const u = sessionStorage.getItem('currentUser');
-                sessionStorage.setItem('currentLevel', 6);
-                setTimeout(() => { 
-                    if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
-                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
-                    document.getElementById('victoryModal').style.display = 'flex'; 
-                }, 800);
-                if (u) {
-                    fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify({ 
-                            action: 'saveRecord', 
-                            username: u, 
-                            level: 5,           
-                            steps: st, 
-                            time: ft,
-                            circuit: gateHistory.join(',') 
-                        })
-                    }).then(() => {
-                        setTimeout(fetchLeaderboard, 1200); 
-                    });
-                }
+                isSolved = true; updateUndoStatus(); if (timerInterval) clearInterval(timerInterval);
+                const ft = time, st = steps, u = sessionStorage.getItem('currentUser'); sessionStorage.setItem('currentLevel', 6);
+                setTimeout(() => { if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); } document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; document.getElementById('victoryModal').style.display = 'flex'; }, 800);
+                if (u) { fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveRecord', username: u, level: 5, steps: st, time: ft, circuit: gateHistory.join(',') }) }).then(() => { setTimeout(fetchLeaderboard, 1200); }); }
             }
         }
     </script>
