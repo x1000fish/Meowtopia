@@ -394,7 +394,7 @@
         }
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
-                isGameOver = true;
+                isSolved = true;
                 updateUndoStatus();
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = parseInt(document.getElementById('timer').innerText);
