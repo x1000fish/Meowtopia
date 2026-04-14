@@ -143,7 +143,7 @@
         let isGameOver = false;
         let actionStack = []; 
         let selectedIndices = []; 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/execc';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => { timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000); updateFishUI(); updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper'); w.addEventListener('wheel', (e) => { e.preventDefault(); w.scrollLeft += e.deltaY; }); };
         function togglePro() {
