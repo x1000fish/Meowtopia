@@ -538,6 +538,7 @@
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = time;
                 const st = steps; 
+                const u = sessionStorage.getItem('currentUser');
                 const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
                 if (savedLevel < 11) {
                     sessionStorage.setItem('currentLevel', 11);
