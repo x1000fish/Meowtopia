@@ -10,22 +10,7 @@
         .hidden { display: none !important; }
         .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
         .game-canvas { position: relative; width: 850px; height: 500px; background: #EEE8D3; border: 8px solid #000; border-radius: 40px; overflow: hidden; }
-        .side-leaderboard { 
-            position: fixed; 
-            left: 40px; 
-            top: 28%; 
-            transform: translateY(-50%); 
-            width: 240px; 
-            background: white; 
-            border: 6px solid #000; 
-            border-radius: 30px; 
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            max-height: 80vh; 
-            box-shadow: 6px 6px 0 #000; 
-            z-index: 100; 
-        }
+        .side-leaderboard { position: fixed; left: 40px; top: 28%; transform: translateY(-50%); width: 240px; background: white; border: 6px solid #000; border-radius: 30px; padding: 15px; display: flex; flex-direction: column; max-height: 80vh; box-shadow: 6px 6px 0 #000; z-index: 100; }
         .rank-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 2px dashed #eee; font-weight: 900; font-size: 14px; }
         .rank-tab { flex: 1; padding: 4px; font-size: 12px; font-weight: 900; border: 3px solid #000; border-radius: 12px; cursor: pointer; transition: all 0.1s; text-align: center; }
         .rank-tab.active { background: #000; color: #fff; }
@@ -351,6 +336,7 @@
                 const u = sessionStorage.getItem('currentUser');
                 sessionStorage.setItem('currentLevel', 5);
                 setTimeout(() => { 
+                    if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
                     document.getElementById('victoryModal').style.display = 'flex'; 
                 }, 600);
