@@ -67,7 +67,7 @@
         .highlight-static { position: relative !important; z-index: 901 !important; border-color: #ffc822 !important; box-shadow: 0 0 25px #ffc822 !important; pointer-events: auto !important; }
         .highlight-canvas-obj { position: absolute !important; z-index: 901 !important; box-shadow: 0 0 30px 10px #ffc822 !important; pointer-events: auto !important; }
         .fish-top-layer { z-index: 902 !important; }
-        .gate-btn-v2.highlight-focus:hover, .func-btn.highlight-focus:hover, .highlight-focus:hover { animation-play-state: paused !important; border-color: #ffc822 !important; border-width: 3px !important; background-color: #e0e0e0 !important; box-shadow: 0 4px 0 #000, 0 0 20px #ffc822 !important; transform: scale(1.05) !important; }
+        .gate-btn-v2.highlight-focus:hover, .func-btn.highlight-focus:hover, .highlight-focus:hover { animation-play-state: paused !important; border-color: #ffc822 !important; border-width: 3px !important; background-color:  #fee58b !important; box-shadow: 0 4px 0 #000, 0 0 20px #ffc822 !important; transform: scale(1.05) !important; }
         .circuit-unit.highlight-focus { z-index: 901 !important; pointer-events: auto !important; animation: pulse-circuit 1.5s infinite ease-in-out !important; background: rgba(255, 200, 34, 0.2); border-radius: 8px; }
         .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: white; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #000; z-index: 500; }
         .start-hint-banner { position: fixed; top: 100px; right: 15px; z-index: 600; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; animation: tap-anim 1.5s infinite; }
@@ -143,6 +143,7 @@
         let isGameOver = false;
         let actionStack = []; 
         let selectedIndices = []; 
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/execc';
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => { timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000); updateFishUI(); updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper'); w.addEventListener('wheel', (e) => { e.preventDefault(); w.scrollLeft += e.deltaY; }); };
         function togglePro() {
@@ -284,7 +285,6 @@
         function undo() { 
             if (isGameOver || actionStack.length === 0) return;
             pop.currentTime = 0; pop.play();
-            
             const action = actionStack.pop();
             if (action.type === 'add') {
                 gateHistory.splice(action.index, 1);
@@ -316,13 +316,42 @@
                 ub.style.pointerEvents = "none"; 
             } 
         }
-        function checkWin() {
+        async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isGameOver = true;
                 updateUndoStatus();
-                if (timerInterval) clearInterval(timerInterval); const u = sessionStorage.getItem('currentUser');
-                if (u) { const rd = localStorage.getItem(u); if (rd) { const ud = JSON.parse(rd); if ((ud.level || 1) < 3) { ud.level = 3; localStorage.setItem(u, JSON.stringify(ud)); } } }
-                setTimeout(() => { meow.currentTime = 0; meow.play(); document.getElementById('victoryMsg').innerText = `STEP：${document.getElementById('step-count').innerText} | TIME：${document.getElementById('timer').innerText}s`; document.getElementById('victoryModal').style.display = 'flex'; }, 600);
+                if (timerInterval) clearInterval(timerInterval);
+                const ft = parseInt(document.getElementById('timer').innerText);
+                const st = steps; 
+                const u = sessionStorage.getItem('currentUser');
+                const currentLvInSession = parseInt(sessionStorage.getItem('currentLevel') || "1");
+                if (currentLvInSession <= 2) {
+                    sessionStorage.setItem('currentLevel', 3);
+                }
+                setTimeout(() => { 
+                    if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
+                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
+                    document.getElementById('victoryModal').style.display = 'flex'; 
+                }, 600);
+                if (u) {
+                    const payload = {
+                        action: 'saveRecord',
+                        username: u,
+                        level: 2,
+                        steps: st,
+                        time: ft,
+                        circuit: gateHistory.join(',')
+                    };
+                    fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    }).catch(e => console.error("Database Error:", e));
+                }
             }
         }
         function swapOnly(nA, nB, gT) { if (isGameOver) return; applyGate(gT); }
