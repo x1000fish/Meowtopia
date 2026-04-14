@@ -669,7 +669,10 @@
                 const ft = time;
                 const st = steps; 
                 const u = sessionStorage.getItem('currentUser');
-                sessionStorage.setItem('currentLevel', 7);
+                const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
+                if (savedLevel < 7) {
+                    sessionStorage.setItem('currentLevel', 7);
+                }
                 setTimeout(() => { 
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
