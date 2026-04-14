@@ -538,8 +538,10 @@
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = time;
                 const st = steps; 
-                const u = sessionStorage.getItem('currentUser');
-                sessionStorage.setItem('currentLevel', 11);
+                const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
+                if (savedLevel < 11) {
+                    sessionStorage.setItem('currentLevel', 11);
+                }
                 setTimeout(() => { 
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
