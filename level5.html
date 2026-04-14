@@ -562,7 +562,8 @@
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true; updateUndoStatus(); if (timerInterval) clearInterval(timerInterval);
-                const ft = time, st = steps, u = sessionStorage.getItem('currentUser'); sessionStorage.setItem('currentLevel', 6);
+                const ft = time, st = steps, u = sessionStorage.getItem('currentUser'); const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
+                if (savedLevel < 6) sessionStorage.setItem('currentLevel', 6);
                 setTimeout(() => { if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); } document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; document.getElementById('victoryModal').style.display = 'flex'; }, 800);
                 if (u) { fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveRecord', username: u, level: 5, steps: st, time: ft, circuit: gateHistory.join(',') }) }).then(() => { setTimeout(fetchLeaderboard, 1200); }); }
             }
