@@ -235,6 +235,7 @@
         function pushHistory() { historyStack.push([...gateHistory]); }
         function applyGate(g) { 
             if (isSolved) return;
+            pop.currentTime = 0; pop.play();
             if (selectedIndices.length > 0) {
                 let targetIdx = Math.min(...selectedIndices);
                 let newHistory = [];
@@ -309,16 +310,19 @@
         }
         function undo() { 
             if (isSolved || historyStack.length <= 1) return;
+            pop.currentTime = 0; pop.play();
             historyStack.pop(); 
             gateHistory = [...historyStack[historyStack.length - 1]]; 
             selectedIndices = []; recalculatePositions(); finishMove(); 
         }
         function resetCircuit() { 
             if (isSolved) return;
+            pop.currentTime=0; pop.play(); 
             fishAtNode=[3,2,1,0]; gateHistory=[]; historyStack = [[]]; selectedIndices = []; steps=0; finishMove(); 
         }
         function deleteGate(idx) { 
             if (isSolved) return;
+            pop.currentTime=0; pop.play(); 
             gateHistory.splice(idx,1); pushHistory(); recalculatePositions(); finishMove(); 
         }
         function updateUndoStatus() {
