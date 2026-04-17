@@ -21,7 +21,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 350px; }
         .line-guide { animation: line-glow 1.5s infinite ease-in-out; }
-        @keyframes line-glow { 0%, 100% { box-shadow: 0 0 5px #FFC822; background: #000000; } 50% { box-shadow: 0 0 20px #FFC822; background: #FFC822; transform: translate(-50%, -50%) scaleY(1.5); } }       
+        @keyframes line-glow { 0%, 100% { box-shadow: 0 0 5px #FFC822; background: #000000; } 50% { box-shadow: 0 0 20px #FFC822; background: #FFC822; transform: translate(-50%, -50%) scaleY(1.5); } }      
         .guide-hand { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; display: flex; flex-direction: column; align-items: center; animation: tap-anim 1.5s infinite; }
         @keyframes tap-anim { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-15px); } }
         .guide-hidden { display: none !important; }
@@ -54,14 +54,14 @@
         let currentSteps = 0, fishAtNode = [1, 0], startTime, timerInterval = null;
         let isGameOver = false;
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
-        const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a'); 
+        const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => { startTimer(); updateFishUI(); };
-        function startTimer() { 
-            if (timerInterval) return; 
-            startTime = Date.now(); 
-            timerInterval = setInterval(() => { 
-                document.getElementById('timer').innerText = Math.floor((Date.now() - startTime) / 1000); 
-            }, 1000); 
+        function startTimer() {
+            if (timerInterval) return;
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                document.getElementById('timer').innerText = Math.floor((Date.now() - startTime) / 1000);
+            }, 1000);
         }
         function swapFish() {
             if (isGameOver) return;
@@ -85,25 +85,25 @@
                 const ft = parseInt(document.getElementById('timer').innerText);
                 const st = currentSteps;
                 const u = sessionStorage.getItem('currentUser');
-                setTimeout(() => { 
+                setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
-                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
-                    document.getElementById('victoryModal').style.display = 'flex'; 
+                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
+                    document.getElementById('victoryModal').style.display = 'flex';
                 }, 800);
                 if (u) {
                     const currentLvInSession = parseInt(sessionStorage.getItem('currentLevel') || "1");
                     if (currentLvInSession <= 1) {
-                        sessionStorage.setItem('currentLevel', 2); 
+                        sessionStorage.setItem('currentLevel', 2);
                     }
                     fetch(SCRIPT_URL, {
                         method: 'POST',
-                        body: JSON.stringify({ 
-                            action: 'saveRecord', 
-                            username: u, 
+                        body: JSON.stringify({
+                            action: 'saveRecord',
+                            username: u,
                             level: 1,
-                            steps: st, 
+                            steps: st,
                             time: ft,
-                            circuit: "Not" 
+                            circuit: "Not"
                         })
                     })
                     .then(res => res.text())
@@ -115,3 +115,4 @@
     </script>
 </body>
 </html>
+
