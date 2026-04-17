@@ -10,10 +10,107 @@
         .hidden { display: none !important; }
         .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
         .game-canvas { position: relative; width: 1900px; height: 550px; background: #EEE8D3; border: 8px solid #000; border-radius: 40px; overflow: hidden; }
-        .side-leaderboard { position: fixed; left: 5px; top: 28%; transform: translateY(-50%); width: 180px; background: white; border: 6px solid #000; border-radius: 30px; padding: 10px; display: flex; flex-direction: column; max-height: 80vh; box-shadow: 6px 6px 0 #000; z-index: 100; }
-        .rank-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 2px dashed #eee; font-weight: 900; font-size: 14px; }
-        .rank-tab { flex: 1; padding: 4px; font-size: 12px; font-weight: 900; border: 3px solid #000; border-radius: 12px; cursor: pointer; transition: all 0.1s; text-align: center; }
-        .rank-tab.active { background: #000; color: #fff; }
+        /* --- 書籤式排行榜樣式 --- */
+        #leaderboard-wrapper {
+            position: fixed;
+            left: -220px;
+            top: 28%;
+            transform: translateY(-50%);
+            display: flex;
+            z-index: 150;
+            transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #leaderboard-wrapper.expanded {
+            left: 0;
+        }
+        .side-leaderboard-content {
+            width: 220px;
+            background: white;
+            border: 6px solid #000;
+            border-left: none;
+            border-radius: 0 30px 30px 0;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            max-height: 80vh;
+            position: relative;
+            z-index: 2;
+        }
+        .bookmark-tab {
+            position: absolute;
+            right: -45px;
+            top: 40px;
+            width: 45px;
+            height: 130px;
+            background: #000;
+            border: 5px solid #000;
+            border-left: none;
+            border-radius: 0 15px 15px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s, right 0.2s, width 0.2s;
+            z-index: 1;
+        }
+        .bookmark-tab:hover {
+            background: #333;
+            width: 55px;
+            right: -55px;
+        }
+        .bookmark-text {
+            writing-mode: vertical-lr;
+            color: white;
+            font-weight: 900;
+            font-size: 20px;
+            text-shadow: 2px 2px 0 #000;
+            letter-spacing: 4px;
+            user-select: none;
+        }
+        #rankList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #rankList::-webkit-scrollbar-thumb {
+            background-color: #ddd;
+            border-radius: 10px;
+        }
+        .rank-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 2px;
+            border-bottom: 2px solid #d9d1c7;
+            font-weight: 900;
+            font-size: 14px;
+            gap: 8px;
+        }
+        .rank-item:last-child {
+            border-bottom: none;
+        }
+        .rank-item span:first-child {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .rank-item span:last-child {
+            flex-shrink: 0;
+        }
+        .rank-tab {
+            flex: 1;
+            padding: 6px 4px;
+            font-size: 12px;
+            font-weight: 900;
+            border: 3px solid #000;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.12s;
+            text-align: center;
+            background: #fff;
+        }
+        .rank-tab.active {
+            background: #000;
+            color: #fff;
+        }
         .node { width: 100px; height: 100px; background: white; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #000; z-index: 20; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .node img { width: 70px; height: auto; pointer-events: none; }
         .fixed-number { position: absolute; bottom: -2px; right: 24px; font-size: 16px; font-weight: 900; color: #000; pointer-events: none; z-index: 25; }
@@ -23,7 +120,7 @@
         .fish-wrapper { position: absolute; width: 70px; height: 70px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img.fish-img { width: 60px; height: auto; position: relative; z-index: 2; }
         .fish-wrapper img.fish-bg-shape { width: 60px; height: auto; position: absolute; z-index: 1; filter: brightness(0) invert(1);opacity: 1; }
-        .fish-label { background: #000000b6; color: #fff; width: 32px; height: 22px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; z-index: 5; position: absolute; top: 24px; }   
+        .fish-label { background: #000000b6; color: #fff; width: 32px; height: 22px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; z-index: 5; position: absolute; top: 24px; }  
         .hat-img { position: absolute; height: auto; pointer-events: none; z-index: 21; }
         .cat-hat { width: 35px !important; top: 7px; left: 50px; transform: translateX(-50%) rotate(15deg); }
         .fish-hat { width: 22px; top: 6px; left: 43%; transform: translateX(-50%) rotate(15deg); z-index: 31; }
@@ -38,7 +135,7 @@
         .multi-toggle-btn.mode-2 { background: #2b66e5; }
         .multi-toggle-btn.mode-4 { background: #A855F7; }
         .multi-toggle-btn.mode-8 { background: #10B981; }
-        .gate-btn-v2 { background: #e0e0e0; border: 2.5px solid #000; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 12px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
+        .gate-btn-v2 { background: #e0e0e0; border: 2.5px solid #000; border-radius: 8px; padding: 6px; font-weight: 800; font-size: 12px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
         .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #000; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
         .btn-reset { background: #e0e0e0; color: #000; }
         .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 0.6; cursor: not-allowed; pointer-events: none; }
@@ -66,18 +163,54 @@
         #ios-indicator.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
         .ind-fraction { color: #000; font-size: 16px; font-weight: 900; }
         .ind-label { display: none !important; }
+        .gate-btn-v2 { position: relative; height: 75px; width: 50px; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(#000,#000), linear-gradient(#000,#000), linear-gradient(#000,#000), linear-gradient(#000,#000); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 15px, center 30px, center 45px, center 60px; padding: 0; border: 2px solid #000; cursor: pointer; transition: all 0.2s; }
+        .gate-btn-v2:hover { background-color: #f0f0f0; transform: scale(1.05); z-index: 10; }
+        .gate-v-line { position: absolute; width: 1.5px; background: #000; left: 50%; transform: translateX(-50%); z-index: 1; }
+        .gate-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1px solid #000; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
+        .gate-dot.fill { background: #000; }
+        .gate-dot.empty { background: #fff; }
+        .gate-target-circle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #000; background: #fff; left: 50%; transform: translate(-50%, -50%); z-index: 3; }
+        .gate-target-circle::before { content: ''; position: absolute; width: 100%; height: 1.5px; top: 50%; left: 0; transform: translateY(-50%); background: #000; }
+        .gate-target-circle::after { content: ''; position: absolute; height: 100%; width: 1.5px; left: 50%; top: 0; transform: translateX(-50%); background: #000; }
+       
+        /* 畫布內的右下角按鈕容器 */
+        #canvas-bottom-btns {
+            position: absolute;
+            bottom: 15px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+        /* 調整畫布內按鈕的字體大小與寬度 */
+        #canvas-bottom-btns .func-btn {
+            margin-top: 0;
+            width: 85px;
+            font-size: 14px;
+            padding: 8px 5px;
+            text-transform: uppercase;
+            border-width: 3px;
+        }
+        .pro-active #canvas-bottom-btns {
+            display: none !important;
+        }
     </style>
 </head>
 <body id="body-root">
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
-    <div class="side-leaderboard">
-        <h2 class="text-xl font-black mb-3 text-center italic">🏆 TOP CATS</h2>
-        <div class="flex gap-2 mb-3">
-            <button onclick="renderRank('steps')" id="tab-steps" class="rank-tab active">STEPS</button>
-            <button onclick="renderRank('time')" id="tab-time" class="rank-tab">TIME</button>
+    <div id="leaderboard-wrapper">
+        <div class="side-leaderboard-content">
+            <h2 class="text-xl font-black mb-3 text-center">🏆 TOP CATS</h2>
+            <div class="flex gap-2 mb-3">
+                <button onclick="renderRank('steps')" id="tab-steps" class="rank-tab active">STEPS</button>
+                <button onclick="renderRank('time')" id="tab-time" class="rank-tab">TIME</button>
+            </div>
+            <div id="rankList" class="flex-grow overflow-y-auto space-y-1 pr-1">
+                <p class="text-center italic text-gray-400 mt-10 text-sm">Loading...</p>
+            </div>
         </div>
-        <div id="rankList" class="flex-grow overflow-y-auto space-y-1 pr-1">
-            <p class="text-center italic text-gray-400 mt-10 text-sm">Loading...</p>
+        <div class="bookmark-tab" onclick="toggleLeaderboard()">
+            <div class="bookmark-text">RANK</div>
         </div>
     </div>
     <div class="w-full max-w-6xl">
@@ -92,7 +225,7 @@
             <div id="pro-panel">
                 <div class="panel-section-title">Quantum Gates</div>
                 <div id="gate-scroll-area">
-                    <div class="grid grid-cols-2 gap-1 w-full" id="gate-grid"></div>
+                    <div class="grid grid-cols-4 gap-1 w-full" id="gate-grid"></div>
                 </div>
                 <div class="panel-section-title">Control</div>
                 <button class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
@@ -101,11 +234,16 @@
             <div class="game-canvas" id="main-canvas">
                 <div id="ios-indicator">
                     <span class="ind-fraction" id="ind-fraction">1 / 3</span>
-                    <span class="ind-label" id="ind-label"></span> 
+                    <span class="ind-label" id="ind-label"></span>
                 </div>
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
+               
+                <div id="canvas-bottom-btns">
+                    <button class="func-btn btn-reset" onclick="resetCircuit()">RESET</button>
+                    <button id="undo-btn-bottom" class="func-btn btn-undo" onclick="undo()">UNDO</button>
+                </div>
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
@@ -122,7 +260,7 @@
     </div>
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
-            <h2 class="text-5xl font-black mb-4">MEOW! 🐾</h2>
+            <h2 class="text-5xl font-black mb-4">MEOW!<br>🐾</h2>
             <p id="victoryMsg" class="text-xl font-bold mb-6"></p>
             <button onclick="location.href='index.html'" class="game-btn btn-green w-full mb-4">KEEP GOING</button>
             <button onclick="document.getElementById('victoryModal').style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
@@ -131,19 +269,21 @@
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         let steps = 0, time = 0, isPro = false, timerInterval, gateHistory = [], isSolved = false;
-        let selectedIndices = []; 
-        let actionStack = []; 
+        let selectedIndices = [];
+        let actionStack = [];
         let fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];    
         let lineMode = 1;
-        let hoverLine = null; 
+        let hoverLine = null;
         let currentOptionIndex = 0;
         let currentOptions = [];
+        let draggedIndex = null;
+        let leaderboardData;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
-        const baseOffsetY = 195; 
-        const side = 120; 
-        const hyperOffset = 400; 
-        const offsetNormal = 240; 
-        const offsetPro = 100; 
+        const baseOffsetY = 195;
+        const side = 120;
+        const hyperOffset = 400;
+        const offsetNormal = 240;
+        const offsetPro = 100;
         const nodePositions = Array.from({ length: 16 }, (_, i) => {
             let x = (i & 1) ? side : 0;
             let y = (i & 2) ? side : 0;
@@ -154,16 +294,16 @@
             return pos;
         });
         window.onload = () => {
-            initGameLayout(); 
+            initGameLayout();
             initGates();
-            drawStaticLines(); 
-            updateFishUI(); 
+            drawStaticLines();
+            updateFishUI();
             updateUndoStatus();
             fetchLeaderboard();
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
-            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => { 
-                e.preventDefault(); 
-                e.currentTarget.scrollLeft += e.deltaY; 
+            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
+                e.preventDefault();
+                e.currentTarget.scrollLeft += e.deltaY;
             });
             document.addEventListener('wheel', (e) => {
                 if (!hoverLine || lineMode === 1 || lineMode === 8) return;
@@ -184,12 +324,42 @@
                 }
             });
         };
+        function toggleLeaderboard() {
+            const wrapper = document.getElementById('leaderboard-wrapper');
+            wrapper.classList.toggle('expanded');
+        }
+        function handleDragStart(e, index) {
+            if (isSolved) return;
+            draggedIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.style.opacity = '0.5';
+        }
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+        function handleDrop(e, targetIndex) {
+            if (isSolved || draggedIndex === null || draggedIndex === targetIndex) return;
+            e.stopPropagation();
+            const oldHistory = [...gateHistory];
+            const movedItem = gateHistory.splice(draggedIndex, 1)[0];
+            gateHistory.splice(targetIndex, 0, movedItem);
+            actionStack.push({
+                type: 'replace',
+                index: 0,
+                oldGates: oldHistory,
+                newGate: null
+            });
+            draggedIndex = null;
+            recalculate();
+            return false;
+        }
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=11`);
                 const data = await response.json();
-                console.log("Fetched Data:", data);
                 if (data && Array.isArray(data) && data.length > 0) {
                     leaderboardData = data;
                     renderRank('steps');
@@ -201,6 +371,10 @@
                 listArea.innerHTML = '<p class="text-center italic text-red-400 mt-10 text-sm">Load Error</p>';
             }
         }
+
+
+
+
         function renderRank(type) {
             const tabSteps = document.getElementById('tab-steps');
             const tabTime = document.getElementById('tab-time');
@@ -227,6 +401,10 @@
             });
             listArea.innerHTML = html;
         }
+
+
+
+
         function initGameLayout() {
             const nL = document.getElementById('nodes-layer'), fL = document.getElementById('fishes-layer');
             nL.innerHTML = ''; fL.innerHTML = '';
@@ -246,25 +424,82 @@
                 </div>`;
             }
         }
+        function highlightByGate(type) {
+            clearHighlight();
+            let pairs = [];
+            if (type.startsWith('X')) {
+                pairs = getAllPairs(3 - parseInt(type.substring(1)));
+            } else if (type.startsWith('CX')) {
+                let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
+                let bit = 1 << (3 - t), cBit = 1 << (3 - c);
+                for (let k = 0; k < 16; k++) {
+                    if ((k & bit) === 0 && ((k & cBit) >> (3 - c)) === ctrlVal) pairs.push([k, k ^ bit]);
+                }
+            } else if (type.startsWith('TOF')) {
+                let cv1 = parseInt(type[3]), cv2 = parseInt(type[4]), c1 = parseInt(type[5]), c2 = parseInt(type[6]), t = parseInt(type[7]);
+                let bit = 1 << (3 - t), b1 = 1 << (3 - c1), b2 = 1 << (3 - c2);
+                for (let k = 0; k < 16; k++) {
+                    if ((k & bit) === 0 && ((k & b1) >> (3 - c1)) === cv1 && ((k & b2) >> (3 - c2)) === cv2) pairs.push([k, k ^ bit]);
+                }
+            } else if (type.startsWith('SWAP_')) {
+                let p = type.split('_');
+                pairs.push([parseInt(p[1]), parseInt(p[2])]);
+            }
+            highlightPairs(pairs);
+        }
         function initGates() {
             const grid = document.getElementById('gate-grid');
             let html = '';
-            for(let i=0; i<4; i++) html += `<button class="gate-btn-v2 col-span-2 bg-purple-100" onclick="applyGate('X${i}')">X q${i}</button>`;
+            const getGateIcon = (type) => {
+                let controls = [], target = -1;
+                if (type.startsWith('X')) {
+                    target = parseInt(type[1]);
+                } else if (type.startsWith('CX')) {
+                    controls.push({ q: parseInt(type[3]), type: parseInt(type[2]) });
+                    target = parseInt(type[4]);
+                } else if (type.startsWith('TOF')) {
+                    controls.push({ q: parseInt(type[5]), type: parseInt(type[3]) });
+                    controls.push({ q: parseInt(type[6]), type: parseInt(type[4]) });
+                    target = parseInt(type[7]);
+                }
+                let content = '';
+                const getY = (q) => 15 + q * 15;
+                if (controls.length > 0) {
+                    const allQs = [target, ...controls.map(c => c.q)];
+                    const minQ = Math.min(...allQs), maxQ = Math.max(...allQs);
+                    content += `<div class="gate-v-line" style="top:${getY(minQ)}px; height:${(maxQ-minQ)*15}px;"></div>`;
+                }
+                controls.forEach(ctrl => {
+                    content += `<div class="gate-dot ${ctrl.type === 1 ? 'fill' : 'empty'}" style="top:${getY(ctrl.q)}px;"></div>`;
+                });
+                content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
+               
+                return content;
+            };
+            const wrapBtn = (type, extraClass = "") => {
+                return `<button class="gate-btn-v2 ${extraClass}"
+                    onmouseenter="highlightByGate('${type}')"
+                    onmouseleave="clearHighlight()"
+                    onclick="applyGate('${type}')">${getGateIcon(type)}</button>`;
+            };
+            for(let i=0; i<4; i++) html += wrapBtn(`X${i}`, "bg-purple-100");
             for(let i=0; i<4; i++) {
                 for(let j=0; j<4; j++) {
                     if(i !== j) {
-                        html += `<button class="gate-btn-v2" onclick="applyGate('CX1${i}${j}')">1CNOT ${i}→${j}</button>`;
-                        html += `<button class="gate-btn-v2" onclick="applyGate('CX0${i}${j}')">0CNOT ${i}→${j}</button>`;
+                        html += wrapBtn(`CX1${i}${j}`, "bg-white");
+                        html += wrapBtn(`CX0${i}${j}`, "bg-white");
                     }
                 }
             }
-            const combos = [ { id: '11', name: '1,1', color: 'bg-green-100' }, { id: '00', name: '0,0', color: 'bg-green-100' }, { id: '01', name: '0,1', color: 'bg-green-100' }, { id: '10', name: '1,0', color: 'bg-green-100' } ];
+            const combos = [{ id: '11'}, { id: '00'}, { id: '01'}, { id: '10'}];
             for (let c1 = 0; c1 < 4; c1++) {
                 for (let c2 = 0; c2 < 4; c2++) {
                     if (c1 >= c2) continue;
                     for (let t = 0; t < 4; t++) {
                         if (t !== c1 && t !== c2) {
-                            combos.forEach(cb => { html += `<button class="gate-btn-v2 col-span-2 ${cb.color}" onclick="applyGate('TOF${cb.id}${c1}${c2}${t}')">TOF(${cb.name}) ${c1},${c2}→${t}</button>`; });
+                            combos.forEach(cb => {
+                                html += wrapBtn(`TOF${cb.id}${c1}${c2}${t}`, `bg-green-50`);
+                            });
                         }
                     }
                 }
@@ -290,14 +525,14 @@
             line.className = 'connection-line';
             line.id = `line-${Math.min(i,j)}-${Math.max(i,j)}`;
             line.style.cssText = `width:${len}px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
-            if(dim===3){ 
-                line.style.height='8px'; 
-                line.style.background='transparent'; 
-                line.style.borderTop='3px dashed #000'; 
-                line.style.opacity='0.4'; 
-            } else { 
-                line.style.height='3px'; 
-                line.style.background='#000'; 
+            if(dim===3){
+                line.style.height='8px';
+                line.style.background='transparent';
+                line.style.borderTop='3px dashed #000';
+                line.style.opacity='0.4';
+            } else {
+                line.style.height='3px';
+                line.style.background='#000';
             }
             line.onmouseenter = () => {
                 if(lineMode === 1) return;
@@ -335,7 +570,7 @@
             const opt = currentOptions[currentOptionIndex];
             if (!opt) return;
             frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`;
-            label.innerText = opt.label; 
+            label.innerText = opt.label;
             pill.classList.add('active');
             clearHighlight();
             highlightPairs(opt.highlightPairs);
@@ -383,7 +618,7 @@
         }
         function clearHighlight(){ document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight')); }
         function togglePro() {
-            isPro = !isPro; 
+            isPro = !isPro;
             document.getElementById('body-root').classList.toggle('pro-active', isPro);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
             let startTime = Date.now();
@@ -409,10 +644,10 @@
                 selectedIndices = [];
                 recalculate();
             } else {
-                executeLogic(type); 
-                gateHistory.push(type); 
+                executeLogic(type);
+                gateHistory.push(type);
                 actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: type });
-                steps = gateHistory.length; 
+                steps = gateHistory.length;
                 finishMove();
             }
         }
@@ -424,8 +659,8 @@
                 return;
             }
             let pm = Array.from({ length: 16 }, (_, p) => {
-                let b = p.toString(2).padStart(4, '0').split('').map(Number); 
-                if (type.startsWith('X')) { b[parseInt(type.substring(1))] ^= 1; } 
+                let b = p.toString(2).padStart(4, '0').split('').map(Number);
+                if (type.startsWith('X')) { b[parseInt(type.substring(1))] ^= 1; }
                 else if (type.startsWith('CX')) {
                     let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
                     if (b[c] === ctrlVal) b[t] ^= 1;
@@ -439,41 +674,48 @@
             for (let i = 0; i < 16; i++) newFish[pm[i]] = fishAtNode[i];
             fishAtNode = newFish;
         }
-        function recalculate() { 
-            fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12]; 
-            let h = [...gateHistory]; gateHistory = []; 
-            h.forEach(g => { executeLogic(g); gateHistory.push(g); }); 
-            steps = gateHistory.length; finishMove(); 
+        function recalculate() {
+            fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];
+            let h = [...gateHistory]; gateHistory = [];
+            h.forEach(g => { executeLogic(g); gateHistory.push(g); });
+            steps = gateHistory.length; finishMove();
         }
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
-        function updateFishUI() { 
-            for (let nI = 0; nI < 16; nI++) { 
-                const f = document.getElementById(`fish-${fishAtNode[nI]}`), n = nodePositions[nI]; 
-                if (f && n) { f.style.top = (n.t + 27) + "px"; f.style.left = (n.l + 15) + "px"; } 
-            } 
+        function updateFishUI() {
+            for (let nI = 0; nI < 16; nI++) {
+                const f = document.getElementById(`fish-${fishAtNode[nI]}`), n = nodePositions[nI];
+                if (f && n) { f.style.top = (n.t + 27) + "px"; f.style.left = (n.l + 15) + "px"; }
+            }
         }
         function renderCircuit() {
-            const c = document.getElementById('circuit-content'); 
+            const c = document.getElementById('circuit-content');
             const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
             gateHistory.forEach((g, idx) => {
-                const u = document.createElement('div'); 
+                const u = document.createElement('div');
                 u.className = 'circuit-unit';
+                u.draggable = true;
                 if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
-                u.onclick = (e) => { 
-                    if (isSolved) return; 
+                u.addEventListener('dragstart', (e) => handleDragStart(e, idx));
+                u.addEventListener('dragover', (e) => handleDragOver(e));
+                u.addEventListener('drop', (e) => handleDrop(e, idx));
+                u.addEventListener('dragend', (e) => { e.target.style.opacity = '1'; draggedIndex = null; });
+                u.onmouseenter = () => highlightByGate(g);
+                u.onmouseleave = () => clearHighlight();
+                u.onclick = (e) => {
+                    if (isSolved) return;
                     if (e.ctrlKey || e.metaKey) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
                         renderCircuit();
                     } else {
-                        pop.currentTime = 0; pop.play(); 
+                        pop.currentTime = 0; pop.play();
                         const removed = gateHistory[idx];
                         actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
-                        gateHistory.splice(idx, 1); 
+                        gateHistory.splice(idx, 1);
                         selectedIndices = [];
-                        recalculate(); 
+                        recalculate();
                     }
                 };
                 let controls = [], target = -1;
@@ -482,8 +724,8 @@
                     target = 3 - Math.round(Math.log2(iA ^ iB));
                     let binary = Math.min(iA, iB).toString(2).padStart(4, '0').split('').map(Number);
                     for (let q = 0; q < 4; q++) if (q !== target) controls.push({ line: q, type: binary[q] });
-                } else if (g.startsWith('X')) { target = parseInt(g.substring(1)); } 
-                else if (g.startsWith('CX')) { controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) }); target = parseInt(g[4]); } 
+                } else if (g.startsWith('X')) { target = parseInt(g.substring(1)); }
+                else if (g.startsWith('CX')) { controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) }); target = parseInt(g[4]); }
                 else if (g.startsWith('TOF')) {
                     controls.push({ line: parseInt(g[5]), type: parseInt(g[3]) });
                     controls.push({ line: parseInt(g[6]), type: parseInt(g[4]) });
@@ -508,28 +750,38 @@
                 c.appendChild(u);
             });
             updateUndoStatus();
-            if (selectedIndices.length === 0 && gateHistory.length > 0) {
+            if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null) {
                 setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50);
             }
         }
-        function undo() { 
-            if (isSolved || actionStack.length === 0) return; 
+        function undo() {
+            if (isSolved || actionStack.length === 0) return;
             pop.currentTime = 0; pop.play();
             const action = actionStack.pop();
-            if (action.type === 'add') { gateHistory.splice(action.index, 1); } 
-            else if (action.type === 'delete') { gateHistory.splice(action.index, 0, ...action.oldGates); } 
-            else if (action.type === 'replace') { gateHistory.splice(action.index, 1, ...action.oldGates); }
-            selectedIndices = []; recalculate(); 
+            if (action.type === 'add') { gateHistory.splice(action.index, 1); }
+            else if (action.type === 'delete') { gateHistory.splice(action.index, 0, ...action.oldGates); }
+            else if (action.type === 'replace') {
+                if (action.newGate === null) gateHistory = [...action.oldGates];
+                else gateHistory.splice(action.index, 1, ...action.oldGates);
+            }
+            selectedIndices = []; recalculate();
         }
-        function resetCircuit() { 
+        function resetCircuit() {
             if (isSolved) return;
-            pop.currentTime = 0; pop.play(); 
-            gateHistory = []; actionStack = []; selectedIndices = []; 
-            recalculate(); 
+            pop.currentTime = 0; pop.play();
+            gateHistory = []; actionStack = []; selectedIndices = [];
+            recalculate();
         }
-        function updateUndoStatus() { 
+        function updateUndoStatus() {
             const isActive = actionStack.length > 0 && !isSolved;
-            document.getElementById('undo-btn').classList.toggle('active', isActive); 
+           
+            // 更新側邊面板的 Undo
+            const topUndo = document.getElementById('undo-btn');
+            if(topUndo) topUndo.classList.toggle('active', isActive);
+           
+            // 更新畫布內右下角的 Undo
+            const bottomUndo = document.getElementById('undo-btn-bottom');
+            if(bottomUndo) bottomUndo.classList.toggle('active', isActive);
         }
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
@@ -537,28 +789,31 @@
                 updateUndoStatus();
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = time;
-                const st = steps; 
+                const st = steps;
                 const u = sessionStorage.getItem('currentUser');
-                sessionStorage.setItem('currentLevel', 11);
-                setTimeout(() => { 
+                const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
+                if (savedLevel < 11) {
+                    sessionStorage.setItem('currentLevel', 11);
+                }
+                setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
-                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
-                    document.getElementById('victoryModal').style.display = 'flex'; 
+                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
+                    document.getElementById('victoryModal').style.display = 'flex';
                 }, 800);
                 if (u) {
                     fetch(SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
-                        body: JSON.stringify({ 
-                            action: 'saveRecord', 
-                            username: u, 
-                            level: 11,           
-                            steps: st, 
+                        body: JSON.stringify({
+                            action: 'saveRecord',
+                            username: u,
+                            level: 11,          
+                            steps: st,
                             time: ft,
-                            circuit: gateHistory.join(',') 
+                            circuit: gateHistory.join(',')
                         })
                     }).then(() => {
-                        setTimeout(fetchLeaderboard, 1200); 
+                        setTimeout(fetchLeaderboard, 1200);
                     });
                 }
             }
@@ -566,3 +821,6 @@
     </script>
 </body>
 </html>
+
+
+
