@@ -14,7 +14,7 @@
         .node img { width: 110px; height: auto; }
         .fixed-number { position: absolute; bottom: -5px; right: 50px; font-size: 22px; font-weight: 900; color: #000; pointer-events: none; z-index: 25; }
         .connection-line { position: absolute; background: #000; cursor: pointer; z-index: 10; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .connection-line:hover { background: #ffc822; box-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
+        .connection-line:hover, .connection-line.line-highlight { background: #ffc822; box-shadow: 0 0 15px rgba(251, 191, 36, 0.8); z-index: 15; }
         .line-h { height: 8px; width: 300px; }
         .line-v { width: 8px; height: 250px; }
         .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -24,10 +24,10 @@
         .game-btn:active { top: 6px; box-shadow: 0 2px 0 #000; }
         .btn-red { background: #EF4444; }
         .btn-green { background: #22C55E; }
-        .gate-btn-v2 { background: #e0e0e0; border: 2.5px solid #000; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
+        .gate-btn-v2 { background: #ffffff; border: 2.5px solid #000; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
         .gate-btn-v2:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .gate-btn-v2:hover, .func-btn:hover { background-color: #fee58b !important; border-color: #000 !important; color: #000 !important; box-shadow: 0 0 5px rgba(0, 0, 0, 0.7), 0 3px 0 #000 !important; transform: translateY(-2px); }
-        .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #000; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .func-btn { width: 100%; margin-top: 5px; padding: 10px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #000; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
         .btn-reset { background: #e0e0e0; color: #000; }
         .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 0.6; cursor: not-allowed; }
         .btn-undo.active { background: #EF4444 !important; border-color: #000 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #000; }
@@ -35,8 +35,8 @@
         .btn-undo.active.highlight-focus:hover { background-color: #DC2626 !important; color: #fff !important; animation-play-state: paused !important; border-color: #000000 !important; border-width: 3px !important; box-shadow: 0 4px 0 #000, 0 0 15px #ffc822 !important; }
         .btn-undo.disabled { background: #e8a098 !important; border-color: #cb867d !important; color: #ffffff !important; cursor: not-allowed; opacity: 0.5; }
         #pro-panel { width: 0; opacity: 0; height: 500px; overflow: hidden; background: #ffffff; border: 0px solid #000; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 3px; }
-        .pro-active #pro-panel { width: 320px; opacity: 1; border: 8px solid #000; padding: 20px; }
-        .panel-section-title { font-weight: 900; font-size: 18px; margin-bottom: 10px; margin-top: 10px; color: #000; text-align: center; white-space: nowrap; overflow: hidden; }
+        .pro-active #pro-panel { width: 320px; opacity: 1; border: 8px solid #000; padding: 12px 20px 20px 20px; }
+        .panel-section-title { font-weight: 900; font-size: 18px; margin-bottom: 6px; margin-top: 6px; color: #000; text-align: center; white-space: nowrap; overflow: hidden; }
         .pro-active #node-0, .pro-active #node-2 { left: 65px !important; }
         .pro-active #node-1, .pro-active #node-3 { left: 405px !important; }
         .pro-active .line-h { left: 130px !important; }
@@ -75,6 +75,52 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
         .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #000; }
         .no-fish-anim .fish-wrapper, .no-fish-anim .node { transition: none !important; }
+        /* Quantum Gate Button Circuit Styles */
+        .gate-btn-circuit {
+            padding: 0 !important;
+            height: 76px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px !important;
+            position: relative;
+        }
+        .wire-container {
+            position: relative;
+            width: 60%; /* 讓導線左右兩側留白，不碰到邊框 */
+            max-width: 50px;
+            height: 100%;
+            background-image: linear-gradient(#000, #000), linear-gradient(#000, #000);
+            background-size: 100% 3px;
+            background-repeat: no-repeat;
+            background-position: center 24px, center 52px;
+            pointer-events: none;
+        }
+        
+        /* === 畫布內的右下角按鈕容器 (新增) === */
+        #canvas-bottom-btns {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 100;
+        }
+        #canvas-bottom-btns .func-btn {
+            margin-top: 0;
+            width: 90px;
+            font-size: 14px;
+            padding: 8px 5px;
+            text-transform: uppercase;
+            border-width: 3px;
+        }
+        /* 開啟專業模式時隱藏右下角按鈕 */
+        .pro-active #canvas-bottom-btns {
+            display: none !important;
+        }
+
+
         @keyframes yellow-pulse { 0%, 100% { box-shadow: 0 4px 0 #000, 0 0 5px #ffc822; border-color: #000; } 35% { box-shadow: 0 4px 0 #000, 0 0 30px #ffc822; border-color: #ffc822; transform: scale(1.1); } }
         @keyframes tap-anim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pulse-red-undo { 0%, 100% { transform: scale(1); box-shadow: 0 4px 0 #000; } 50% { transform: scale(1.05); box-shadow: 0 0 20px #EF4444, 0 4px 0 #000; } }
@@ -97,14 +143,47 @@
         <div class="main-layout">
             <div id="pro-panel">
                 <div class="panel-section-title">Quantum Gate</div>
-                <div class="grid grid-cols-2 gap-4 w-full" id="gate-container">
-                    <button id="gate-x0" class="gate-btn-v2 lock-btn" onclick="applyGate('X0')">X q0</button>
-                    <button id="gate-x1" class="gate-btn-v2 lock-btn" onclick="applyGate('X1')">X q1</button>
-                    <button id="gate-cx01" class="gate-btn-v2" onclick="applyGate('CX01')">1CNOT q0→q1</button>
-                    <button id="gate-c0x01" class="gate-btn-v2" onclick="applyGate('C0X01')">0CNOT q0→q1</button>
-                    <button id="gate-cx10" class="gate-btn-v2" onclick="applyGate('CX10')">1CNOT q1→q0</button>
-                    <button id="gate-c0x10" class="gate-btn-v2" onclick="applyGate('C0X10')">0CNOT q1→q0</button>
+                <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
+                    <button id="gate-x0" class="gate-btn-v2 lock-btn gate-btn-circuit" onclick="applyGate('X0')","bg-purple-100">
+                        <div class="wire-container">
+                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
+                        </div>
+                    </button>
+                    <button id="gate-x1" class="gate-btn-v2 lock-btn gate-btn-circuit" onclick="applyGate('X1')">
+                        <div class="wire-container">
+                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
+                        </div>
+                    </button>
+                    <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')">
+                        <div class="wire-container">
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 24px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="left: 50%; top: 25.5px; background: black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
+                        </div>
+                    </button>
+                    <button id="gate-c0x01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X01')">
+                        <div class="wire-container">
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 24px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 25.5px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
+                        </div>
+                    </button>
+                    <button id="gate-cx10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX10')">
+                        <div class="wire-container">
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 24px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="left: 50%; top: 53.5px; background: black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
+                        </div>
+                    </button>
+                    <button id="gate-c0x10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X10')">
+                        <div class="wire-container">
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 24px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 53.5px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
+                        </div>
+                    </button>
                 </div>
+                
                 <div class="panel-section-title">Control</div>
                 <button id="reset-btn" class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
                 <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Last Step</button>
@@ -122,6 +201,11 @@
                 <div id="fish-1" class="fish-wrapper"><div class="fish-label">01</div><img src="./image/Fish2.svg"></div>
                 <div id="fish-2" class="fish-wrapper"><div class="fish-label">10</div><img src="./image/Fish3.svg"></div>
                 <div id="fish-3" class="fish-wrapper"><div class="fish-label">11</div><img src="./image/Fish4.svg"></div>
+                
+                <div id="canvas-bottom-btns">
+                    <button class="func-btn btn-reset" onclick="resetCircuit()">RESET</button>
+                    <button id="undo-btn-bottom" class="func-btn btn-undo disabled" onclick="undo()">UNDO</button>
+                </div>
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
@@ -141,15 +225,44 @@
     <script>
         let steps = 0, time = 0, isPro = false, fishAtNode = [0, 1, 3, 2], gateHistory = [], tutorialPhase = 0, tutorialCompleted = false, timerInterval;
         let isGameOver = false;
-        let actionStack = []; 
-        let selectedIndices = []; 
+        let actionStack = [];
+        let selectedIndices = [];
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
-        window.onload = () => { timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000); updateFishUI(); updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper'); w.addEventListener('wheel', (e) => { e.preventDefault(); w.scrollLeft += e.deltaY; }); };
+        window.onload = () => {
+            timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
+            updateFishUI();
+            updateUndoStatus();
+            initGateHovers();
+            const w = document.getElementById('circuit-content-wrapper');
+            w.addEventListener('wheel', (e) => { e.preventDefault(); w.scrollLeft += e.deltaY; });
+        };
+        function initGateHovers() {
+            const gateToLineMap = {
+                'gate-cx01': 'line-10-11',
+                'gate-c0x01': 'line-00-01',
+                'gate-cx10': 'line-01-11',
+                'gate-c0x10': 'line-00-10'
+            };
+            Object.keys(gateToLineMap).forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                const lineId = gateToLineMap[btnId];
+                if (btn) {
+                    btn.addEventListener('mouseenter', () => {
+                        const line = document.getElementById(lineId);
+                        if (line) line.classList.add('line-highlight');
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        const line = document.getElementById(lineId);
+                        if (line) line.classList.remove('line-highlight');
+                    });
+                }
+            });
+        }
         function togglePro() {
             isPro = !isPro; const b = document.getElementById('body-root'); document.getElementById('guide-overlay').style.display = 'none'; document.getElementById('start-hint').style.display = 'none'; document.getElementById('mode-toggle').classList.remove('yellow-glow');
             b.classList.add('no-fish-anim'); b.classList.toggle('pro-active', isPro); updateFishUI();
-            if (isPro) { if (!tutorialCompleted) { tutorialPhase = 1; document.getElementById('pro-guide-mask').style.display = 'block'; setTimeout(() => updateTutorialUI(), 100); } } 
+            if (isPro) { if (!tutorialCompleted) { tutorialPhase = 1; document.getElementById('pro-guide-mask').style.display = 'block'; setTimeout(() => updateTutorialUI(), 100); } }
             else { if (!tutorialCompleted) tutorialPhase = 0; document.getElementById('pro-guide-mask').style.display = 'none'; document.getElementById('guide-hint-text').style.display = 'none'; clearAllHighlights(); }
             setTimeout(() => b.classList.remove('no-fish-anim'), 50); document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
         }
@@ -183,13 +296,13 @@
             if (isGameOver) return;
             if (g === 'X0' || g === 'X1') return;
             const ph = { 1: { g: 'C0X01', n: 1.5 }, 2: { g: 'CX01', n: 2.5 }, 4: { g: 'CX10', n: 4.5 }, 6: { g: 'C0X10', n: 6.5 }, 7: { g: 'CX10', n: 7.5 } };
-            if (ph[tutorialPhase] && g === ph[tutorialPhase].g) { 
-                const cp = tutorialPhase; tutorialPhase = ph[cp].n; updateTutorialUI(); 
+            if (ph[tutorialPhase] && g === ph[tutorialPhase].g) {
+                const cp = tutorialPhase; tutorialPhase = ph[cp].n; updateTutorialUI();
                 setTimeout(() => {
                     executeGateLogic(g);
                     actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
-                }, 800); 
-                return; 
+                }, 800);
+                return;
             }
             if (selectedIndices.length > 0) {
                 pop.currentTime = 0; pop.play();
@@ -210,79 +323,108 @@
         }
         function executeGateLogic(g) {
             pop.currentTime = 0; pop.play();
-            const pm = [0, 1, 2, 3].map(p => { 
-                let q0 = Math.floor(p/2), q1 = p%2; 
-                if (g === 'X0') q0 = 1-q0; 
-                else if (g === 'X1') q1 = 1-q1; 
-                else if (g === 'CX01' && q0 === 1) q1 = 1-q1; 
-                else if (g === 'C0X01' && q0 === 0) q1 = 1-q1; 
-                else if (g === 'CX10' && q1 === 1) q0 = 1-q0; 
-                else if (g === 'C0X10' && q1 === 0) q0 = 1-q0; 
-                return q0*2 + q1; 
+            const pm = [0, 1, 2, 3].map(p => {
+                let q0 = Math.floor(p/2), q1 = p%2;
+                if (g === 'X0') q0 = 1-q0;
+                else if (g === 'X1') q1 = 1-q1;
+                else if (g === 'CX01' && q0 === 1) q1 = 1-q1;
+                else if (g === 'C0X01' && q0 === 0) q1 = 1-q1;
+                else if (g === 'CX10' && q1 === 1) q0 = 1-q0;
+                else if (g === 'C0X10' && q1 === 0) q0 = 1-q0;
+                return q0*2 + q1;
             });
-            fishAtNode = fishAtNode.map(cp => pm[cp]); 
-            gateHistory.push(g); 
-            steps = gateHistory.length; 
+            fishAtNode = fishAtNode.map(cp => pm[cp]);
+            gateHistory.push(g);
+            steps = gateHistory.length;
             finishMove();
         }
         function recalculatePositions() {
-            let cp = [0, 1, 3, 2]; 
-            gateHistory.forEach(g => { 
-                const pm = [0, 1, 2, 3].map(p => { 
-                    let q0 = Math.floor(p/2), q1 = p%2; 
-                    if (g === 'X0') q0 = 1-q0; 
-                    else if (g === 'X1') q1 = 1-q1; 
-                    else if (g === 'CX01' && q0 === 1) q1 = 1-q1; 
-                    else if (g === 'C0X01' && q0 === 0) q1 = 1-q1; 
-                    else if (g === 'CX10' && q1 === 1) q0 = 1-q0; 
-                    else if (g === 'C0X10' && q1 === 0) q0 = 1-q0; 
-                    return q0*2 + q1; 
-                }); 
-                cp = cp.map(p => pm[p]); 
+            let cp = [0, 1, 3, 2];
+            gateHistory.forEach(g => {
+                const pm = [0, 1, 2, 3].map(p => {
+                    let q0 = Math.floor(p/2), q1 = p%2;
+                    if (g === 'X0') q0 = 1-q0;
+                    else if (g === 'X1') q1 = 1-q1;
+                    else if (g === 'CX01' && q0 === 1) q1 = 1-q1;
+                    else if (g === 'C0X01' && q0 === 0) q1 = 1-q1;
+                    else if (g === 'CX10' && q1 === 1) q0 = 1-q0;
+                    else if (g === 'C0X10' && q1 === 0) q0 = 1-q0;
+                    return q0*2 + q1;
+                });
+                cp = cp.map(p => pm[p]);
             });
-            fishAtNode = cp; 
+            fishAtNode = cp;
             steps = gateHistory.length;
         }
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
         function updateFishUI() { for (let i = 0; i < 4; i++) { const f = document.getElementById(`fish-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`); if (f && n) { f.style.top = (n.offsetTop + 90) + "px"; f.style.left = (n.offsetLeft + 30) + "px"; } } }
         function renderCircuit() {
             const c = document.getElementById('circuit-content'); c.innerHTML = '';
+            // 建立 Gate 與連線 ID 的映射表
+            const gateToLineMap = {
+                'C0X01': 'line-00-01',
+                'CX01': 'line-10-11',
+                'CX10': 'line-01-11',
+                'C0X10': 'line-00-10'
+            };
             gateHistory.forEach((g, idx) => {
-                const u = document.createElement('div'); 
+                const u = document.createElement('div');
                 u.className = 'circuit-unit';
                 if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
-                u.onclick = (e) => { 
+                
+                // --- 新增：Hover 電路閘門時高亮主畫面連線 ---
+                u.onmouseenter = () => {
+                    const lineId = gateToLineMap[g];
+                    if (lineId) {
+                        const line = document.getElementById(lineId);
+                        if (line) line.classList.add('line-highlight');
+                    }
+                };
+                u.onmouseleave = () => {
+                    const lineId = gateToLineMap[g];
+                    if (lineId) {
+                        const line = document.getElementById(lineId);
+                        if (line) line.classList.remove('line-highlight');
+                    }
+                };
+                u.onclick = (e) => {
                     if (isGameOver) return;
+                    // 移除 hover 高亮，避免刪除後殘留
+                    const lineId = gateToLineMap[g];
+                    if (lineId) {
+                        const line = document.getElementById(lineId);
+                        if (line) line.classList.remove('line-highlight');
+                    }
                     if (e.ctrlKey || e.metaKey) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
                         renderCircuit();
                     } else {
-                        pop.currentTime = 0; pop.play(); 
+                        pop.currentTime = 0; pop.play();
                         const removed = gateHistory[idx];
                         actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
-                        gateHistory.splice(idx, 1); 
+                        gateHistory.splice(idx, 1);
                         selectedIndices = [];
-                        recalculatePositions(); 
-                        if (tutorialPhase === 8) tutorialPhase = 100; 
-                        finishMove(); 
-                        if (isPro && !tutorialCompleted) updateTutorialUI(); 
+                        recalculatePositions();
+                        if (tutorialPhase === 8) tutorialPhase = 100;
+                        finishMove();
+                        if (isPro && !tutorialCompleted) updateTutorialUI();
                     }
                 };
                 const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01 ? 20 : 60, tY = is01 ? 60 : 20;
                 const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY, tY) + 'px'; v.style.height = '41px'; u.appendChild(v);
                 const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY - 7) + 'px'; if (is0) { d.style.background = 'white'; d.style.border = '2.5px solid black'; } u.appendChild(d);
-                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t); 
+                const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t);
                 c.appendChild(u);
             });
-            updateUndoStatus(); 
-            const w = document.getElementById('circuit-content-wrapper'); 
+            updateUndoStatus();
+            const w = document.getElementById('circuit-content-wrapper');
             if (selectedIndices.length === 0) {
                 setTimeout(() => w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
             }
         }
-        function undo() { 
+        function undo() {
             if (isGameOver || actionStack.length === 0) return;
             pop.currentTime = 0; pop.play();
             const action = actionStack.pop();
@@ -299,39 +441,58 @@
             finishMove();
             if (isPro && !tutorialCompleted) updateTutorialUI();
         }
-        function resetCircuit() { 
+        function resetCircuit() {
             if (isGameOver) return;
-            pop.currentTime = 0; pop.play(); fishAtNode = [0, 1, 3, 2]; gateHistory = []; actionStack = []; selectedIndices = []; steps = 0; if (tutorialPhase === 5) tutorialPhase = 6; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI(); 
+            pop.currentTime = 0; pop.play(); fishAtNode = [0, 1, 3, 2]; gateHistory = []; actionStack = []; selectedIndices = []; steps = 0; if (tutorialPhase === 5) tutorialPhase = 6; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI();
         }
-        function updateUndoStatus() { 
-            const ub = document.getElementById('undo-btn'); 
-            if (!ub) return; 
-            if (actionStack.length > 0 && !isGameOver) { 
-                ub.classList.add('active'); 
-                ub.classList.remove('disabled'); 
-                ub.style.pointerEvents = "auto"; 
-            } else { 
-                ub.classList.remove('active'); 
-                ub.classList.add('disabled'); 
-                ub.style.pointerEvents = "none"; 
-            } 
+        
+        // --- 確保兩個 Undo 的狀態同步 (更新) ---
+        function updateUndoStatus() {
+            const isActive = actionStack.length > 0 && !isGameOver;
+            
+            const ub = document.getElementById('undo-btn');
+            if (ub) {
+                if (isActive) {
+                    ub.classList.add('active');
+                    ub.classList.remove('disabled');
+                    ub.style.pointerEvents = "auto";
+                } else {
+                    ub.classList.remove('active');
+                    ub.classList.add('disabled');
+                    ub.style.pointerEvents = "none";
+                }
+            }
+            
+            const bottomUndo = document.getElementById('undo-btn-bottom');
+            if (bottomUndo) {
+                if (isActive) {
+                    bottomUndo.classList.add('active');
+                    bottomUndo.classList.remove('disabled');
+                    bottomUndo.style.pointerEvents = "auto";
+                } else {
+                    bottomUndo.classList.remove('active');
+                    bottomUndo.classList.add('disabled');
+                    bottomUndo.style.pointerEvents = "none";
+                }
+            }
         }
+        
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isGameOver = true;
                 updateUndoStatus();
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = parseInt(document.getElementById('timer').innerText);
-                const st = steps; 
+                const st = steps;
                 const u = sessionStorage.getItem('currentUser');
                 const currentLvInSession = parseInt(sessionStorage.getItem('currentLevel') || "1");
                 if (currentLvInSession <= 2) {
                     sessionStorage.setItem('currentLevel', 3);
                 }
-                setTimeout(() => { 
+                setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
-                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; 
-                    document.getElementById('victoryModal').style.display = 'flex'; 
+                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
+                    document.getElementById('victoryModal').style.display = 'flex';
                 }, 800);
                 if (u) {
                     const payload = {
@@ -358,3 +519,6 @@
     </script>
 </body>
 </html>
+
+
+
