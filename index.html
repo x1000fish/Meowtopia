@@ -73,7 +73,10 @@
             <div class="text-right"><div class="text-sm font-black" style="color: #008b53" >PROGRESS</div><div id="display-level" class="text-4xl font-black">LV. 1</div></div>
         </div>
         <div class="map-container" id="level-grid"></div>
-        <button onclick="handleLogout()" class="game-btn btn-red mt-8 px-12">LOGOUT</button>
+        <div class="flex justify-center items-center gap-6 mt-12">
+            <button onclick="location.href='lab2.html'" class="game-btn btn-green px-12">LAB</button>
+            <button onclick="handleLogout()" class="game-btn btn-red px-12">LOGOUT</button>
+        </div>
     </div>
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
