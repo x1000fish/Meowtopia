@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meowtopia - LAB (2-bit)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #FEF3C7; color: #000; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+        .hidden-el { display: none !important; }
+        .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
+        .game-canvas { position: relative; width: 625px; height: 500px; background: #EEE8D3; border: 8px solid #000; border-radius: 40px; overflow: hidden; }
+       
+        .node { width: 140px; height: 140px; background: white; border: 6px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #000; z-index: 20; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .node img { width: 110px; height: auto; pointer-events: none; }
+        .fixed-number { position: absolute; bottom: -5px; right: 50px; font-size: 22px; font-weight: 900; color: #000; pointer-events: none; z-index: 25; }
+        .connection-line { position: absolute; background: #000; cursor: pointer; z-index: 10; transition: all 0.2s ease; opacity: 1; }
+        .connection-line:hover { background: #ffc822 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.8); z-index: 16; }
+        .line-highlight { background: #ffc822 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.8) !important; z-index: 15; }
+        .line-h { height: 8px; width: 300px; }
+        .line-v { width: 8px; height: 250px; }
+       
+        .trace-line-active { background: #ffc822 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 1) !important; z-index: 16 !important; opacity: 1 !important; }
+        .trace-fish-active { filter: drop-shadow(0 0 12px rgba(255, 200, 34, 0.8)) drop-shadow(0 0 20px rgba(255, 200, 34, 1)) !important; transform: scale(1.15) !important; z-index: 45 !important; }
+
+
+
+
+        .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-wrapper img { width: 70px; height: auto; }
+        .fish-label { background: #000000b6; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
+       
+        .game-btn { cursor: pointer; border: 5px solid #000; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #000; box-shadow: 0 4px 0 #000; position: relative; transition: all 0.1s; display: inline-block; }
+        .game-btn:active { top: 6px; box-shadow: 0 2px 0 #000; }
+        .btn-red { background: #EF4444; }
+       
+        .multi-toggle-btn { background: #c76419; border: 4px solid #000; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; transition: all 0.1s; min-width: 140px; }
+        .multi-toggle-btn.active-mode { background: #2b66e5; }
+        .view-btn { background: #475569; }
+       
+        .gate-btn-v2 { background: #e0e0e0; border: 2.5px solid #000; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
+        .gate-btn-v2:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .gate-btn-v2:hover, .func-btn:hover { background-color: #fee58b !important; border-color: #000 !important; color: #000 !important; box-shadow: 0 0 5px rgba(0, 0, 0, 0.7), 0 3px 0 #000 !important; transform: translateY(-2px); }
+        .func-btn { width: 100%; margin-top: 5px; padding: 10px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #000; cursor: pointer; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+        .btn-reset { background: #e0e0e0; color: #000; }
+        .btn-undo { background: #e8a098 !important; color: #fff !important; border: 2.5px solid #cb867d !important; opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+        .btn-undo.active { background: #EF4444 !important; border-color: #000 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #000; pointer-events: auto; }
+        .btn-undo.active:hover { background-color: #f05a5a !important; }
+
+
+
+
+        /* Pro Panel (Fixed Expanded) */
+        #pro-panel { width: 270px; opacity: 1; height: 500px; background: #ffffff; border: 8px solid #000; border-radius: 40px; padding: 15px 20px; display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; box-sizing: border-box; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .panel-section-title { font-weight: 900; font-size: 18px; margin: 6px 0; color: #000; text-align: center; white-space: nowrap; overflow: hidden; }
+
+
+
+
+        /* Static Layouts for Nodes and Lines */
+        #node-0, #node-2 { left: 65px !important; }
+        #node-1, #node-3 { left: 405px !important; }
+        .line-h { left: 130px !important; }
+        .line-v:nth-of-type(3) { left: 130px !important; }
+        .line-v:nth-of-type(4) { left: 470px !important; }
+       
+        #circuit-area { width: 900px; height: 170px; opacity: 1; background: #ffffff; border: 8px solid #000; border-radius: 30px; margin-top: 20px; position: relative; padding: 15px; overflow: hidden; }
+        .circuit-title { text-align: center; font-weight: 900; font-size: 1.25rem; margin-bottom: 8px; color: #000; }
+        #circuit-content-wrapper { position: relative; height: 130px; overflow-x: auto !important; overflow-y: hidden; margin-left: 30px; padding-top: 4px; scrollbar-width: none; }
+        #circuit-content { display: flex; height: 100%; padding: 0 7px; min-width: 100%; width: max-content; position: relative; }
+       
+        .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #000; z-index: 5; width: 25px; text-align: center; }
+        /* 找到這一段並修改 */
+.qubit-label.right-side { 
+    left: auto !important; 
+    right: 10px !important;      /* 讓數字離右邊框稍微近一點，空出更多線條空間 */
+    color: #EF4444 !important; 
+    font-weight: 900; 
+    background-color: #fff;      /* 關鍵：加上白色背景遮住後面的線 */
+    padding: 0 8px;              /* 關鍵：左右留白，讓線條不會貼著數字 */
+    z-index: 20;                 /* 確保數字在線條的最上方 */
+    border-radius: 4px;          /* 選擇性：讓遮罩邊緣圓滑一點 */
+}
+       
+        .circuit-unit { min-width: 40px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
+        .circuit-unit:hover { background: rgba(239, 68, 68, 0.2); border-radius: 12px; }
+        .circuit-unit.selected { background: rgba(40, 180, 255, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #2a5cad; }
+        .circuit-unit.trace-active { background: rgba(251, 214, 119, 0.508) !important; box-shadow: inset 0 0 0 3px #ffc822; border-radius: 12px; z-index: 100 !important; }
+       
+       /* 找到 .control-dot，加入置中位移 */
+.control-dot { 
+    width: 14px; 
+    height: 14px; 
+    background: black; 
+    border-radius: 50%; 
+    position: absolute; 
+    z-index: 5; 
+    /* 新增下面這一行，確保對準中心 */
+    transform: translate(-50%, -50%); 
+}
+
+
+/* 找到 .connection-v-line，確保寬度居中 */
+.connection-v-line { 
+    position: absolute; 
+    width: 2.5px; 
+    background: black; 
+    z-index: 3; 
+    /* 新增下面這一行 */
+    transform: translateX(-50%); 
+}
+        .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid #000; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
+        .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background-color: #000; }
+        .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background-color: #000; }
+       
+        .gate-btn-circuit { padding: 0 !important; height: 76px; display: flex; align-items: center; justify-content: center; border-radius: 16px !important; position: relative; }
+        .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#000, #000), linear-gradient(#000, #000); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
+
+
+
+
+        /* Truth Table & Trace */
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        #tt-body { font-family: Arial, sans-serif; }
+        #tt-body tr { transition: all 0.2s ease; }
+        #tt-body td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        #tt-body td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+        #tt-body tr:hover td { background-color: rgba(0, 0, 0, 0.05); cursor: pointer; }
+        #tt-body tr.active-trace td { background-color: #fdcd52 !important; color: #000 !important; }
+       
+        #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 40px; padding: 10px 4px; gap: 4px; margin-top: 8px; margin-bottom: 10px; border: 2.5px solid #000; }
+        #trace-controls .func-btn { margin: 0; padding: 10px 8px; font-size: 11px; border-radius: 50px; background: #e7e5dc; color: white; }
+        #trace-controls .btn-red { background: #ef4444; border-color: #b91c1c; }
+        #trace-step-text { color: #000000; font-family: 'Courier New', monospace; font-size: 24px; }
+       
+        .btn-share { background: #059669; border: 4px solid #000; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; transition: all 0.1s; min-width: 140px; }
+        .btn-share:hover { background-color: #3ea786 !important; }
+    </style>
+</head>
+<body id="body-root" class="pro-active">
+    <div class="w-full max-w-5xl">
+        <div class="flex justify-between w-full px-4 mb-4 items-center">
+            <div class="text-3xl font-black">GATE COUNT: <span id="step-count">0</span></div>
+            <div class="flex items-center gap-6 ml-auto">
+                <button id="view-toggle-btn" class="multi-toggle-btn view-btn" onclick="toggleTraceMode()">Trace: OFF</button>
+                <button id="mode-2-btn" class="multi-toggle-btn" onclick="toggleMode2()">Mode: 1</button>
+                <div class="text-3xl font-black text-green-600">LAB MODE</div>
+            </div>
+        </div>
+
+
+
+
+        <div class="main-layout">
+            <div id="pro-panel">
+                <div id="gate-view-container" class="w-full flex-col flex h-full min-h-0">
+                    <div class="panel-section-title">Quantum Gates</div>
+                    <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
+                        <button id="gate-x0" class="gate-btn-v2 gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X0')">
+                            <div class="wire-container">
+                                <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
+                            </div>
+                        </button>
+                        <button id="gate-x1" class="gate-btn-v2 gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X1')">
+                            <div class="wire-container">
+                                <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
+                            </div>
+                        </button>
+                        <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)">
+                            <div class="wire-container">
+                                <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
+                                <div class="control-dot" style="left: 50%; top: 24px; background: black; transform: translate(-50%, -50%);"></div>
+                                <div class="circuit-target" style="left: 50%; top: 52px;"></div>
+                            </div>
+                        </button>
+                        <button id="gate-c0x01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X01')" onmouseover="syncGateHighlight('C0X01', true)" onmouseout="syncGateHighlight('C0X01', false)">
+                            <div class="wire-container">
+                                <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
+                                <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 24px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
+                                <div class="circuit-target" style="left: 50%; top: 52px;"></div>
+                            </div>
+                        </button>
+                        <button id="gate-cx10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX10')" onmouseover="syncGateHighlight('CX10', true)" onmouseout="syncGateHighlight('CX10', false)">
+                            <div class="wire-container">
+                                <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
+                                <div class="control-dot" style="left: 50%; top: 52px; background: black; transform: translate(-50%, -50%);"></div>
+                                <div class="circuit-target" style="left: 50%; top: 24px;"></div>
+                            </div>
+                        </button>
+                        <button id="gate-c0x10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X10')" onmouseover="syncGateHighlight('C0X10', true)" onmouseout="syncGateHighlight('C0X10', false)">
+                            <div class="wire-container">
+                                <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
+                                <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 52px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
+                                <div class="circuit-target" style="left: 50%; top: 24px;"></div>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="mt-auto w-full">
+                        <div class="panel-section-title">Control</div>
+                        <button id="reset-btn" class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
+                        <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Step</button>
+                    </div>
+                </div>
+
+
+
+
+                <div id="tt-view-container" class="w-full flex-col hidden-el h-full flex" style="max-height: 100%; overflow: hidden;">
+                    <div class="panel-section-title shrink-0 mt-2">Truth Table</div>
+                    <div class="text-lg text-gray-400 text-center mb-2 font-bold flex justify-between px-8 shrink-0 border-b border-black-100 pb-2">
+                        <span class="w-1/2 text-left text-black">INPUT</span>
+                        <span class="w-1/2 text-right text-black">OUTPUT</span>
+                    </div>
+                    <div class="overflow-y-auto w-full flex-grow px-2 mb-2 custom-scrollbar" style="scrollbar-width: none;">
+                        <table class="w-full text-center text-lg border-separate border-spacing-y-1">
+                            <tbody id="tt-body" class="font-bold"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+
+
+                <div id="trace-controls" class="hidden-el shrink-0 w-full mt-auto flex gap-1 items-center bg-gray-100 p-2 rounded-2xl border-4 border-black shadow-[0_4px_0_0_rgba(0,0,0,0.1)] opacity-50 pointer-events-none transition-opacity">
+                    <button class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #000;" onclick="traceMove(-1)">◀</button>
+                    <div class="flex flex-col items-center justify-center px-1 min-w-[50px]">
+                        <span class="text-[10px] font-black text-green-700 leading-none">STEP</span>
+                        <span id="trace-step-text" class="font-black text-lg leading-none">0</span>
+                    </div>
+                    <button class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #000;" onclick="traceMove(1)">▶</button>
+                    <button class="func-btn btn-red m-0 py-2 px-1 text-xs text-white border-black flex-1" style="box-shadow: 0 2px 0 #000;" onclick="exitTrace()">EXIT</button>
+                </div>
+            </div>
+
+
+
+
+            <div class="game-canvas" id="main-canvas">
+                <div id="line-h-0" class="connection-line line-h" style="top: 95px;" onclick="handleLineClick('H')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
+                <div id="line-h-1" class="connection-line line-h" style="bottom: 90px;" onclick="handleLineClick('H')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
+                <div id="line-v-0" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick('V')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
+                <div id="line-v-1" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick('V')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
+               
+                <div class="node" id="node-0" style="top: 25px;"><div class="fixed-number">00</div><img src="./image/Cat1.svg"></div>
+                <div class="node" id="node-1" style="top: 25px;"><div class="fixed-number">01</div><img src="./image/Cat2.svg"></div>
+                <div class="node" id="node-2" style="bottom: 25px;"><div class="fixed-number">10</div><img src="./image/Cat3.svg"></div>
+                <div class="node" id="node-3" style="bottom: 25px;"><div class="fixed-number">11</div><img src="./image/Cat4.svg"></div>
+               
+                <div id="fish-0" class="fish-wrapper"><div class="fish-label">00</div><img src="./image/Fish1.svg"></div>
+                <div id="fish-1" class="fish-wrapper"><div class="fish-label">01</div><img src="./image/Fish2.svg"></div>
+                <div id="fish-2" class="fish-wrapper"><div class="fish-label">10</div><img src="./image/Fish3.svg"></div>
+                <div id="fish-3" class="fish-wrapper"><div class="fish-label">11</div><img src="./image/Fish4.svg"></div>
+            </div>
+        </div>
+
+
+
+
+        <div id="circuit-area" class="mx-auto">
+            <div class="circuit-title">Circuit Diagram</div>
+            <div id="q-in-0" class="qubit-label" style="top: 62px;">q0</div>
+            <div id="q-in-1" class="qubit-label" style="top: 102px;">q1</div>
+            <div id="q-out-0" class="qubit-label right-side hidden-el" style="top: 62px;"></div>
+            <div id="q-out-1" class="qubit-label right-side hidden-el" style="top: 102px;"></div>
+            <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
+        </div>
+
+
+
+
+        <div class="w-full flex justify-center items-center gap-6 mt-6 mb-6">
+            <a href="index.html" class="game-btn btn-red px-16">EXIT LAB</a>
+            <button class="btn-share" onclick="shareCircuit()" style="padding: 12px 24px;">Share Circuit</button>
+        </div>
+    </div>
+
+
+
+
+    <script>
+        let initialFishAtNode = [0, 1, 2, 3];
+        let fishAtNode = [0, 1, 2, 3];
+        let gateHistory = [], historyStack = [[]];
+        let selectedIndices = [], draggedIndex = null;
+        let isMode2 = false;
+       
+        let isTraceMode = false;
+        let activeTraceInput = null;
+        let currentTraceStep = 0;
+
+
+
+
+        const pop = new Audio('pop.m4a');
+
+
+
+
+        window.onload = () => {
+            initLabData();
+            recalculatePositions();
+            finishMove();
+           
+            const cw = document.getElementById('circuit-content-wrapper');
+            cw.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                cw.scrollLeft += e.deltaY;
+            });
+        };
+
+
+
+
+        function initLabData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedCircuit = urlParams.get('circuit');
+            if (sharedCircuit) {
+                gateHistory = sharedCircuit.split(',').filter(g => g !== "");
+                historyStack.push([...gateHistory]);
+            } else {
+                const savedCircuit = sessionStorage.getItem('labCircuit');
+                if (savedCircuit) {
+                    gateHistory = savedCircuit.split(',').filter(g => g !== "");
+                    historyStack.push([...gateHistory]);
+                }
+            }
+        }
+
+
+
+
+        /* --- Trace Mode Functions --- */
+        function toggleTraceMode() {
+            isTraceMode = !isTraceMode;
+            const btn = document.getElementById('view-toggle-btn');
+            const gView = document.getElementById('gate-view-container');
+            const tView = document.getElementById('tt-view-container');
+            const tCtrl = document.getElementById('trace-controls');
+           
+            if (isTraceMode) {
+                btn.innerText = "Trace: ON";
+                btn.classList.add('active-mode');
+                gView.classList.add('hidden-el');
+                tView.classList.remove('hidden-el');
+                tCtrl.classList.remove('hidden-el', 'opacity-50', 'pointer-events-none');
+                updateTruthTable();
+            } else {
+                btn.innerText = "Trace: OFF";
+                btn.classList.remove('active-mode');
+                gView.classList.remove('hidden-el');
+                tView.classList.add('hidden-el');
+                tCtrl.classList.add('hidden-el', 'opacity-50', 'pointer-events-none');
+                exitTrace();
+            }
+        }
+
+
+
+
+        function startTrace(inputIndex) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            activeTraceInput = inputIndex;
+            currentTraceStep = 0;
+            document.getElementById('trace-controls').classList.remove('opacity-50', 'pointer-events-none');
+            updateTruthTable();
+            renderTraceStep();
+        }
+
+
+
+
+        function traceMove(delta) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            currentTraceStep += delta;
+            if (currentTraceStep < 0) currentTraceStep = 0;
+            if (currentTraceStep > gateHistory.length) currentTraceStep = gateHistory.length;
+            renderTraceStep();
+        }
+
+
+
+
+        function exitTrace() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            activeTraceInput = null;
+            document.getElementById('trace-controls').classList.add('opacity-50', 'pointer-events-none');
+            document.querySelectorAll('.trace-line-active').forEach(el => el.classList.remove('trace-line-active'));
+            document.querySelectorAll('.trace-fish-active').forEach(el => el.classList.remove('trace-fish-active'));
+           
+            for(let i=0; i<2; i++) {
+                document.getElementById(`q-in-${i}`).innerText = `q${i}`;
+                document.getElementById(`q-out-${i}`).classList.add('hidden-el');
+            }
+            updateTruthTable();
+            finishMove();
+        }
+
+
+
+
+        function getLineId(n1, n2) {
+            const min = Math.min(n1, n2), max = Math.max(n1, n2);
+            if (min === 0 && max === 1) return 'line-h-0';
+            if (min === 2 && max === 3) return 'line-h-1';
+            if (min === 0 && max === 2) return 'line-v-0';
+            if (min === 1 && max === 3) return 'line-v-1';
+            return null;
+        }
+
+
+
+
+        function renderTraceStep() {
+            if (activeTraceInput === null) return;
+            let prevNode = activeTraceInput;
+            let currNode = activeTraceInput;
+            for(let k = 0; k < currentTraceStep; k++) {
+                prevNode = currNode;
+                let pm = getPermutationForGate(gateHistory[k]);
+                currNode = pm[currNode];
+            }
+           
+            let trackedFishId = initialFishAtNode[activeTraceInput];
+            let f = document.getElementById(`fish-${trackedFishId}`);
+            let n = document.getElementById(`node-${currNode}`);
+           
+            if (f && n) {
+                f.style.top = (n.offsetTop + 90) + "px";
+                f.style.left = (n.offsetLeft + 30) + "px";
+            }
+           
+            document.querySelectorAll('.trace-line-active').forEach(el => el.classList.remove('trace-line-active'));
+            document.querySelectorAll('.trace-fish-active').forEach(el => el.classList.remove('trace-fish-active'));
+           
+            if (f) f.classList.add('trace-fish-active');
+           
+            if (currentTraceStep > 0 && prevNode !== currNode) {
+                let lineId = getLineId(prevNode, currNode);
+                let lineEl = document.getElementById(lineId);
+                if (lineEl) lineEl.classList.add('trace-line-active');
+            }
+           
+            updateFishVisibility();
+           
+            let inBin = activeTraceInput.toString(2).padStart(2, '0');
+            let finalNode = activeTraceInput;
+            for(let k = 0; k < gateHistory.length; k++) {
+                let pm = getPermutationForGate(gateHistory[k]);
+                finalNode = pm[finalNode];
+            }
+            let outBin = finalNode.toString(2).padStart(2, '0');
+           
+            for(let i = 0; i < 2; i++) {
+                document.getElementById(`q-in-${i}`).innerText = inBin[i];
+                document.getElementById(`q-out-${i}`).innerText = outBin[i];
+                document.getElementById(`q-out-${i}`).classList.remove('hidden-el');
+            }
+           
+            document.getElementById('trace-step-text').innerText = currentTraceStep;
+            renderCircuit();
+           
+            const activeGate = document.querySelector('.circuit-unit.trace-active');
+            if (activeGate) {
+                activeGate.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+        }
+
+
+
+
+        function updateFishVisibility() {
+            for (let i = 0; i < 4; i++) {
+                let f = document.getElementById(`fish-${i}`);
+                if (!f) continue;
+                if (activeTraceInput !== null) {
+                    let trackedFishId = initialFishAtNode[activeTraceInput];
+                    if (i === trackedFishId) {
+                        f.style.opacity = 1;
+                        f.style.zIndex = 40;
+                    } else {
+                        f.style.opacity = 0;
+                        f.style.zIndex = 30;
+                    }
+                } else {
+                    f.style.opacity = 1;
+                    f.style.zIndex = 30;
+                }
+            }
+        }
+
+
+
+
+        function updateTruthTable() {
+            let stateMap = [0, 1, 2, 3];
+            gateHistory.forEach(type => {
+                let pm = getPermutationForGate(type);
+                let nextMap = new Array(4);
+                for(let i=0; i<4; i++) nextMap[i] = pm[stateMap[i]];
+                stateMap = nextMap;
+            });
+            let tbody = document.getElementById('tt-body');
+            tbody.innerHTML = '';
+            for(let i=0; i<4; i++) {
+                let inStr = i.toString(2).padStart(2, '0');
+                let outStr = stateMap[i].toString(2).padStart(2, '0');
+                let isActive = (activeTraceInput === i);
+                let isChanged = (i !== stateMap[i]);
+                let outColor = isActive ? '' : (isChanged ? 'text-blue-500' : 'text-gray-300');
+                let rowClass = isActive ? 'active-trace' : '';
+                tbody.innerHTML += `
+                    <tr class="${rowClass}" onclick="startTrace(${i})">
+                        <td class="py-2 text-base w-1/2 text-left pl-6">${inStr}</td>
+                        <td class="py-2 text-base w-1/2 text-right pr-6 ${outColor}">${outStr}</td>
+                    </tr>`;
+            }
+        }
+
+
+
+
+        /* --- Drag & Drop --- */
+        function handleDragStart(e, index) {
+            draggedIndex = index;
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.style.opacity = '0.5';
+        }
+       
+        function handleDragOver(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            return false;
+        }
+       
+        function handleDrop(e, targetIndex) {
+            if (draggedIndex === null || draggedIndex === targetIndex) return;
+            e.stopPropagation();
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+           
+            const movedGate = gateHistory.splice(draggedIndex, 1)[0];
+            gateHistory.splice(targetIndex, 0, movedGate);
+            pushHistory();
+            selectedIndices = [];
+            recalculatePositions();
+            finishMove();
+            draggedIndex = null;
+        }
+
+
+
+
+        /* --- Line Logic --- */
+        function toggleMode2() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            isMode2 = !isMode2;
+            const btn = document.getElementById('mode-2-btn');
+            btn.innerText = isMode2 ? "Mode: 2" : "Mode: 1";
+            btn.classList.toggle('active-mode', isMode2);
+        }
+
+
+
+
+        function syncHighlight(dir, isOn) {
+            if (!isMode2) return;
+            const lines = dir === 'H' ? ['line-h-0', 'line-h-1'] : ['line-v-0', 'line-v-1'];
+            lines.forEach(id => {
+                const el = document.getElementById(id);
+                if (isOn) el.classList.add('line-highlight');
+                else el.classList.remove('line-highlight');
+            });
+        }
+
+
+
+
+        function syncGateHighlight(gate, isOn) {
+            let lineIds = [];
+            if (gate === 'X0') lineIds = ['line-v-0', 'line-v-1'];
+            else if (gate === 'X1') lineIds = ['line-h-0', 'line-h-1'];
+            else if (gate === 'C0X01') lineIds = ['line-h-0'];
+            else if (gate === 'CX01') lineIds = ['line-h-1'];
+            else if (gate === 'C0X10') lineIds = ['line-v-0'];
+            else if (gate === 'CX10') lineIds = ['line-v-1'];
+           
+            lineIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (isOn) el.classList.add('line-highlight');
+                    else el.classList.remove('line-highlight');
+                }
+            });
+        }
+
+
+
+
+        function handleLineClick(dir) {
+            if (isMode2) {
+                const gate = (dir === 'H') ? 'X1' : 'X0';
+                applyGate(gate);
+            } else {
+                const eventId = event.currentTarget.id;
+                if (eventId === 'line-h-0') applyGate('C0X01');
+                if (eventId === 'line-h-1') applyGate('CX01');
+                if (eventId === 'line-v-0') applyGate('C0X10');
+                if (eventId === 'line-v-1') applyGate('CX10');
+            }
+        }
+
+
+
+
+        function pushHistory() { historyStack.push([...gateHistory]); }
+
+
+
+
+        function applyGate(g) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+           
+            if (selectedIndices.length > 0) {
+                let targetIdx = Math.min(...selectedIndices);
+                let newHistory = [];
+                for(let i=0; i<gateHistory.length; i++) {
+                    if (i === targetIdx) newHistory.push(g);
+                    else if (!selectedIndices.includes(i)) newHistory.push(gateHistory[i]);
+                }
+                gateHistory = newHistory;
+                selectedIndices = [];
+                pushHistory();
+                recalculatePositions();
+                finishMove();
+            } else {
+                gateHistory.push(g);
+                pushHistory();
+                recalculatePositions();
+                finishMove();
+            }
+        }
+
+
+
+
+        function getPermutationForGate(g) {
+            return [0, 1, 2, 3].map(pos => {
+                let q0 = Math.floor(pos / 2), q1 = pos % 2;
+                if (g === 'X0') q0 = 1 - q0;
+                else if (g === 'X1') q1 = 1 - q1;
+                else if (g === 'CX01' && q0 === 1) q1 = 1 - q1;
+                else if (g === 'C0X01' && q0 === 0) q1 = 1 - q1;
+                else if (g === 'CX10' && q1 === 1) q0 = 1 - q0;
+                else if (g === 'C0X10' && q1 === 0) q0 = 1 - q0;
+                return q0 * 2 + q1;
+            });
+        }
+
+
+
+
+        function recalculatePositions() {
+            let cp = [...initialFishAtNode];
+            gateHistory.forEach(g => {
+                let pm = getPermutationForGate(g);
+                cp = cp.map(p => pm[p]);
+            });
+            fishAtNode = cp;
+        }
+
+
+
+
+        function finishMove() {
+            document.getElementById('step-count').innerText = gateHistory.length;
+            updateTruthTable();
+            if (activeTraceInput !== null) {
+                if (currentTraceStep > gateHistory.length) currentTraceStep = gateHistory.length;
+                renderTraceStep();
+            } else {
+                updateFishUI();
+                updateFishVisibility();
+                renderCircuit();
+            }
+        }
+
+
+
+
+        function updateFishUI() {
+            for(let i=0; i<4; i++) {
+                const f = document.getElementById(`fish-${fishAtNode[i]}`);
+                const n = document.getElementById(`node-${i}`);
+                if(f && n) {
+                    f.style.top = (n.offsetTop + 90) + "px";
+                    f.style.left = (n.offsetLeft + 30) + "px";
+                }
+            }
+        }
+
+
+
+
+        function renderCircuit() {
+            const c = document.getElementById('circuit-content');
+            const wrapper = document.getElementById('circuit-content-wrapper');
+            c.innerHTML = '';
+           
+            let states = [];
+            if (activeTraceInput !== null) {
+                let curr = activeTraceInput;
+                states.push(curr);
+                for (let k = 0; k < gateHistory.length; k++) {
+                    curr = getPermutationForGate(gateHistory[k])[curr];
+                    states.push(curr);
+                }
+            }
+
+
+
+
+            const drawWires = (parentUnit, stepIdx) => {
+                for (let q = 0; q < 2; q++) {
+                    let wire = document.createElement('div');
+                    wire.style.position = 'absolute';
+                    wire.style.left = '0';
+                    wire.style.width = '100%';
+                    wire.style.height = '4px';
+                    wire.style.top = (18.5 + q * 40) + 'px';
+                    wire.style.zIndex = '1';
+
+
+
+
+                    if (activeTraceInput !== null) {
+                        if (stepIdx <= currentTraceStep) {
+                            let bit = (states[stepIdx] >> (1 - q)) & 1;
+                            if (bit === 1) {
+                                wire.style.background = '#ffc822';
+                                wire.style.boxShadow = '0 0 8px #ffc822';
+                            } else {
+                                wire.style.background = '#8a6d1c';
+                                wire.style.boxShadow = 'none';
+                            }
+                        } else {
+                            wire.style.background = '#d1d5db';
+                            wire.style.boxShadow = 'none';
+                        }
+                    } else {
+                        wire.style.background = '#000';
+                    }
+                    parentUnit.appendChild(wire);
+                }
+            };
+
+
+
+
+            const startU = document.createElement('div');
+            startU.className = 'circuit-unit';
+            startU.style.minWidth = '30px';
+            startU.style.cursor = 'default';
+            drawWires(startU, 0);
+            c.appendChild(startU);
+
+
+
+
+            gateHistory.forEach((g, idx) => {
+                const u = document.createElement('div');
+                u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                u.draggable = (activeTraceInput === null);
+                u.ondragstart = (e) => handleDragStart(e, idx);
+                u.ondragover = (e) => handleDragOver(e);
+                u.ondrop = (e) => handleDrop(e, idx);
+                u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIndex = null; };
+                u.onmouseover = () => syncGateHighlight(g, true);
+                u.onmouseout = () => syncGateHighlight(g, false);
+               
+                if (activeTraceInput !== null) {
+                    if (idx === currentTraceStep - 1) u.classList.add('trace-active');
+                    else if (idx >= currentTraceStep) u.style.opacity = '0.2';
+                }
+
+
+
+
+                drawWires(u, idx + 1);
+               
+                u.onclick = (e) => {
+                    if (activeTraceInput !== null) return;
+                    if (e.ctrlKey) {
+                        if (selectedIndices.includes(idx)) selectedIndices = selectedIndices.filter(i => i !== idx);
+                        else selectedIndices.push(idx);
+                        renderCircuit();
+                    } else {
+                        syncGateHighlight(g, false);
+                        selectedIndices = [];
+                        deleteGate(idx);
+                    }
+                };
+               
+                // 在 renderCircuit 函數裡面找到這兩段邏輯並替換：
+
+
+// 1. 繪製 X 閘門的部分
+if(g.startsWith('X')) {
+    const tQ = g==='X0'?0:1, tY = tQ===0?20:60, t = document.createElement('div');
+    t.className = 'circuit-target'; 
+    t.style.left = '50%'; // 改為 50%
+    t.style.top = (tY+1.2)+'px'; 
+    u.appendChild(t);
+} 
+
+
+// 2. 繪製受控閘門 (CX/C0X) 的部分
+else {
+    const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01?20:60, tY = is01?60:20;
+    const v = document.createElement('div'); 
+    v.className = 'connection-v-line'; 
+    v.style.left = '50%'; // 改為 50%
+    v.style.top = Math.min(cY,tY)+'px'; 
+    v.style.height = '41px'; 
+    u.appendChild(v);
+    
+    const d = document.createElement('div'); 
+    d.className = 'control-dot'; 
+    d.style.left = '50%'; // 改為 50%
+    d.style.top = (cY)+'px'; // 這裡也要移除 -7，因為 CSS 加了 translate(-50%, -50%)
+    if(is0){d.style.background='white'; d.style.border='2.5px solid black';} 
+    u.appendChild(d);
+    
+    const t = document.createElement('div'); 
+    t.className = 'circuit-target'; 
+    t.style.left = '50%'; // 改為 50%
+    t.style.top = (tY+1.2)+'px'; 
+    u.appendChild(t);
+}
+                c.appendChild(u);
+            });
+           
+            const endU = document.createElement('div');
+            endU.className = 'circuit-unit';
+            endU.style.minWidth = '50px';
+            endU.style.flexGrow = '1';
+            endU.style.cursor = 'default';
+            drawWires(endU, states.length > 0 ? states.length - 1 : 0);
+            c.appendChild(endU);
+           
+            updateUndoStatus();
+            if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null && activeTraceInput === null) {
+                setTimeout(() => { if(wrapper) wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }); }, 100);
+            }
+        }
+
+
+
+
+        function undo() {
+            if (historyStack.length <= 1) return;
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            historyStack.pop();
+            gateHistory = [...historyStack[historyStack.length - 1]];
+            selectedIndices = []; recalculatePositions(); finishMove();
+        }
+
+
+
+
+        function resetCircuit() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            fishAtNode=[0,1,2,3];
+            gateHistory=[];
+            historyStack = [[]];
+            selectedIndices = [];
+            finishMove();
+        }
+
+
+
+
+        function deleteGate(idx) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime=0; pop.play().catch(e=>{}); }
+            gateHistory.splice(idx,1);
+            pushHistory();
+            recalculatePositions();
+            finishMove();
+        }
+       
+        function updateUndoStatus() {
+            const isActive = (historyStack.length > 1);
+            const ub = document.getElementById('undo-btn');
+            if(ub) {
+                if(isActive){ ub.classList.add('active'); ub.style.pointerEvents="auto"; }
+                else { ub.classList.remove('active'); ub.style.pointerEvents="none"; }
+            }
+        }
+
+
+
+
+        function shareCircuit() {
+            if (gateHistory.length === 0) {
+                alert("The circuit is empty and cannot be shared.");
+                return;
+            }
+            const circuitData = gateHistory.join(',');
+            const shareUrl = `${window.location.origin}${window.location.pathname}?circuit=${encodeURIComponent(circuitData)}`;
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("Circuit sharing link copied! Send it to a friend to open this circuit.");
+            }).catch(err => {
+                console.error('Failed to copy link', err);
+                alert("Link: " + shareUrl);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
