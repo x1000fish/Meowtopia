@@ -5,10 +5,10 @@
     <title>Meowtopia - Level 1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #FEF3C7; color: #000; }
+        body { font-family: Arial, sans-serif; background-color: #016f66; color: #000; }
         .game-btn { cursor: pointer; border: 5px solid #000; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #000; box-shadow: 0 4px 0 #000; position: relative; transition: all 0.1s; display: inline-block; }
         .game-btn:active { top: 6px; box-shadow: 0 2px 0 #000; }
-        .btn-red { background: #EF4444; } .btn-green { background: #22C55E; }
+        .btn-red { background: #c92727; } .btn-green { background: #006fbf; }
         .game-canvas { position: relative; width: 850px; height: 410px; background: #EEE8D3; border: 8px solid #000; border-radius: 40px; margin: 20px auto; overflow: hidden; }
         .connection-line { height: 8px; background: #000; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; transition: all 0.3s ease; z-index: 10; }
         .connection-line:hover { background: #ffc822; box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
@@ -25,13 +25,16 @@
         .guide-hand { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; display: flex; flex-direction: column; align-items: center; animation: tap-anim 1.5s infinite; }
         @keyframes tap-anim { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-15px); } }
         .guide-hidden { display: none !important; }
+        .game-btn:hover,
+        .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #000;}
+        .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #000;}
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
     <div id="level-screen" class="flex flex-col items-center w-full max-w-4xl">
         <div class="flex justify-between w-full px-4 mb-4">
-            <div class="text-3xl font-black">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
-            <div class="text-3xl font-black text-green-600">LEVEL 1</div>
+            <div class="text-3xl font-black" style="color: #e0e0e0">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
+            <div class="text-3xl font-black" style="color: #fbe35b">LEVEL 1</div>
         </div>
         <div class="game-canvas">
             <div id="main-line" class="connection-line line-guide" style="width: 300px;" onclick="swapFish()"></div>
@@ -115,4 +118,3 @@
     </script>
 </body>
 </html>
-
