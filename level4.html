@@ -141,16 +141,16 @@
             <div id="pro-panel">
                 <div class="panel-section-title">Control</div>
                 <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
-        <button id="gate-x0" class="gate-btn-v2 lock-btn gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X0')">
-            <div class="wire-container">
-                <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
-            </div>
-    </button>
-    <button id="gate-x1" class="gate-btn-v2 lock-btn gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X1')">
-        <div class="wire-container">
-            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
-        </div>
-    </button>
+                    <button id="gate-x0" class="gate-btn-v2 lock-btn gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X0')">
+                        <div class="wire-container">
+                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
+                        </div>
+                    </button>
+                    <button id="gate-x1" class="gate-btn-v2 lock-btn gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X1')">
+                        <div class="wire-container">
+                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
+                        </div>
+                    </button>
                     <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)">
                         <div class="wire-container">
                             <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
@@ -299,10 +299,9 @@
                 gates.forEach(g => g.classList.add('lock-btn'));
                 const board = document.getElementById('leaderboard-wrapper');
                 board.classList.add('highlight-fixed');
-                board.classList.add('expanded'); // 教學時自動展開排行榜
+                board.classList.add('expanded');
                 h.innerHTML = `CHECK OUT THE LEADERBOARD OVER HERE!<br><button onclick="endTutorial()" class="next-btn">GOT IT</button>`;
                 setTimeout(() => {
-                    // 修改偏移量，讓教學文字框往右避開排行榜書籤
                     positionHint(board, 60, 70);
                 }, 300);
                 renderCircuit();
@@ -482,14 +481,6 @@
                 selectedIndices = [];
                 pushHistory(); recalculatePositions(); finishMove();
             } else { executeGateLogic(g); }
-
-
-
-
-
-
-
-
             if (tutorialPhase === 2 && g === 'CX01') {
                 tutorialPhase = 3;
                 setTimeout(updateTutorialUI, 100);
@@ -594,8 +585,6 @@
             pop.currentTime=0; pop.play();
             gateHistory.splice(idx,1); pushHistory(); recalculatePositions(); finishMove();
         }
-       
-        // --- 確保兩個 Undo 的狀態同步 ---
         function updateUndoStatus() {
             const isActive = (historyStack.length > 1 && !isSolved && tutorialPhase === 6);
            
@@ -611,7 +600,6 @@
                 else { bottomUndo.classList.remove('active'); bottomUndo.style.pointerEvents="none"; }
             }
         }
-       
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true;
@@ -659,30 +647,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
