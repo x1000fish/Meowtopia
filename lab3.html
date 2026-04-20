@@ -85,9 +85,14 @@
         #trace-controls span.text-green-700 { color: #d00000; font-size: 14px; }
         .btn-share { background: #059669; border: 4px solid #000; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; transition: all 0.1s; min-width: 140px; }
         .btn-share:hover { background-color: #3ea786 !important; }
+        /* 懸浮切換按鈕樣式 */
+        .nav-fab { position: fixed; top: 25px; right: 25px; width: 65px; height: 65px; background: #349fec; border: 5px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #000; }
+        .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #000; }
+        .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #000; }
     </style>
 </head>
 <body id="body-root">
+    <button onclick="window.location.href='lab4.html'" class="nav-fab" title="Go to 4-Bit">4</button>
     <div class="w-full max-w-5xl">
         <div class="flex w-full px-4 mb-4 items-center">
             <div class="text-3xl font-black">GATE COUNT: <span id="step-count">0</span></div>
@@ -172,8 +177,6 @@
         const baseOffsetY = 130;
         const side = 220;
         const offsetPro = 165;
-
-
         // 重新定義 3-bit 的節點位置 (共 8 個點)
         const nodePositions = Array.from({ length: 8 }, (_, i) => {
             let x = (i & 1) ? side : 0;
@@ -188,8 +191,6 @@
             Object.defineProperty(pos, 'l', { get: () => pos.relX + offsetPro });
             return pos;
         });
-
-
         window.onload = () => {
             initLabData();
             initGameLayout();
@@ -208,8 +209,6 @@
                 else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 showIndicator();
             }, { passive: false });
-
-
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
@@ -222,8 +221,6 @@
                 }
             });
         };
-
-
         function initLabData() {
             const urlParams = new URLSearchParams(window.location.search);
             const sharedCircuit = urlParams.get('circuit');
@@ -238,8 +235,6 @@
                 console.log("Initialization failed. Opening an empty lab instead.");
             }
         }
-
-
         function toggleTraceMode() {
             isTraceMode = !isTraceMode;
             const btn = document.getElementById('view-toggle-btn');
@@ -262,8 +257,6 @@
                 exitTrace();
             }
         }
-
-
         function startTrace(inputIndex) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             activeTraceInput = inputIndex;
@@ -272,8 +265,6 @@
             updateTruthTable();
             renderTraceStep();
         }
-
-
         function traceMove(delta) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             currentTraceStep += delta;
@@ -281,8 +272,6 @@
             if (currentTraceStep > gateHistory.length) currentTraceStep = gateHistory.length;
             renderTraceStep();
         }
-
-
         function exitTrace() {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             activeTraceInput = null;
@@ -300,8 +289,6 @@
             updateTruthTable();
             if (typeof finishMove === "function") finishMove();
         }
-
-
         function renderTraceStep() {
             if (activeTraceInput === null) return;
             let prevNode = activeTraceInput;
@@ -355,8 +342,6 @@
                 activeGate.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
         }
-
-
         function updateFishVisibility() {
             // 迴圈改為 8
             for (let i = 0; i < 8; i++) {
@@ -377,8 +362,6 @@
                 }
             }
         }
-
-
         function updateTruthTable() {
             // 狀態空間改為 8
             let stateMap = Array.from({length: 8}, (_, i) => i);
@@ -439,7 +422,7 @@
         function highlightByGate(type) {
             clearHighlight();
             let pairs = [];
-            
+           
             // 使用正則或字串解析 level8 格式
             let ctrl = [], target = -1, zero = [];
             if (type.startsWith('X')) {
@@ -463,11 +446,12 @@
                 });
             }
 
+
             // 計算受影響的節點對
             if (target !== -1) {
                 let tBit = 1 << (2 - target); // 假設 0 是最上方 (MSB)
                 let cConfigs = ctrl.map(c => ({ bit: 1 << (2 - c), val: zero.includes(c) ? 0 : 1 }));
-                
+               
                 for (let k = 0; k < 8; k++) {
                     if ((k & tBit) === 0) { // 只找 target bit 為 0 的，另一半用 XOR 找
                         let match = cConfigs.every(cfg => ((k & cfg.bit) ? 1 : 0) === cfg.val);
@@ -523,8 +507,6 @@
                     onmouseleave="hideIndicator()"
                     onclick="applyGate('${type}')">${getGateIcon(type)}</button>`;
             };
-
-
             for(let i=0; i<3; i++) html += wrapBtn(`X_${i}`, "bg-purple-100");
             html += `<div style="width: 45px"></div>`;
            
@@ -616,8 +598,6 @@
             const targetBit = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
             const otherBits = [0, 1, 2].filter(b => b !== targetBit);
             const options = [];
-
-
             if (lineMode === 4) {
                 options.push({
                     gateType: `X_${targetBit}`,
@@ -637,8 +617,6 @@
                             pairs.push([k, k ^ bit]);
                         }
                     }
-
-
                     options.push({
                         gateType: gateType,
                         label: `CNOT: q${ctrlBit}=${ctrlVal} → q${targetBit}`,
@@ -664,16 +642,15 @@
             function applyGate(type) {
                 // 統一轉換成 level8 縮寫格式
                 let gateStr = type.includes('_') ? convertToLevel8Format(type) : type;
-
                 if (selectedIndices.length > 0) {
                     // --- 替換模式 ---
                     // 由大到小排序索引，避免 splice 導致索引偏移
                     selectedIndices.sort((a, b) => b - a);
-                    
+                   
                     // 保留最前面的一個索引來放置新 Gate，其餘刪除
                     const replaceIdx = selectedIndices.pop();
                     selectedIndices.forEach(idx => gateHistory.splice(idx, 1));
-                    
+                   
                     gateHistory[replaceIdx] = gateStr;
                     selectedIndices = []; // 清空選取
                 } else {
@@ -683,8 +660,6 @@
                 if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
                 recalculate(); // 重新計算魚的位置與更新 UI
             }
-
-            // 格式轉換輔助
             function convertToLevel8Format(g) {
                 let p = g.split('_');
                 if (p[0] === 'X') return `X${p[1]}`;
@@ -698,7 +673,6 @@
             function getPermutationForGate(gateString) {
                 let parts = gateString.split('_');
                 let type = parts[0];
-
                 // 處理 SWAP 邏輯 (無論是單獨的 SWAP 還是 Gate 後綴的 SWAP)
                 let swapPart = parts.find(p => p === 'SWAP');
                 let swapIndices = [];
@@ -706,15 +680,13 @@
                     let sIdx = parts.indexOf('SWAP');
                     swapIndices = [parseInt(parts[sIdx + 1]), parseInt(parts[sIdx + 2])];
                 }
-
                 // 產生 8 節點的置換陣列
                 let permutation = Array.from({ length: 8 }, (_, p) => {
                     let b = p.toString(2).padStart(3, '0').split('').map(Number);
-                    
                     // 1. 處理 Gate 邏輯
                     if (type.startsWith('X')) {
                         b[parseInt(type[1])] ^= 1;
-                    } 
+                    }
                     else if (type.startsWith('CX')) {
                         // 格式範例: CX01 (控制位0, 目標1) 或 CX1p0 (控制位1反轉, 目標0)
                         // 簡化解析：level8 的 CX 格式通常是 CX[ctrl][target]，若是反轉會寫成 C0X
@@ -723,14 +695,14 @@
                         } else {
                             if (b[parseInt(type[2])] === 1) b[parseInt(type[3])] ^= 1;
                         }
-                    } 
+                    }
                     else if (type.startsWith('TOF')) {
                         // 解析 level8 的 TOF 格式 (例如 TOF1p20)
                         // 規則：數字代表 index，後面接 'p' 代表控制值為 0，否則為 1
                         let s = type.replace('TOF', '');
                         let controls = [];
                         let target = -1;
-                        
+                       
                         let tempParts = [];
                         for (let i = 0; i < s.length; i++) {
                             if (s[i + 1] === 'p') {
@@ -742,30 +714,25 @@
                         // 最後一個是 target
                         target = tempParts.pop().idx;
                         controls = tempParts;
-
                         let condition = controls.every(c => b[c.idx] === c.val);
                         if (condition) b[target] ^= 1;
                     }
-
                     let outIdx = parseInt(b.join(''), 2);
                     return outIdx;
                 });
-
-                // 2. 如果有 SWAP，在 Gate 運算後執行交換
                 if (swapIndices.length === 2) {
                     let finalPerm = new Array(8);
                     // 先複製目前的映射
                     for(let i=0; i<8; i++) finalPerm[i] = permutation[i];
-                    
+                   
                     // 執行 SWAP：這是在節點位置層級進行交換
                     // 注意：這裡的邏輯需與 executeLogic 配合
                     let [iA, iB] = swapIndices;
                     let pm = Array.from({ length: 8 }, (_, i) => i);
                     [pm[iA], pm[iB]] = [pm[iB], pm[iA]];
-                    
+                   
                     return permutation.map(target => pm[target]);
                 }
-
                 return permutation;
             }
             function executeLogic(type) {
@@ -774,8 +741,6 @@
                 for (let i = 0; i < 8; i++) newFish[pm[i]] = fishAtNode[i];
                 fishAtNode = newFish;
             }
-
-
             function recalculate() {
                 fishAtNode = [...initialFishAtNode];
                 let h = [...gateHistory]; gateHistory = [];
@@ -806,9 +771,6 @@
             const c = document.getElementById('circuit-content');
             const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
-
-
-            // 1. Trace 狀態預計算邏輯
             let states = [];
             if (activeTraceInput !== null) {
                 let curr = activeTraceInput;
@@ -818,9 +780,6 @@
                     states.push(curr);
                 }
             }
-
-
-            // 2. 繪製水平導線的函式 (整合 Trace 顏色變換)
             const drawWires = (parentUnit, stepIdx) => {
                 for (let q = 0; q < 3; q++) {
                     let wire = document.createElement('div');
@@ -830,8 +789,6 @@
                     wire.style.height = '4px';
                     wire.style.top = (30 + q * 40 - 0.5) + 'px';
                     wire.style.zIndex = '1';
-
-
                     if (activeTraceInput !== null) {
                         // 追蹤模式：根據 bit 狀態決定顏色
                         if (stepIdx <= currentTraceStep) {
@@ -854,41 +811,28 @@
                     parentUnit.appendChild(wire);
                 }
             };
-
-
-            // 3. 建立起點單位
             const startU = document.createElement('div');
             startU.className = 'circuit-unit';
             startU.style.minWidth = '30px';
             startU.style.cursor = 'default';
             drawWires(startU, 0);
             c.appendChild(startU);
-
-
-            // 4. 遍歷 gateHistory 繪製所有閘
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected-gate' : '');
                 u.draggable = true;
-
-
                 if (activeTraceInput !== null) {
                     if (idx === currentTraceStep - 1) u.classList.add('trace-active');
                     else if (idx >= currentTraceStep) u.style.opacity = '0.2';
                 }
-
-
                 drawWires(u, idx + 1);
-
-
-                // 拖拽與點擊事件
                 u.addEventListener('dragstart', (e) => handleDragStart(e, idx));
                 u.addEventListener('dragover', (e) => handleDragOver(e));
                 u.addEventListener('drop', (e) => handleDrop(e, idx));
                 u.addEventListener('dragend', (e) => { e.target.style.opacity = '1'; draggedIndex = null; });
                 u.onmouseenter = () => { if(typeof highlightByGate === 'function') highlightByGate(g); };
                 u.onmouseleave = () => { if(typeof clearHighlight === 'function') clearHighlight(); };
-            
+           
                 u.onclick = (e) => {
                     if (e.ctrlKey || e.metaKey) {
                         const sIdx = selectedIndices.indexOf(idx);
@@ -904,12 +848,8 @@
                         recalculate();
                     }
                 };
-
-
-                // --- 5. 核心邏輯解析 (新版 '_' 格式) ---
                         let typePart = g.split('_')[0];
                 let ctrl = [], target = -1, zero = [];
-
                 if (typePart.startsWith('X')) {
                     target = parseInt(typePart[1]);
                 } else if (typePart.startsWith('CX')) {
@@ -933,16 +873,12 @@
                         if (tok.z) zero.push(tok.v);
                     });
                 }
-
-                // 繪製垂直線與控制點
                 if (ctrl.length > 0) {
                     let min = Math.min(...ctrl, target), max = Math.max(...ctrl, target);
                     const v = document.createElement('div');
                     v.className = 'connection-v-line';
                     v.style.cssText = `top:${30 + min * 40}px; height:${(max - min) * 40}px; z-index: 5;`;
                     u.appendChild(v);
-
-
                     ctrl.forEach(cl => {
                         const d = document.createElement('div');
                         d.className = 'control-dot';
@@ -954,8 +890,6 @@
                         u.appendChild(d);
                     });
                 }
-
-
                 // 繪製目標點 (Circle)
                 if (target !== -1) {
                     const t = document.createElement('div');
@@ -964,12 +898,8 @@
                     t.style.zIndex = '6';
                     u.appendChild(t);
                 }
-
-
                 c.appendChild(u);
             });
-
-
             // 6. 建立終點單位 (延伸導線)
             const endU = document.createElement('div');
             endU.className = 'circuit-unit';
@@ -978,11 +908,7 @@
             endU.style.cursor = 'default';
             drawWires(endU, states.length > 0 ? states.length - 1 : 0);
             c.appendChild(endU);
-
-
             updateUndoStatus();
-
-
             // 7. 自動捲動 (僅在非拖拽與非追蹤時)
             if (selectedIndices.length === 0 && gateHistory.length > 0 && typeof draggedIndex === 'undefined' || draggedIndex === null) {
                 if (activeTraceInput === null) {
