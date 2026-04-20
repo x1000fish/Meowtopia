@@ -16,6 +16,11 @@
         .connection-line { position: absolute; background: #000; cursor: pointer; z-index: 10; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .multi-toggle-btn { background: #c76419; border: 4px solid #000; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; transition: all 0.1s; }
         .multi-toggle-btn.active-mode { background: #2b66e5; }
+        .multi-toggle-btn:hover,
+        .game-btn:hover,
+        .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #000;}
+        .multi-toggle-btn:active,
+        .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #000;}
         .line-highlight { background: #ffc822 !important; box-shadow: 0 0 15px rgba(251, 191, 36, 0.8) !important; }
         .connection-line:hover { background: #ffc822; box-shadow: 0 0 15px rgba(251, 191, 36, 0.5); }
         .line-h { height: 8px; width: 300px; }
@@ -182,6 +187,10 @@
 
 
 
+
+
+
+
                 <div class="node" id="node-0" style="top: 25px; left: 155px;"><div class="fixed-number">00</div><img src="./image/Cat1.svg"></div>
                 <div class="node" id="node-1" style="top: 25px; left: 505px;"><div class="fixed-number">01</div><img src="./image/Cat2.svg"></div>
                 <div class="node" id="node-2" style="bottom: 25px; left: 155px;"><div class="fixed-number">10</div><img src="./image/Cat3.svg"></div>
@@ -221,6 +230,8 @@
             cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
         };
         function toggleMode2() {
+            pop.currentTime = 0;
+            pop.play();
             if (tutorialPhase > 0 && tutorialPhase < 100 && tutorialPhase !== 4.1) return;
             isMode2 = !isMode2;
             const btn = document.getElementById('mode-2-btn');
@@ -249,6 +260,10 @@
 
 
 
+
+
+
+
             lines.forEach(id => {
                 const el = document.getElementById(id);
                 if (!el) return;
@@ -266,6 +281,8 @@
             if (isMode2) { applyGate((dir === 'H') ? 'X1' : 'X0'); } else { applyGate(defaultGate); }
         }
         function togglePro() {
+            pop.currentTime = 0;
+            pop.play();
             isPro = !isPro; const b = document.getElementById('body-root');
             document.getElementById('guide-overlay').style.display = 'none';
             document.getElementById('start-hint').style.display = 'none';
@@ -459,6 +476,10 @@
 
 
 
+
+
+
+
                     actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
                     gateHistory.splice(i, 1);
                     selectedIndices = [];
@@ -541,14 +562,4 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
 
