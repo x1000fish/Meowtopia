@@ -106,7 +106,7 @@
    
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
-            <h2 class="text-xl font-black mb-3 text-center italic">🏆 TOP CATS</h2>
+            <h2 class="text-xl font-black mb-3 text-center">🏆 TOP CATS</h2>
             <div class="flex gap-2 mb-3">
                 <button onclick="renderRank('steps')" id="tab-steps" class="rank-tab active">STEPS</button>
                 <button onclick="renderRank('time')" id="tab-time" class="rank-tab">TIME</button>
@@ -119,6 +119,10 @@
             <div class="bookmark-text">RANK</div>
         </div>
     </div>
+
+
+
+
 
 
 
@@ -228,20 +232,10 @@
             });
             setTimeout(startWheelTutorial, 500);
         };
-
-
-
-
-        // 切換排行榜展開/收合狀態
         function toggleLeaderboard() {
             const wrapper = document.getElementById('leaderboard-wrapper');
             wrapper.classList.toggle('expanded');
         }
-
-
-
-
-        // --- 動態生成圖形化 Quantum Gates ---
         function initGates() {
             const grid = document.getElementById('gate-grid');
             let html = '';
@@ -303,10 +297,6 @@
             });
             grid.innerHTML = html;
         }
-
-
-
-
         function startWheelTutorial() {
             tutorialActive = true; tutorialStep = 1;
             document.getElementById('tutorial-mask').style.display = 'block';
@@ -634,14 +624,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
