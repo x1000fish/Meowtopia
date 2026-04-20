@@ -110,6 +110,10 @@
 
 
 
+
+
+
+
     <div class="w-full max-w-5xl">
         <div class="flex justify-between w-full px-4 mb-4 items-center">
             <div class="text-3xl font-black">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span></div>
@@ -136,9 +140,17 @@
 
 
 
+
+
+
+
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
+
+
+
+
 
 
 
@@ -204,6 +216,10 @@
 
 
 
+
+
+
+
         window.onload = () => {
             initGameLayout();
             initGates();
@@ -242,11 +258,19 @@
 
 
 
+
+
+
+
         // 切換排行榜展開/收合狀態
         function toggleLeaderboard() {
             const wrapper = document.getElementById('leaderboard-wrapper');
             wrapper.classList.toggle('expanded');
         }
+
+
+
+
 
 
 
@@ -312,6 +336,10 @@
             });
             grid.innerHTML = html;
         }
+
+
+
+
 
 
 
@@ -482,6 +510,10 @@
             }).map(([u, v]) => [u, v]);
             highlightPairs(pairs);
         }
+
+
+
+
 
 
 
@@ -821,6 +853,3 @@
     </script>
 </body>
 </html>
-
-
-
