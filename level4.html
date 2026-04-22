@@ -139,7 +139,7 @@
         </div>
         <div class="main-layout">
             <div id="pro-panel">
-                <div class="panel-section-title">Control</div>
+                <div class="panel-section-title">Quantum Gate</div>
                 <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
         <button id="gate-x0" class="gate-btn-v2 gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X0')" onmouseover="syncGateHighlight('X0', true)" onmouseout="syncGateHighlight('X0', false)">
             <div class="wire-container">
@@ -153,36 +153,36 @@
     </button>
                     <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)">
                         <div class="wire-container">
-                            <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
-                            <div class="control-dot" style="left: 50%; top: 24px; background: black; transform: translate(-50%, -50%);"></div>
-                            <div class="circuit-target" style="left: 50%; top: 52px;"></div>
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="left: 50%; top: 25.5px; background: black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
                         </div>
                     </button>
                     <button id="gate-c0x01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X01')" onmouseover="syncGateHighlight('C0X01', true)" onmouseout="syncGateHighlight('C0X01', false)">
                         <div class="wire-container">
-                            <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
                             <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 24px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
-                            <div class="circuit-target" style="left: 50%; top: 52px;"></div>
+                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
                         </div>
                     </button>
                     <button id="gate-cx10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX10')" onmouseover="syncGateHighlight('CX10', true)" onmouseout="syncGateHighlight('CX10', false)">
                         <div class="wire-container">
-                            <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
-                            <div class="control-dot" style="left: 50%; top: 52px; background: black; transform: translate(-50%, -50%);"></div>
-                            <div class="circuit-target" style="left: 50%; top: 24px;"></div>
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="left: 50%; top: 53.5px; background: black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
                         </div>
                     </button>
                     <button id="gate-c0x10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X10')" onmouseover="syncGateHighlight('C0X10', true)" onmouseout="syncGateHighlight('C0X10', false)">
                         <div class="wire-container">
-                            <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
-                            <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 52px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
-                            <div class="circuit-target" style="left: 50%; top: 24px;"></div>
+                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
+                            <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 53.5px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
+                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
                         </div>
                     </button>
                 </div>
-                <div class="panel-section-title">Current Circuit</div>
+                <div class="panel-section-title">Control</div>
                 <button id="reset-btn" class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
-                <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Last Step</button>
+                <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Step</button>
             </div>
             <div class="game-canvas" id="main-canvas">
                 <div id="line-h-0" class="connection-line line-h" style="top: 95px; left: 280px;"
