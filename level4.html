@@ -141,16 +141,16 @@
             <div id="pro-panel">
                 <div class="panel-section-title">Control</div>
                 <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
-                    <button id="gate-x0" class="gate-btn-v2 lock-btn gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X0')">
-                        <div class="wire-container">
-                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
-                        </div>
-                    </button>
-                    <button id="gate-x1" class="gate-btn-v2 lock-btn gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X1')">
-                        <div class="wire-container">
-                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
-                        </div>
-                    </button>
+        <button id="gate-x0" class="gate-btn-v2 gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X0')" onmouseover="syncGateHighlight('X0', true)" onmouseout="syncGateHighlight('X0', false)">
+            <div class="wire-container">
+                <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
+            </div>
+    </button>
+    <button id="gate-x1" class="gate-btn-v2 gate-btn-circuit" style="background-color: #f3e8ff;" onclick="applyGate('X1')" onmouseover="syncGateHighlight('X1', true)" onmouseout="syncGateHighlight('X1', false)">
+        <div class="wire-container">
+            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
+        </div>
+    </button>
                     <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)">
                         <div class="wire-container">
                             <div class="connection-v-line" style="left: 50%; top: 24px; height: 28px; transform: translateX(-50%);"></div>
@@ -299,9 +299,10 @@
                 gates.forEach(g => g.classList.add('lock-btn'));
                 const board = document.getElementById('leaderboard-wrapper');
                 board.classList.add('highlight-fixed');
-                board.classList.add('expanded');
+                board.classList.add('expanded'); // 教學時自動展開排行榜
                 h.innerHTML = `CHECK OUT THE LEADERBOARD OVER HERE!<br><button onclick="endTutorial()" class="next-btn">GOT IT</button>`;
                 setTimeout(() => {
+                    // 修改偏移量，讓教學文字框往右避開排行榜書籤
                     positionHint(board, 60, 70);
                 }, 300);
                 renderCircuit();
@@ -404,30 +405,23 @@
             btn.innerText = isMode2 ? "Mode: 2" : "Mode: 1";
             btn.classList.toggle('active-mode', isMode2);
         }
+        const gateLineMap = {
+            X0: ['line-v-0', 'line-v-1'],
+            X1: ['line-h-0', 'line-h-1'],
+            C0X01: ['line-h-0'],
+            CX01: ['line-h-1'],
+            C0X10: ['line-v-0'],
+            CX10: ['line-v-1']
+        };
+        function toggleLineHighlight(lineIds, isOn) {
+            lineIds.forEach(id => document.getElementById(id)?.classList.toggle('line-highlight', isOn));
+        }
         function syncHighlight(dir, isOn) {
             if (!isMode2) return;
-            const lines = dir === 'H' ? ['line-h-0', 'line-h-1'] : ['line-v-0', 'line-v-1'];
-            lines.forEach(id => {
-                const el = document.getElementById(id);
-                if (isOn) el.classList.add('line-highlight');
-                else el.classList.remove('line-highlight');
-            });
+            toggleLineHighlight(dir === 'H' ? gateLineMap.X1 : gateLineMap.X0, isOn);
         }
         function syncGateHighlight(gate, isOn) {
-            let lineIds = [];
-            if (gate === 'X0') lineIds = ['line-v-0', 'line-v-1'];
-            else if (gate === 'X1') lineIds = ['line-h-0', 'line-h-1'];
-            else if (gate === 'C0X01') lineIds = ['line-h-0'];
-            else if (gate === 'CX01') lineIds = ['line-h-1'];
-            else if (gate === 'C0X10') lineIds = ['line-v-0'];
-            else if (gate === 'CX10') lineIds = ['line-v-1'];
-            lineIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    if (isOn) el.classList.add('line-highlight');
-                    else el.classList.remove('line-highlight');
-                }
-            });
+            toggleLineHighlight(gateLineMap[gate] || [], isOn);
         }
         function handleLineClick(dir) {
             if (isSolved) return;
@@ -489,31 +483,32 @@
                 setTimeout(updateTutorialUI, 100);
             }
         }
-        function executeGateLogic(g) {
-            let pm = [0,1,2,3].map(pos => {
-                let q0 = Math.floor(pos/2), q1 = pos%2;
-                if(g==='X0') q0=1-q0; else if(g==='X1') q1=1-q1;
-                else if(g==='CX01' && q0===1) q1=1-q1; else if(g==='C0X01' && q0===0) q1=1-q1;
-                else if(g==='CX10' && q1===1) q0=1-q0; else if(g==='C0X10' && q1===0) q0=1-q0;
-                return q0*2+q1;
+        function getPermutation(g) {
+            return [0, 1, 2, 3].map(pos => {
+                let q0 = Math.floor(pos / 2), q1 = pos % 2;
+                if (g === 'X0') q0 = 1 - q0;
+                else if (g === 'X1') q1 = 1 - q1;
+                else if (g === 'CX01' && q0 === 1) q1 = 1 - q1;
+                else if (g === 'C0X01' && q0 === 0) q1 = 1 - q1;
+                else if (g === 'CX10' && q1 === 1) q0 = 1 - q0;
+                else if (g === 'C0X10' && q1 === 0) q0 = 1 - q0;
+                return q0 * 2 + q1;
             });
-            fishAtNode = fishAtNode.map(cp => pm[cp]);
-            gateHistory.push(g); pushHistory();
-            steps = gateHistory.length; finishMove();
+        }
+        function executeGateLogic(g) {
+            const permutation = getPermutation(g);
+            fishAtNode = fishAtNode.map(pos => permutation[pos]);
+            gateHistory.push(g);
+            pushHistory();
+            steps = gateHistory.length;
+            finishMove();
         }
         function recalculatePositions() {
-            let cp = [3, 2, 1, 0];
-            gateHistory.forEach(g => {
-                let pm = [0,1,2,3].map(pos => {
-                    let q0=Math.floor(pos/2), q1=pos%2;
-                    if(g==='X0') q0=1-q0; else if(g==='X1') q1=1-q1;
-                    else if(g==='CX01' && q0===1) q1=1-q1; else if(g==='C0X01' && q0===0) q1=1-q1;
-                    else if(g==='CX10' && q1===1) q0=1-q0; else if(g==='C0X10' && q1===0) q0=1-q0;
-                    return q0*2+q1;
-                });
-                cp = cp.map(p => pm[p]);
-            });
-            fishAtNode = cp; steps = gateHistory.length;
+            fishAtNode = gateHistory.reduce((currentPositions, gate) => {
+                const permutation = getPermutation(gate);
+                return currentPositions.map(pos => permutation[pos]);
+            }, [3, 2, 1, 0]);
+            steps = gateHistory.length;
         }
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
         function updateFishUI() {
@@ -585,6 +580,8 @@
             pop.currentTime=0; pop.play();
             gateHistory.splice(idx,1); pushHistory(); recalculatePositions(); finishMove();
         }
+       
+        // --- 確保兩個 Undo 的狀態同步 ---
         function updateUndoStatus() {
             const isActive = (historyStack.length > 1 && !isSolved && tutorialPhase === 6);
            
@@ -600,6 +597,7 @@
                 else { bottomUndo.classList.remove('active'); bottomUndo.style.pointerEvents="none"; }
             }
         }
+       
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true;
