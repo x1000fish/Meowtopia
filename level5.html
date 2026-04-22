@@ -477,14 +477,21 @@
             }
         }
         function swapNodes(idxA, idxB) {
-            if (isSolved || tutorialActive) return;
-            pop.currentTime = 0; pop.play();
-            let target = (idxA ^ idxB === 4) ? 0 : (idxA ^ idxB === 2) ? 1 : 2;
+            if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
+            if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
+            const diff = idxA ^ idxB; 
+            let target = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
             let ctrl = [0, 1, 2].filter(c => c !== target);
             let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
-            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}_SWAP_${idxA}_${idxB}`;
-            if(selectedIndices.length > 0) replaceLogic(gateStr);
-            else { gateHistory.push(gateStr); [fishAtNode[idxA], fishAtNode[idxB]] = [fishAtNode[idxB], fishAtNode[idxA]]; historyStack.push([...gateHistory]); steps = gateHistory.length; finishMove(); }
+            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}`;
+            if(typeof selectedIndices !== 'undefined' && selectedIndices.length > 0) {換
+                replaceLogic(gateStr);
+            } else {
+                gateHistory.push(gateStr);
+                historyStack.push([...gateHistory]);
+                steps = gateHistory.length;
+                finishMove(); 
+            }
         }
         function togglePro() {
             pop.currentTime = 0;
