@@ -535,10 +535,10 @@
         function createLine(i, j, index) {
             const n1 = nodePositions[i],
                 n2 = nodePositions[j],
-                x1 = n1.l + 52,
-                y1 = n1.t + 52,
-                x2 = n2.l + 52,
-                y2 = n2.t + 52;
+                x1 = n1.l + 60,
+                y1 = n1.t + 60,
+                x2 = n2.l + 60,
+                y2 = n2.t + 60;
             const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2),
                 ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
             const line = document.createElement('div');
@@ -571,22 +571,20 @@
             }
         }
         function swapNodes(idxA, idxB) {
-            if (isSolved) return;
-            pop.currentTime = 0; pop.play();
-            let target = (idxA ^ idxB === 4) ? 0 : (idxA ^ idxB === 2) ? 1 : 2;
+            if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
+            if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
+            const diff = idxA ^ idxB; 
+            let target = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
             let ctrl = [0, 1, 2].filter(c => c !== target);
             let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
-            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}_SWAP_${idxA}_${idxB}`;
-            if(selectedIndices.length > 0) {
+            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}`;
+            if(typeof selectedIndices !== 'undefined' && selectedIndices.length > 0) {換
                 replaceLogic(gateStr);
             } else {
                 gateHistory.push(gateStr);
-                let temp = fishAtNode[idxA];
-                fishAtNode[idxA] = fishAtNode[idxB];
-                fishAtNode[idxB] = temp;
                 historyStack.push([...gateHistory]);
                 steps = gateHistory.length;
-                finishMove();
+                finishMove(); 
             }
         }
         function togglePro() {
