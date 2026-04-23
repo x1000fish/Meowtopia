@@ -186,7 +186,7 @@
             <div class="qubit-label" style="top: 60px;">q0</div><div class="qubit-label" style="top: 100px;">q1</div>
             <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
         </div>
-        <div class="w-full text-center mt-6 mb-6"><a href="index.html" class="game-btn btn-red px-16">GIVE UP</a></div>
+        <div class="w-full text-center mt-6 mb-6"><a id="back-btn" href="index.html" class="game-btn btn-red px-16">GIVE UP</a></div>
     </div>
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
@@ -194,7 +194,7 @@
             <h2 class="text-5xl font-black mb-4" style="color: #463438;">🐾</h2>
             <p id="victoryMsg" class="text-xl font-bold mb-6"></p>
             <button onclick="location.href='index.html'" class="game-btn btn-green w-full mb-4">KEEP GOING</button>
-            <button onclick="document.getElementById('victoryModal').style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
+            <button onclick="viewCircuitResult()" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
         </div>
     </div>
     <script>
@@ -613,6 +613,15 @@
                 }
             }
         }
+        function viewCircuitResult() {
+            document.getElementById('victoryModal').style.display = 'none';
+            const backBtn = document.getElementById('back-btn');
+            if (backBtn) {
+                backBtn.innerText = "GO BACK";
+            }
+        }
     </script>
 </body>
 </html>
+
+
