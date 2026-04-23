@@ -282,8 +282,8 @@
             fetchLeaderboard();
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
 
-            // --- 1. 全螢幕權限觸發：觸碰螢幕任何地方即詢問 iOS 陀螺儀權限 ---
-            const requestGyroPath = async () => {
+            // --- 1. 全域權限觸發：點擊螢幕任何處即詢問 iOS 陀螺儀權限 ---
+            const requestGyroPermission = async () => {
                 if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                     try {
                         const permission = await DeviceOrientationEvent.requestPermission();
@@ -291,26 +291,25 @@
                             gyroPermissionGranted = true;
                         }
                     } catch (error) {
-                        console.log("陀螺儀權限請求被拒絕或發生錯誤:", error);
+                        console.log("陀螺儀權限請求失敗:", error);
                     }
                 } else {
                     gyroPermissionGranted = true;
                 }
-                // 觸發過一次後就移除全域監聽，避免重複執行
-                window.removeEventListener('click', requestGyroPath);
-                window.removeEventListener('touchstart', requestGyroPath);
+                // 觸發後移除監聽，避免影響效能
+                window.removeEventListener('click', requestGyroPermission);
+                window.removeEventListener('touchstart', requestGyroPermission);
             };
+            window.addEventListener('click', requestGyroPermission);
+            window.addEventListener('touchstart', requestGyroPermission);
 
-            // 監聽全域的點擊與觸碰
-            window.addEventListener('click', requestGyroPath);
-            window.addEventListener('touchstart', requestGyroPath);
-
-            // --- 2. 電腦版：滾輪支援 ---
+            // --- 2. 電腦版：滾輪支援 (電路區橫向滾動) ---
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
             });
 
+            // --- 3. 電腦版：滾輪支援 (切換 Mode 選項) ---
             document.addEventListener('wheel', (e) => {
                 if (!hoverLine || lineMode === 1 || lineMode === 8) return;
                 e.preventDefault();
@@ -319,12 +318,12 @@
                 showIndicator();
             }, { passive: false });
 
-            // --- 3. 觸控設備偵測 ---
+            // --- 4. 觸控設備偵測 ---
             window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
 
             const canvas = document.getElementById('main-canvas');
 
-            // --- 4. 手機版：取消選取邏輯 ---
+            // --- 5. 手機版：點擊畫布空白處取消選取 ---
             canvas.addEventListener('touchstart', (e) => {
                 if (!e.target.classList.contains('connection-line')) {
                     activeMobileLine = null;
@@ -333,7 +332,7 @@
                 }
             });
 
-            // --- 5. 手機版：單指上下滑動切換 ---
+            // --- 6. 手機版：單指上下滑動切換 ---
             canvas.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1 && activeMobileLine) {
                     touchStartY = e.touches[0].clientY;
@@ -362,7 +361,9 @@
                 }
             }, { passive: false });
 
-            // --- 6. 電腦版：滑鼠指標跟隨 ---
+            canvas.addEventListener('touchend', () => { touchStartY = 0; });
+
+            // --- 7. 電腦版：滑鼠指標跟隨 UI ---
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
                 if (indicator.classList.contains('active') && !isTouchDevice) {
@@ -374,41 +375,43 @@
                 }
             });
 
-            // --- 7. 手機/平板：陀螺儀左右傾斜 (支援橫幅判定) ---
+            // --- 8. 手機/平板版：陀螺儀左右傾斜 (修正方向一致性與靈敏度) ---
             window.addEventListener('deviceorientation', (e) => {
                 if (!isTouchDevice || !activeMobileLine || lineMode === 1 || lineMode === 8) return;
 
                 let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
                 let tilt = 0;
 
-                // 根據螢幕方向映射左右傾斜
+                // 根據螢幕方向映射，確保不論橫直，「右抬起」永遠是正值，「左抬起」永遠是負值
                 if (orientation === 0) {
                     tilt = e.gamma;
                 } else if (orientation === 90) {
-                    tilt = -e.beta; 
+                    tilt = e.beta;  // 修正：橫向(左轉90)時，beta 正值對應右抬起
                 } else if (orientation === -90 || orientation === 270) {
-                    tilt = e.beta;
+                    tilt = -e.beta; // 修正：橫向(右轉90)時，需反轉 beta 才是視覺右抬起
                 } else if (orientation === 180) {
                     tilt = -e.gamma;
                 }
 
                 if (tilt === null) return; 
 
+                // 使用較靈敏的門檻 (TILT_THRESHOLD 建議設為 10, RETURN_THRESHOLD 設為 5)
                 if (lastTiltDirection === 0) {
                     if (tilt > TILT_THRESHOLD) {
-                        // 右傾 -> 下一個 (+1)
+                        // 向右傾斜 (下一個 +1)
                         lastTiltDirection = 1;
                         currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
                         showIndicator();
                         if ('vibrate' in navigator) navigator.vibrate(20);
                     } else if (tilt < -TILT_THRESHOLD) {
-                        // 左傾 -> 上一個 (-1)
+                        // 向左傾斜 (上一個 -1)
                         lastTiltDirection = -1;
                         currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                         showIndicator();
                         if ('vibrate' in navigator) navigator.vibrate(20);
                     }
                 } else {
+                    // 回正判定
                     if (Math.abs(tilt) < RETURN_THRESHOLD) {
                         lastTiltDirection = 0;
                     }
