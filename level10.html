@@ -95,21 +95,8 @@
         #canvas-bottom-btns { position: absolute; bottom: 15px; right: 30px; display: flex; gap: 10px; z-index: 100; }
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 85px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
-        /* 防護手機長按與文字選取 */
-        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { 
-            -webkit-user-select: none; 
-            user-select: none;
-            -webkit-touch-callout: none; 
-            touch-action: manipulation;
-        }
-        /* 搖晃開關文字提示 (預設隱藏) */
-        #shake-toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
-            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body id="body-root">
@@ -195,7 +182,6 @@
         let currentOptions = [];
         let draggedIndex = null;
         let leaderboardData;
-        // 搖晃與拖移變數
         let isShakeCtrlActive = false;
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
@@ -203,7 +189,6 @@
         let mDragIndex = null;
         let dragGhost = null;
         let originalDragEl = null;
-        // 手機端與陀螺儀操控變數
         let isTouchDevice = false;
         let activeMobileLine = null;
         let touchStartY = 0;
@@ -244,10 +229,10 @@
                         const permission = await DeviceOrientationEvent.requestPermission();
                         if (permission === 'granted') {
                             gyroPermissionGranted = true;
-                            console.log("陀螺儀權限已順利取得");
+                            console.log("Gyroscope access granted.");
                         }
                     } catch (error) {
-                        console.log("陀螺儀權限請求被拒絕:", error);
+                        console.log("Gyroscope access request denied:", error);
                     }
                 } else {
                     gyroPermissionGranted = true;
@@ -443,7 +428,7 @@
                 node.style.pointerEvents = 'none';
             });
             document.body.appendChild(dragGhost);
-            el.style.visibility = 'hidden';
+            //el.style.visibility = 'hidden';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
@@ -479,12 +464,14 @@
                 const movedItem = gateHistory.splice(mDragIndex, 1)[0];
                 gateHistory.splice(targetIndex, 0, movedItem);
 
+
                 actionStack.push({
                     type: 'replace',
                     index: 0,
                     oldGates: oldHistory,
                     newGate: null
                 });
+
 
                 recalculate();
             }
@@ -712,6 +699,7 @@
                         indicator.style.left = (e.clientX - canvasRect.left) + 'px';
                         indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
 
+
                         showIndicator();
                         return;
                     } else {
@@ -914,6 +902,7 @@
                         const dx = e.touches[0].clientX - startX;
                         const dy = e.touches[0].clientY - startY;
 
+
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                             clearTimeout(touchTimer);
                             touchTimer = null;
@@ -1055,3 +1044,4 @@
     </script>
 </body>
 </html>
+
