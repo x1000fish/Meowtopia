@@ -194,62 +194,91 @@
         let actionStack = [];
         let selectedIndices = [];
         let isMode2 = false;
-        // --- 搖晃偵測變數 ---
-        let lastX = 0, lastY = 0, lastZ = 0;
-        let lastShakeTime = 0;
-        const SHAKE_THRESHOLD = 20; // 你指定的門檻 20
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
+
+        // --- 搖晃感應變數 ---
+let lastUpdate = 0;
+let lastX, lastY, lastZ;
+const SHAKE_THRESHOLD = 800; // 搖晃力道閥值 (可根據手感調整，越大越難觸發)
+
+function initShakeSensor() {
+    // 檢查瀏覽器是否支援 DeviceMotionEvent
+    if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', deviceMotionHandler, false);
+    } else {
+        console.log("此裝置不支援搖晃感應");
+    }
+}
+
+function deviceMotionHandler(eventData) {
+    const acceleration = eventData.accelerationIncludingGravity;
+    const curTime = new Date().getTime();
+
+    // 每 100ms 偵測一次，避免過於靈敏
+    if ((curTime - lastUpdate) > 100) {
+        const diffTime = curTime - lastUpdate;
+        lastUpdate = curTime;
+
+        const x = acceleration.x;
+        const y = acceleration.y;
+        const z = acceleration.z;
+
+        // 計算搖晃速度
+        const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
+
+        if (speed > SHAKE_THRESHOLD) {
+            // 觸發切換 CTRL 模式
+            toggleCtrlMode();
+            
+            // 加入微震動回饋 (如果手機支援)
+            if (navigator.vibrate) {
+                navigator.vibrate(100);
+            }
+        }
+
+        lastX = x;
+        lastY = y;
+        lastZ = z;
+    }
+}
+
+// 統一管理 CTRL 狀態切換
+function toggleCtrlMode() {
+    isCtrlDown = !isCtrlDown; // 切換全域變數狀態
+    
+    // 同步更新 UI 風格 (參考你原本的按鈕樣式)
+    const ctrlBtn = document.getElementById('ctrlBtn');
+    if (ctrlBtn) {
+        if (isCtrlDown) {
+            ctrlBtn.classList.remove('bg-gray-200');
+            ctrlBtn.classList.add('bg-yellow-400', 'scale-110', 'ring-4', 'ring-yellow-600');
+        } else {
+            ctrlBtn.classList.remove('bg-yellow-400', 'scale-110', 'ring-4', 'ring-yellow-600');
+            ctrlBtn.classList.add('bg-gray-200');
+        }
+    }
+    console.log("搖晃觸發：CTRL 模式已 " + (isCtrlDown ? "開啟" : "關閉"));
+}
+
+function requestMotionPermission() {
+    if (typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    initShakeSensor();
+                }
+            })
+            .catch(console.error);
+    } else {
+        // 非 iOS 裝置直接啟動
+        initShakeSensor();
+    }
+}
         window.onload = () => {
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             updateFishUI(); updateUndoStatus();
             const cw = document.getElementById('circuit-content-wrapper');
             cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
-            // --- 手機版：搖晃啟動 Ctrl 模式 (Mode 2) ---
-            window.addEventListener('devicemotion', (e) => {
-                let acc = e.accelerationIncludingGravity;
-                if (!acc) return;
-
-                let curX = acc.x;
-                let curY = acc.y;
-                let curZ = acc.z;
-
-                // 計算加速度變化量 (Delta)
-                let delta = Math.sqrt(
-                    Math.pow(curX - lastX, 2) +
-                    Math.pow(curY - lastY, 2) +
-                    Math.pow(curZ - lastZ, 2)
-                );
-
-                // 如果搖晃力道大於門檻，且距離上次觸發超過 1 秒 (避免連續觸發)
-                if (delta > SHAKE_THRESHOLD) {
-                    let now = Date.now();
-                    if (now - lastShakeTime > 1000) {
-                        lastShakeTime = now;
-                        
-                        // 執行切換模式 2 (Ctrl 模式)
-                        // 這裡呼叫你原本就有的模式切換邏輯
-                        lineMode = 2; 
-                        
-                        // 觸發震動回饋，讓玩家知道搖晃成功
-                        if ('vibrate' in navigator) navigator.vibrate(100);
-                        
-                        // 顯示通知提示玩家已進入 Ctrl 模式 (可選)
-                        console.log("搖晃偵測成功：進入 Ctrl 模式");
-                        
-                        // 更新 UI 狀態 (確保按鈕顏色跟著變)
-                        const ctrlBtn = document.getElementById('mode-toggle');
-                        if (ctrlBtn) ctrlBtn.click(); 
-                        else {
-                            // 如果沒有專屬按鈕 ID，就手動執行更新
-                            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                            // 這裡根據你實際的 UI 邏輯處理
-                        }
-                    }
-                }
-                lastX = curX;
-                lastY = curY;
-                lastZ = curZ;
-            });
         };
         function toggleMode2() {
             pop.currentTime = 0;
