@@ -324,6 +324,11 @@
             else { if(!tutorialCompleted) tutorialPhase = 0; document.getElementById('pro-guide-mask').style.display = 'none'; document.getElementById('guide-hint-text').style.display = 'none'; clearAllHighlights(); }
             setTimeout(() => b.classList.remove('no-fish-anim'), 50);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
+            if (isPro && !shakePermissionRequested) {
+                requestShakePermission();
+                shakePermissionRequested = true;
+            }
+
         }
         function clearAllHighlights() {
             document.querySelectorAll('.highlight-focus, .highlight-static, .highlight-canvas-obj, .fish-top-layer, .line-highlight').forEach(el => el.classList.remove('highlight-focus', 'highlight-static', 'highlight-canvas-obj', 'fish-top-layer', 'line-highlight'));
