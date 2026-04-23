@@ -266,7 +266,7 @@
                     if (toast) {
                         toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
                         toast.style.color = isShakeCtrlActive ? "white" : "#463438";
-                        toast.innerText = isShakeCtrlActive ? "⚡️ CTRL MODE: ON" : "❌ CTRL MODE: OFF";
+                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
                         toast.classList.add('show');
                         setTimeout(() => toast.classList.remove('show'), 1500);
                     }
@@ -297,6 +297,28 @@
             updateUndoStatus();
             fetchLeaderboard();
             const cw = document.getElementById('circuit-content-wrapper');
+            const requestGyroPermission = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') {
+                            gyroPermissionGranted = true;
+                            console.log("Gyroscope access granted.");
+                        }
+                    } catch (error) {
+                        console.log("Gyroscope access request denied:", error);
+                    }
+                } else {
+                    gyroPermissionGranted = true;
+                }
+                window.removeEventListener('click', requestGyroPermission);
+                window.removeEventListener('touchstart', requestGyroPermission);
+                document.getElementById('mode-toggle')?.removeEventListener('click', requestGyroPermission);
+            };
+            window.addEventListener('click', requestGyroPermission);
+            window.addEventListener('touchstart', requestGyroPermission);
+            const btnPro = document.getElementById('mode-toggle');
+            if (btnPro) btnPro.addEventListener('click', requestGyroPermission);
             cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
         };
         function toggleLeaderboard() {
