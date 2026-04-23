@@ -208,6 +208,8 @@
         let dragGhost = null;
         let touchStartY = 0;
         let lastSwipeTime = 0;
+        let isTouchDevice = false;       // 判斷是否為手機觸控裝置
+        let activeMobileLine = null;     // 記錄手機端目前「選取中」的線段
 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
@@ -239,7 +241,7 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     
-                    if (navigator.vibrate) navigator.vibrate([800]); // 小震動
+                    if (navigator.vibrate) navigator.vibrate([100]); // 小震動
                     
                     // 文字提示
                     const toast = document.getElementById('shake-toast');
@@ -317,6 +319,19 @@
                     }
                 }
             }, { passive: false });
+
+            // 偵測是否為觸控設備 (只要螢幕被碰觸過一次就判定為是)
+            window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
+
+            // 點擊畫布空白處時，取消線段的選取狀態
+            document.getElementById('main-canvas').addEventListener('touchstart', (e) => {
+                // 如果點擊到的不是線段，就隱藏選項
+                if (!e.target.classList.contains('connection-line')) {
+                    activeMobileLine = null;
+                    hoverLine = null;
+                    hideIndicator();
+                }
+            });
 
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
@@ -575,7 +590,10 @@
                 line.style.height='3px';
                 line.style.background='#463438';
             }
+
+            // 保留原有的電腦版 hover 邏輯，但如果是手機端則忽略
             line.onmouseenter = () => {
+                if (isTouchDevice) return; // 手機端不依賴 mouseenter 觸發 UI
                 if(lineMode === 1) return;
                 hoverLine = {i,j,dim};
                 if(lineMode === 8) {
@@ -586,14 +604,57 @@
                     showIndicator();
                 }
             };
-            line.onmouseleave = () => { hoverLine = null; hideIndicator(); };
+            line.onmouseleave = () => {
+                if (isTouchDevice) return; // 手機端不依賴 mouseleave 取消
+                hoverLine = null; 
+                hideIndicator(); 
+            };
+
+            // 核心修改：區分手機與電腦的點擊邏輯
             line.onclick = (e) => {
                 e.stopPropagation();
                 if(isSolved) return;
-                if(lineMode === 1) applyGate(`SWAP_${i}_${j}`);
-                else if(lineMode === 8) applyGate(`X${3-dim}`);
-                else if(currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+
+                // Mode 1 與 Mode 8 沒有子選項，無論手機電腦都直接執行
+                if(lineMode === 1) { applyGate(`SWAP_${i}_${j}`); return; }
+                if(lineMode === 8) { applyGate(`X${3-dim}`); return; }
+
+                // Mode 2 與 Mode 4 (有多個選項需要切換)
+                if (isTouchDevice) {
+                    const lineId = line.id;
+                    
+                    // 第一次點擊：當作 Hover (選取該線段並顯示選項 UI)
+                    if (activeMobileLine !== lineId) {
+                        activeMobileLine = lineId;
+                        hoverLine = {i, j, dim};
+                        currentOptions = buildGateOptions(i, j, dim);
+                        currentOptionIndex = 0;
+
+                        // 手動將提示框定位在玩家點擊的地方 (因為手機沒有 mousemove)
+                        const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                        const indicator = document.getElementById('ios-indicator');
+                        indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+                        indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+
+                        showIndicator();
+                        return; // 停在這裡！不執行 applyGate，讓玩家可以兩指滑動切換選項
+                    } 
+                    // 第二次點擊：確認套用目前選中的項目
+                    else {
+                        if(currentOptions[currentOptionIndex]) {
+                            applyGate(currentOptions[currentOptionIndex].gateType);
+                        }
+                        activeMobileLine = null; // 重置選取狀態
+                        hideIndicator();
+                    }
+                } else {
+                    // 電腦版邏輯：因為 hover 時已經顯示選項了，所以點擊直接套用
+                    if(currentOptions[currentOptionIndex]) {
+                        applyGate(currentOptions[currentOptionIndex].gateType);
+                    }
+                }
             };
+            
             document.getElementById('lines-layer').appendChild(line);
         }
         function cycleLineMode(){
