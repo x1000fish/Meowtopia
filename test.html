@@ -309,11 +309,20 @@
             window.addEventListener('click', requestGyroPermission);
             window.addEventListener('touchstart', requestGyroPermission);
 
-            // B. 強制綁定在 Mode 按鈕與 Pro 按鈕上
-            const btnMode = document.getElementById('line-mode-1');
-            const btnPro = document.getElementById('line-mode-8');
-            if (btnMode) btnMode.addEventListener('click', requestGyroPermission);
-            if (btnPro) btnPro.addEventListener('click', requestGyroPermission);
+            // B. 明確綁定在你提供的兩個按鈕 ID 上
+            // 👁️ 按鈕
+            const btnPro = document.getElementById('mode-toggle'); 
+            // Mode 切換按鈕
+            const btnMode = document.getElementById('mode-btn');   
+
+            if (btnPro) {
+                btnPro.addEventListener('click', requestGyroPermission);
+                console.log("已綁定 mode-toggle 觸發權限");
+            }
+            if (btnMode) {
+                btnMode.addEventListener('click', requestGyroPermission);
+                console.log("已綁定 mode-btn 觸發權限");
+            }
 
             // --- 3. 電腦版：滾輪支援 (電路區橫向滾動) ---
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
