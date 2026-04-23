@@ -6,14 +6,13 @@
     <title>Meowtopia - Level 4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
-    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
         /* 防護手機長按與文字選取，確保拖曳順暢 */
-        body, canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2, #circuit-content {
+        body, canvas, .game-canvas, .node, .gate-btn-v2, #circuit-content {
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
@@ -81,9 +80,16 @@
         #circuit-content-wrapper { position: relative; height: 130px; overflow-x: auto !important; overflow-y: hidden; margin-left: 30px; padding-top: 4px;}
         #circuit-content { display: flex; height: 100%; padding: 0 7px; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 20px, 0 60px; }
         .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #463438; z-index: 5; }
-        .circuit-unit { min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
+        
+        /* 電路方塊的拖曳防護與手勢設定 */
+        .circuit-unit { 
+            min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: grab; transition: all 0.2s; 
+            touch-action: none; /* 防止 iOS 拖曳時觸發頁面滑動 */
+        }
+        .circuit-unit:active { cursor: grabbing; }
         .circuit-unit:hover { background: rgba(255, 183, 197, 0.3); border-radius: 12px; }
         .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D !important; }
+        
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: #463438; z-index: 3; }
         .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
@@ -256,18 +262,6 @@
     </div>
 
     <script>
-        // 初始化 mobile-drag-drop，並確保網頁載入後才執行，避免 ReferenceError
-        window.addEventListener('load', function() {
-            if (typeof MobileDragDrop !== 'undefined') {
-                MobileDragDrop.polyfill({
-                    holdToDrag: 300 // 長按 300 毫秒後開始拖曳
-                });
-                
-                // 防止在拖曳時觸發預設的滾動事件
-                window.addEventListener('touchmove', function() {}, { passive: false });
-            }
-        });
-
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         let steps = 0, time = 0, isPro = false, fishAtNode = [3, 2, 1, 0], gateHistory = [], timerInterval, isSolved = false;
         let historyStack = [[]];
@@ -310,7 +304,6 @@
             }
         }
 
-        // 要求陀螺儀權限 (iOS 需要點擊觸發)
         function requestShakePermission() {
             if (!shakePermissionRequested) {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -331,12 +324,6 @@
         window.onload = () => {
             window.addEventListener('click', requestShakePermission, { once: true });
             window.addEventListener('touchstart', requestShakePermission, { once: true });
-
-            window.addEventListener('contextmenu', function(e) {
-                if(e.target.closest('.circuit-unit') || e.target.closest('#circuit-area')) {
-                    e.preventDefault();
-                }
-            });
 
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             updateFishUI();
@@ -425,17 +412,19 @@
             clearAllHighlights();
             updateUndoStatus();
         }
+        
+        // 拖曳事件處理
         function handleDragStart(e, index) {
             if (isSolved) return;
             draggedIndex = index;
             e.dataTransfer.effectAllowed = 'move';
-            
-            // 重要：一定要設定 setData，否則手機版的 Polyfill 會直接中斷拖曳！
+            // 強制寫入 setData 以確保手機版拖曳被瀏覽器接受
             e.dataTransfer.setData('text/plain', index.toString());
-            e.target.style.opacity = '0.5';
+            // 使用 setTimeout 來解決 iOS 拖曳時原件透明度卡死的問題
+            setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
         }
         function handleDragOver(e) {
-            e.preventDefault(); // 必須阻止預設行為才能允許放置
+            e.preventDefault(); // 必須阻止預設行為才能允許 Drop
             e.dataTransfer.dropEffect = 'move';
             return false;
         }
@@ -462,6 +451,7 @@
                 setTimeout(updateTutorialUI, 100);
             }
         }
+
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
@@ -624,13 +614,17 @@
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                
+                // 拖曳相關設定
                 u.draggable = !isSolved;
                 u.ondragstart = (e) => handleDragStart(e, idx);
                 u.ondragover = (e) => handleDragOver(e);
                 u.ondrop = (e) => handleDrop(e, idx);
                 u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIndex = null; };
+                
                 u.onmouseover = () => syncGateHighlight(g, true);
                 u.onmouseout = () => syncGateHighlight(g, false);
+                
                 if (tutorialPhase === 4 && idx === 1) {
                     u.classList.add('highlight-focus');
                 }
