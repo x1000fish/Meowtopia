@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=1200">
     <title>Meowtopia - Level 4</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/drag-drop-touch/1.2.0/drag-drop-touch.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
@@ -14,7 +17,6 @@
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
-            touch-action: manipulation;
         }
 
         body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; }
@@ -121,7 +123,7 @@
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
 
-        /* 新增：搖晃開關文字提示 (預設隱藏) */
+        /* 搖晃開關文字提示 (預設隱藏) */
         #shake-toast {
             position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8);
             background: #99C44D; color: #463438; padding: 15px 40px;
@@ -252,7 +254,20 @@
             <button onclick="viewInLab().style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
         </div>
     </div>
+
     <script>
+        // 初始化 mobile-drag-drop，並確保網頁載入後才執行，避免 ReferenceError
+        window.addEventListener('load', function() {
+            if (typeof MobileDragDrop !== 'undefined') {
+                MobileDragDrop.polyfill({
+                    holdToDrag: 300 // 長按 300 毫秒後開始拖曳
+                });
+                
+                // 防止在拖曳時觸發預設的滾動事件
+                window.addEventListener('touchmove', function() {}, { passive: false });
+            }
+        });
+
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         let steps = 0, time = 0, isPro = false, fishAtNode = [3, 2, 1, 0], gateHistory = [], timerInterval, isSolved = false;
         let historyStack = [[]];
@@ -314,11 +329,9 @@
         }
 
         window.onload = () => {
-            // 在使用者第一次觸控時要求陀螺儀權限
             window.addEventListener('click', requestShakePermission, { once: true });
             window.addEventListener('touchstart', requestShakePermission, { once: true });
 
-            // 防止 iOS 長按跳出預設選單或選取文字，確保拖曳能被 DragDropTouch 正確捕捉
             window.addEventListener('contextmenu', function(e) {
                 if(e.target.closest('.circuit-unit') || e.target.closest('#circuit-area')) {
                     e.preventDefault();
@@ -416,14 +429,18 @@
             if (isSolved) return;
             draggedIndex = index;
             e.dataTransfer.effectAllowed = 'move';
+            
+            // 重要：一定要設定 setData，否則手機版的 Polyfill 會直接中斷拖曳！
+            e.dataTransfer.setData('text/plain', index.toString());
             e.target.style.opacity = '0.5';
         }
         function handleDragOver(e) {
-            if (e.preventDefault) e.preventDefault();
+            e.preventDefault(); // 必須阻止預設行為才能允許放置
             e.dataTransfer.dropEffect = 'move';
             return false;
         }
         function handleDrop(e, targetIndex) {
+            e.preventDefault();
             if (isSolved || draggedIndex === null || draggedIndex === targetIndex) return;
             
             if (tutorialPhase === 4) {
@@ -618,7 +635,6 @@
                     u.classList.add('highlight-focus');
                 }
 
-                // 結合搖晃 Ctrl 與點擊選取邏輯
                 u.onclick = (e) => {
                     if (isSolved) return;
                     if (tutorialPhase > 0 && tutorialPhase < 6) return;
