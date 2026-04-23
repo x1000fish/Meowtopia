@@ -239,13 +239,13 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     
-                    if (navigator.vibrate) navigator.vibrate([100]); // 小震動
+                    if (navigator.vibrate) navigator.vibrate([800]); // 小震動
                     
                     // 文字提示
                     const toast = document.getElementById('shake-toast');
                     toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
                     toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+                    setTimeout(() => { toast.style.opacity = '0'; }, 8000);
 
                     console.log("Ctrl Mode:", isShakeCtrlActive);
                 }
