@@ -2,14 +2,13 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta id="viewport-meta" name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meowtopia - Level 11</title>
+    <meta name="viewport" content="width=1024">
+    <title>Meowtopia - Level 10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
-        /* 將 justify-content 改為 flex-start，確保手機版縮小後畫面在正上方 */
-        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 40px 1rem; }
+        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
         .hidden { display: none !important; }
         .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
         .game-canvas { position: relative; width: 1900px; height: 550px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
@@ -17,6 +16,7 @@
         #leaderboard-wrapper.expanded {left: 0; }
         .side-leaderboard-content { width: 220px; background: white; border: 6px solid #463438; border-left: none; border-radius: 0 30px 30px 0; padding: 15px; display: flex; flex-direction: column; max-height: 80vh; position: relative; z-index: 2; }
         .bookmark-tab { position: absolute; right: -45px; top: 40px; width: 45px; height: 130px; background: #463438; border: 5px solid #463438; border-left: none; border-radius: 0 15px 15px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, right 0.2s, width 0.2s; z-index: 1; }
+        .bookmark-tab:hover { background: #FFB7C5; width: 55px; right: -55px; }
         .bookmark-text { writing-mode: vertical-lr; color: white; font-weight: 900; font-size: 20px; text-shadow: 2px 2px 0 #463438; letter-spacing: 4px; user-select: none; }
         #rankList::-webkit-scrollbar { width: 6px; }
         #rankList::-webkit-scrollbar-thumb { background-color: #FFB7C5; border-radius: 10px; }
@@ -114,13 +114,12 @@
             <div class="bookmark-text">RANK</div>
         </div>
     </div>
-    
     <div class="w-full max-w-6xl">
         <div class="flex w-full px-4 mb-4 items-center">
-            <div class="text-3xl font-black whitespace-nowrap" style="color: #463438">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span></div>
+            <div class="text-3xl font-black" style="color: #463438">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span></div>
             <div class="flex items-center gap-12 ml-auto">
                 <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-                <div class="text-3xl font-black whitespace-nowrap" style="color: #7bc202;">LEVEL 11</div>
+                <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 10</div>
             </div>
         </div>
         <div class="main-layout">
@@ -141,7 +140,7 @@
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
-                
+               
                 <div id="canvas-bottom-btns">
                     <button class="func-btn btn-reset" onclick="resetCircuit()">RESET</button>
                     <button id="undo-btn-bottom" class="func-btn btn-undo" onclick="undo()">UNDO</button>
@@ -160,7 +159,6 @@
             <a href="index.html" class="game-btn btn-red px-16">GIVE UP</a>
         </div>
     </div>
-    
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
             <h2 class="text-5xl font-black mb-4" style="color: #463438;">MEOW!<br>🐾</h2>
@@ -170,29 +168,11 @@
         </div>
     </div>
     <script>
-        // 【核心解法】捨棄 CSS Transform，直接使用原生的 Viewport Meta Tag 控制縮放
-        function adaptViewport() {
-            const meta = document.getElementById('viewport-meta');
-            if (!meta) return;
-            
-            // 判斷是否為行動裝置
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobile) {
-                // 如果是手機，強制設定虛擬寬度，讓瀏覽器「自動等比縮小」塞入螢幕，且開放雙指縮放
-                const targetWidth = isPro ? 2550 : 1980;
-                meta.setAttribute('content', `width=${targetWidth}, user-scalable=yes`);
-            } else {
-                // 如果是電腦版，保留最原本的網頁行為 (太小會出現水平捲軸，絕不強迫縮小)
-                meta.setAttribute('content', 'width=device-width, initial-scale=1.0');
-            }
-        }
-
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         let steps = 0, time = 0, isPro = false, timerInterval, gateHistory = [], isSolved = false;
         let selectedIndices = [];
         let actionStack = [];
-        let fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];   
+        let fishAtNode = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];    
         let lineMode = 1;
         let hoverLine = null;
         let currentOptionIndex = 0;
@@ -214,17 +194,13 @@
             Object.defineProperty(pos, 'l', { get: () => pos.relX + (isPro ? offsetPro : offsetNormal) });
             return pos;
         });
-
         window.onload = () => {
-            adaptViewport(); // 頁面載入時執行手機縮放檢查
-            
             initGameLayout();
             initGates();
             drawStaticLines();
             updateFishUI();
             updateUndoStatus();
             fetchLeaderboard();
-
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
@@ -237,13 +213,11 @@
                 else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 showIndicator();
             }, { passive: false });
-            
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
                 if (indicator.classList.contains('active')) {
                     const rect = canvas.getBoundingClientRect();
-                    // 因為移除 CSS scale 改用原生 Viewport，這裡不需要除以 scale 了，座標回歸精準！
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     indicator.style.left = x + 'px';
@@ -285,7 +259,7 @@
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=11`);
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=10`);
                 const data = await response.json();
                 if (data && Array.isArray(data) && data.length > 0) {
                     leaderboardData = data;
@@ -392,7 +366,7 @@
                     content += `<div class="gate-dot ${ctrl.type === 1 ? 'fill' : 'empty'}" style="top:${getY(ctrl.q)}px;"></div>`;
                 });
                 content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
-                
+               
                 return content;
             };
             const wrapBtn = (type, extraClass = "") => {
@@ -538,16 +512,12 @@
             });
         }
         function clearHighlight(){ document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight')); }
-        
         function togglePro() {
             pop.currentTime = 0;
             pop.play();
             isPro = !isPro;
             document.getElementById('body-root').classList.toggle('pro-active', isPro);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
-            
-            adaptViewport(); // 切換模式時重新觸發 viewport 設定，確保留出空間
-            
             let startTime = Date.now();
             const animateMove = () => {
                 for (let i = 0; i < 16; i++) {
@@ -560,7 +530,6 @@
             };
             requestAnimationFrame(animateMove);
         }
-
         function applyGate(type) {
             if (isSolved) return;
             if (selectedIndices.length > 0) {
@@ -603,7 +572,7 @@
             fishAtNode = newFish;
         }
         function recalculate() {
-            fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];
+            fishAtNode = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
             let h = [...gateHistory]; gateHistory = [];
             h.forEach(g => { executeLogic(g); gateHistory.push(g); });
             steps = gateHistory.length; finishMove();
@@ -731,7 +700,7 @@
                         body: JSON.stringify({
                             action: 'saveRecord',
                             username: u,
-                            level: 11,          
+                            level: 10,          
                             steps: st,
                             time: ft,
                             circuit: gateHistory.join(',')
