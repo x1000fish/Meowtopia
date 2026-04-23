@@ -96,14 +96,14 @@
         #tt-view-container { padding: 0px; }
         #tt-view-container .panel-section-title { margin-bottom: 10px; }
         #circuit-content { padding-right: 40px; }
-        #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 30px; padding: 10px 4px; gap: 4px; margin-top: 5px; margin-bottom: 8px; border: 2.5px solid #000; }
+        #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 30px; padding: 10px 4px; gap: 4px; margin-top: 5px; margin-bottom: 8px; border: 2.5px solid #463438; }
         #trace-controls .func-btn { margin: 0; padding: 15px 16px; font-size: 16px; border-radius: 50px; background: #e7e5dc; color: white; }
         #trace-controls .btn-red { background: #FFB7C5; border-color: #463438; }
-        #trace-step-text { color: #000000; font-family: 'Courier New', monospace; font-size: 24px; }
+        #trace-step-text { color: #463438; font-family: 'Courier New', monospace; font-size: 24px; }
         #trace-controls span.text-green-700 { color: #FFB7C5; font-size: 14px; }
-        .btn-share { background: #99C44D; border: 4px solid #463438; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; transition: all 0.1s; min-width: 140px; }
+        .btn-share { background: #99C44D; border: 4px solid #463438; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; }
         .btn-share:hover { background-color: #99C44D !important; }
-        .nav-fab { position: fixed; top: 25px; right: 25px; width: 70px; height: 70px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #000; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #000; }
+        .nav-fab { position: fixed; top: 25px; right: 25px; width: 70px; height: 70px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
         .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #463438; }
     </style>
@@ -380,7 +380,7 @@
                 let outStr = stateMap[i].toString(2).padStart(4, '0');
                 let isActive = (activeTraceInput === i);
                 let isChanged = (i !== stateMap[i]);
-                let outColor = isActive ? '' : (isChanged ? 'text-blue-500' : 'text-gray-300');
+                let outColor = isActive ? '' : (isChanged ? 'text-[#99C44D] font-bold' : 'text-gray-300');
                 let rowClass = isActive ? 'active-trace' : '';
                 tbody.innerHTML += `
                     <tr class="${rowClass}" onclick="startTrace(${i})">
