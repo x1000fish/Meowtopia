@@ -92,11 +92,36 @@
         .gate-btn-circuit { padding: 0 !important; height: 76px; display: flex; align-items: center; justify-content: center; border-radius: 16px !important; position: relative; }
         .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
-        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        
+        /* 更新並強化的 Toast 提示區塊動畫 */
+        #shake-toast { 
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); 
+            background: #99C44D; color: #463438; padding: 15px 40px; 
+            border-radius: 50px; font-weight: 900; font-size: 24px; z-index: 10000; 
+            opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            pointer-events: none; border: 4px solid #463438; 
+            box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; 
+        }
+        #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        @keyframes pulse-toast {
+            0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
+            50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; }
+        }
+        .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
+        
+        /* 手機搖晃 Icon 動畫 */
+        @keyframes phone-shake-anim {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            50% { transform: rotate(0deg); }
+            75% { transform: rotate(15deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .shake-icon { display: inline-block; font-size: 32px; animation: phone-shake-anim 1s infinite ease-in-out; transform-origin: center; margin-bottom: 5px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4" id="body-root">
-    <div id="shake-toast">Ctrl Mode: ON</div>
+    <div id="shake-toast">CTRL MODE: ON</div>
     <div id="pro-guide-mask"></div><div id="guide-hint-text"></div><div id="guide-overlay"></div>
     <div id="mode-toggle-container">
         <div id="mode-toggle" class="mode-toggle-fixed yellow-glow" onclick="togglePro()">👁️</div>
@@ -201,6 +226,7 @@
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
+        
         function handleMotion(event) {
             const acc = event.accelerationIncludingGravity;
             if (!acc) return;
@@ -212,16 +238,30 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     if (navigator.vibrate) navigator.vibrate([100]);
+                    
                     const toast = document.getElementById('shake-toast');
                     if (toast) {
-                        toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
-                        toast.style.opacity = '1';
-                        setTimeout(() => { toast.style.opacity = '0'; }, 1200);
+                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
+                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
+                        toast.innerText = isShakeCtrlActive ? "⚡️ CTRL MODE: ON" : "❌ CTRL MODE: OFF";
+                        toast.classList.add('show');
+                        setTimeout(() => { 
+                            // 只有不在 0.5 階段才讓 toast 消失
+                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                        }, 1500);
                     }
-                    console.log("Ctrl Mode:", isShakeCtrlActive);
+
+                    // 如果是在 0.5 教學階段且成功搖晃啟動，跳轉至 1.1
+                    if (tutorialPhase === 0.5 && isShakeCtrlActive) {
+                        setTimeout(() => {
+                            tutorialPhase = 1.1;
+                            updateTutorialUI();
+                        }, 800);
+                    }
                 }
             }
         }
+        
         function requestShakePermission() {
             if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission()
@@ -235,6 +275,7 @@
                 window.addEventListener('devicemotion', handleMotion);
             }
         }
+        
         window.onload = () => {
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             updateFishUI(); updateUndoStatus();
@@ -267,6 +308,7 @@
             });
             cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
         };
+        
         function toggleMode2() {
             pop.currentTime = 0;
             pop.play();
@@ -277,6 +319,7 @@
             btn.classList.toggle('active-mode', isMode2);
             if (tutorialPhase === 4.1 && isMode2) { tutorialPhase = 4.2; updateTutorialUI(); }
         }
+        
         function syncHighlight(dir, isOn) {
             if (!isMode2) return;
             const lines = dir === 'H' ? ['line-00-01', 'line-10-11'] : ['line-00-10', 'line-01-11'];
@@ -286,6 +329,7 @@
                 else el.classList.remove('line-highlight');
             });
         }
+        
         function syncGateButtonHighlight(gate, isOn) {
             let lines = [];
             if (gate === 'X0') lines = ['line-00-10', 'line-01-11'];
@@ -302,6 +346,7 @@
                 else el.classList.remove('line-highlight');
             });
         }
+        
         function handleLineClick(dir, defaultGate) {
             if (isSolved) return;
             if (tutorialPhase > 0 && tutorialPhase < 100) {
@@ -311,6 +356,7 @@
             }
             if (isMode2) { applyGate((dir === 'H') ? 'X1' : 'X0'); } else { applyGate(defaultGate); }
         }
+        
         function togglePro() {
             pop.currentTime = 0;
             pop.play();
@@ -328,13 +374,18 @@
                 requestShakePermission();
                 shakePermissionRequested = true;
             }
-
         }
+        
         function clearAllHighlights() {
             document.querySelectorAll('.highlight-focus, .highlight-static, .highlight-canvas-obj, .fish-top-layer, .line-highlight').forEach(el => el.classList.remove('highlight-focus', 'highlight-static', 'highlight-canvas-obj', 'fish-top-layer', 'line-highlight'));
             document.querySelectorAll('.gate-btn-v2').forEach(el => el.classList.remove('lock-btn'));
             document.getElementById('circuit-area').classList.remove('tutorial-active');
+            const h = document.getElementById('guide-hint-text');
+            if (h) {
+                h.style.transform = 'none';
+            }
         }
+        
         function highlightAction(gate) {
             let ns = [], ls = [];
             if (gate === 'C0X01') { ns = [0, 1]; ls = ['line-00-01']; } else if (gate === 'CX01') { ns = [2, 3]; ls = ['line-10-11']; }
@@ -344,17 +395,38 @@
             ls.forEach(id => document.getElementById(id)?.classList.add('highlight-canvas-obj'));
             fishAtNode.forEach((nid, fid) => { if(ns.includes(nid)) document.getElementById(`fish-${fid}`)?.classList.add('fish-top-layer'); });
         }
+        
         function updateTutorialUI() {
             clearAllHighlights(); const h = document.getElementById('guide-hint-text'), bs = document.querySelectorAll('.gate-btn-v2');
+            const toast = document.getElementById('shake-toast');
             const circuitArea = document.getElementById('circuit-area');
-            if ([1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.3, 4.2, 4.3].includes(tutorialPhase)) {
+            if ([0.5, 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.3, 4.2, 4.3].includes(tutorialPhase)) {
                 circuitArea.classList.add('tutorial-active');
             }
+            
             if (tutorialPhase === 0.1) { bs.forEach(b => b.id !== 'gate-x0' && b.classList.add('lock-btn')); document.getElementById('gate-x0').classList.add('highlight-focus'); h.innerHTML = `TRY X q0 (FLIP ROW)`; positionHint('gate-x0', -80, 87); }
             else if (tutorialPhase === 0.2) { highlightAction('X0'); h.innerHTML = `q0 FLIPS : 0↔1<br><button class="next-btn" onclick="nextTutorial()">NEXT</button>`; positionHint('node-0', 290, 180); }
             else if (tutorialPhase === 0.3) { bs.forEach(b => b.id !== 'gate-x1' && b.classList.add('lock-btn')); document.getElementById('gate-x1').classList.add('highlight-focus'); h.innerHTML = `TRY X q1 (FLIP COL)`; positionHint('gate-x1', 6, 5); }
             else if (tutorialPhase === 0.4) { highlightAction('X1'); h.innerHTML = `q1 FLIPS : 0↔1<br><button class="next-btn" onclick="nextTutorial()">NEXT</button>`; positionHint('node-0', 290, 180); }
-            else if (tutorialPhase === 1.1) { bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `HOLD CTRL & CLICK THE 2ND GATE`; positionHint('circuit-gate-1', -180, -45); }
+            
+            // --- 0.5: 手機專屬搖晃開啟提示 ---
+            else if (tutorialPhase === 0.5) {
+                bs.forEach(b => b.classList.add('lock-btn'));
+                h.innerHTML = `<div class="shake-icon">📱</div><br>SHAKE YOUR PHONE TO<br>ACTIVATE "CTRL MODE"`;
+                h.style.display = 'block';
+                h.style.left = '50%';
+                h.style.top = '50%';
+                h.style.transform = 'translate(-50%, -50%)'; // 置中
+                toast.innerText = "WAITING FOR SHAKE...";
+                toast.style.background = "#FFB7C5"; // 提示紅色
+                toast.style.color = "#463438";
+                toast.classList.add('show', 'toast-highlight');
+            }
+            
+            else if (tutorialPhase === 1.1) { 
+                toast.classList.remove('toast-highlight'); // 關閉高亮
+                bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `HOLD CTRL & CLICK THE 2ND GATE`; positionHint('circuit-gate-1', -180, -45); 
+            }
             else if (tutorialPhase === 1.2) { bs.forEach(b => b.id !== 'gate-c0x10' && b.classList.add('lock-btn')); document.getElementById('gate-c0x10').classList.add('highlight-focus'); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `REPLACE IT: CLICK 0CNOT q1→q0`; positionHint('gate-c0x10', 15, 10); }
             else if (tutorialPhase === 2.1) { bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); h.innerHTML = `HOLD CTRL & CLICK THE 1ST GATE`; positionHint('circuit-gate-0', -180, -45); }
             else if (tutorialPhase === 2.2) { bs.forEach(b => b.id !== 'gate-cx10' && b.classList.add('lock-btn')); document.getElementById('gate-cx10').classList.add('highlight-focus'); document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); h.innerHTML = `REPLACE TO FIX: CLICK 1CNOT q1→q0`; positionHint('gate-cx10', 15, 10); }
@@ -366,16 +438,27 @@
             else if (tutorialPhase === 4.3) { bs.forEach(b => b.classList.add('lock-btn')); highlightAction('X1'); document.getElementById('line-00-01').classList.add('highlight-focus'); h.innerHTML = `SWAP TWO AT ONCE (LIKE X q1)!<br>CLICK THE HIGHLIGHTED LINE`; positionHint('line-01-11', 20, 40); }
             else if (tutorialPhase === 100) { tutorialCompleted = true; document.getElementById('pro-guide-mask').style.display = 'none'; h.style.display = 'none'; clearAllHighlights(); }
         }
+        
         function positionHint(id, ox, oy) {
             const h = document.getElementById('guide-hint-text'), r = document.getElementById(id)?.getBoundingClientRect();
             if(!r) return; h.style.display = 'block'; h.style.left = (r.right + ox) + "px"; h.style.top = (r.top + oy) + "px";
         }
+        
         function nextTutorial() {
             if (tutorialPhase === 0.2) tutorialPhase = 0.3;
-            else if (tutorialPhase === 0.4) tutorialPhase = 1.1;
+            else if (tutorialPhase === 0.4) {
+                // 判斷是否為行動裝置
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                    tutorialPhase = 0.5; // 手機版進入搖晃教學
+                } else {
+                    tutorialPhase = 1.1; // 電腦版直接進入 1.1
+                }
+            }
             else if (tutorialPhase === 3.3) tutorialPhase = 4.1;
             updateTutorialUI();
         }
+        
         function applyGate(g) {
             if (isSolved) return;
             if (tutorialPhase > 0 && tutorialPhase < 100) {
@@ -413,6 +496,7 @@
             else if (tutorialPhase === 3.2 && g === 'X0' && didReplace) { tutorialPhase = 3.3; }
             if (isPro && !tutorialCompleted) updateTutorialUI();
         }
+        
         function executeGateLogic(g) {
             pop.currentTime = 0; pop.play();
             let pm = [0, 1, 2, 3].map(p => {
@@ -424,6 +508,7 @@
             });
             fishAtNode = fishAtNode.map(cp => pm[cp]); gateHistory.push(g); steps = gateHistory.length; finishMove();
         }
+        
         function recalculatePositions() {
             let cp = [1, 0, 3, 2];
             gateHistory.forEach(g => {
@@ -438,13 +523,16 @@
             });
             fishAtNode = cp; steps = gateHistory.length;
         }
+        
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
+        
         function updateFishUI() {
             for (let i = 0; i < 4; i++) {
                 const f = document.getElementById(`fish-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`);
                 if (f && n) { f.style.top = (n.offsetTop + 90) + "px"; f.style.left = (n.offsetLeft + 30) + "px"; }
             }
         }
+        
         function renderCircuit() {
             const c = document.getElementById('circuit-content'); c.innerHTML = '';
             gateHistory.forEach((g, i) => {
@@ -464,72 +552,78 @@
                     (tutorialPhase === 4.3 && i === 2)
                 );
                 if (isTutorialHighlight) u.classList.add('highlight-focus');
-            u.onclick = (e) => {
-                if (isSolved) return;
-                if (tutorialPhase > 0 && tutorialPhase < 100) {
-                    if (!e.ctrlKey && !e.metaKey) return;
-                    if ([1.2, 2.2, 3.2].includes(tutorialPhase)) return;
-                    if (tutorialPhase === 1.1) {
-                        if (i !== 1) return;
-                        selectedIndices = [1];
-                        tutorialPhase = 1.2;  
-                        renderCircuit();
-                        updateTutorialUI();
-                        return;
+                
+                u.onclick = (e) => {
+                    if (isSolved) return;
+                    if (tutorialPhase > 0 && tutorialPhase < 100) {
+                        // 禁止在不該點擊方塊的階段觸發
+                        if ([0.5, 1.2, 2.2, 3.2, 4.2, 4.3].includes(tutorialPhase)) return; 
+                        
+                        if (tutorialPhase === 1.1) {
+                            if (!e.ctrlKey && !e.metaKey && !isShakeCtrlActive) return;
+                            if (i !== 1) return;
+                            selectedIndices = [1];
+                            tutorialPhase = 1.2;  
+                            renderCircuit();
+                            updateTutorialUI();
+                            return;
+                        }
+                        if (tutorialPhase === 2.1) {
+                            if (!e.ctrlKey && !e.metaKey && !isShakeCtrlActive) return;
+                            if (i !== 0) return;
+                            selectedIndices = [0];
+                            tutorialPhase = 2.2;
+                            renderCircuit();
+                            updateTutorialUI();
+                            return;
+                        }
+                        if (tutorialPhase === 3.1 && i !== 0 && i !== 1) return;
                     }
-                    if (tutorialPhase === 2.1) {
-                        if (i !== 0) return;
-                        selectedIndices = [0];
-                        tutorialPhase = 2.2;
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
+                        const sIdx = selectedIndices.indexOf(i);
+                        if (sIdx > -1) {
+                            if (tutorialPhase > 0 && tutorialPhase < 100) return;
+                            selectedIndices.splice(sIdx, 1);
+                        } else {
+                            selectedIndices.push(i);
+                        }
                         renderCircuit();
-                        updateTutorialUI();
-                        return;
-                    }
-                    if (tutorialPhase === 3.1 && i !== 0 && i !== 1) return;
-                }
-                if (e.ctrlKey || e.metaKey) {
-                    const sIdx = selectedIndices.indexOf(i);
-                    if (sIdx > -1) {
-                        if (tutorialPhase > 0 && tutorialPhase < 100) return;
-                        selectedIndices.splice(sIdx, 1);
+                        if (tutorialPhase === 3.1 && selectedIndices.includes(0) && selectedIndices.includes(1)) {
+                            tutorialPhase = 3.2;
+                            updateTutorialUI();
+                        }
                     } else {
-                        selectedIndices.push(i);
+                        pop.currentTime = 0; pop.play();
+                        const removed = gateHistory[i];
+                        highlightAction(removed);
+                        setTimeout(() => {
+                            clearAllHighlights();
+                            if (isPro && !tutorialCompleted) updateTutorialUI();
+                        }, 400);
+                        actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
+                        gateHistory.splice(i, 1);
+                        selectedIndices = [];
+                        recalculatePositions();
+                        finishMove();
                     }
-                    renderCircuit();
-                    if (tutorialPhase === 3.1 && selectedIndices.includes(0) && selectedIndices.includes(1)) {
-                        tutorialPhase = 3.2;
-                        updateTutorialUI();
-                    }
-                } else {
-                    pop.currentTime = 0; pop.play();
-                    const removed = gateHistory[i];
-                    highlightAction(removed);
-                    setTimeout(() => {
-                        clearAllHighlights();
-                        if (isPro && !tutorialCompleted) updateTutorialUI();
-                    }, 400);
-                    actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
-                    gateHistory.splice(i, 1);
-                    selectedIndices = [];
-                    recalculatePositions();
-                    finishMove();
-                }
-            };  
-            if (g.startsWith('X')) {
+                };  
+                
+                if (g.startsWith('X')) {
                     const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (g === 'X0' ? 21.2 : 61.2) + 'px'; u.appendChild(t);
-            } else {
+                } else {
                    const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01 ? 20 : 60, tY = is01 ? 60 : 20;
                    const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY, tY) + 'px'; v.style.height = '41px'; u.appendChild(v);
                    const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY - 7) + 'px'; if (is0) { d.style.background = 'white'; d.style.border = '2.5px solid #463438'; }
                    u.appendChild(d);
                    const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t);
-            }
-                   c.appendChild(u);
+                }
+                c.appendChild(u);
             });
             updateUndoStatus();
             const w = document.getElementById('circuit-content-wrapper');
             if (selectedIndices.length === 0) { setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100); }
         }
+        
         function undo() {
             if (isSolved || actionStack.length === 0) return;
             if (tutorialPhase > 0 && tutorialPhase < 100) return;
@@ -540,16 +634,19 @@
             recalculatePositions(); selectedIndices = []; finishMove();
             if (isPro && !tutorialCompleted) updateTutorialUI();
         }
+        
         function resetCircuit() {
             if (isSolved) return;
             if (tutorialPhase > 0 && tutorialPhase < 100) return;
             pop.currentTime = 0; pop.play(); fishAtNode = [1, 0, 3, 2]; gateHistory = []; actionStack = []; selectedIndices = []; steps = 0; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI();
         }
+        
         function updateUndoStatus() {
             const ub = document.getElementById('undo-btn'); if (!ub) return;
             if (actionStack.length > 0 && !isSolved && !(tutorialPhase > 0 && tutorialPhase < 100)) { ub.classList.add('active'); ub.classList.remove('disabled'); ub.style.pointerEvents = "auto"; }
             else { ub.classList.remove('active'); ub.classList.add('disabled'); ub.style.pointerEvents = "none"; }
         }
+        
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true;
