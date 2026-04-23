@@ -11,7 +11,7 @@
         body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
         .hidden { display: none !important; }
         .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
-        .game-canvas { position: relative; width: 1900px; height: 550px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
+        .game-canvas { position: relative; width: 1900px; height: 550px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; transition: all 0.3s ease; }
         #leaderboard-wrapper { position: fixed; left: -220px; top: 50px; transform: none; display: flex; z-index: 150; transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         #leaderboard-wrapper.expanded {left: 0; }
         .side-leaderboard-content { width: 220px; background: white; border: 6px solid #463438; border-left: none; border-radius: 0 30px 30px 0; padding: 15px; display: flex; flex-direction: column; max-height: 80vh; position: relative; z-index: 2; }
@@ -96,6 +96,9 @@
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 85px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
         canvas, .game-canvas { touch-action: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        
+        /* 搖晃模式啟用時的畫布外框提示 */
+        .ctrl-mode-active { outline: 8px solid #FFB7C5 !important; box-shadow: 0 0 20px #FFB7C5 !important; transition: all 0.3s ease; }
     </style>
 </head>
 <body id="body-root">
@@ -158,6 +161,7 @@
         </div>
         <div class="w-full text-center mt-6 mb-6">
             <a href="index.html" class="game-btn btn-red px-16">GIVE UP</a>
+            <button id="sensor-btn" onclick="requestShakePermission()" class="game-btn btn-green px-8 ml-4">START MOTION</button>
         </div>
     </div>
     <div id="victoryModal" class="modal-overlay">
@@ -180,6 +184,11 @@
         let currentOptions = [];
         let draggedIndex = null;
         let leaderboardData;
+        
+        // 搖晃模式變數
+        let isShakeCtrlActive = false; 
+        let lastShakeTime = 0;
+
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
         const side = 120;
@@ -195,6 +204,51 @@
             Object.defineProperty(pos, 'l', { get: () => pos.relX + (isPro ? offsetPro : offsetNormal) });
             return pos;
         });
+
+        // 搖晃偵測邏輯
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+
+            const threshold = 15; // 搖晃門檻
+            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+
+            if (delta > threshold) {
+                const now = Date.now();
+                if (now - lastShakeTime > 1000) { 
+                    isShakeCtrlActive = !isShakeCtrlActive;
+                    lastShakeTime = now;
+                    
+                    const canvas = document.getElementById('main-canvas');
+                    if(isShakeCtrlActive) {
+                        canvas.classList.add('ctrl-mode-active');
+                    } else {
+                        canvas.classList.remove('ctrl-mode-active');
+                    }
+
+                    if (navigator.vibrate) navigator.vibrate(100);
+                    console.log("Ctrl Mode:", isShakeCtrlActive);
+                }
+            }
+        }
+
+        // 請求 iOS 搖晃權限
+        function requestShakePermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                            document.getElementById('sensor-btn').style.display = 'none';
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+                document.getElementById('sensor-btn').style.display = 'none';
+            }
+        }
+
         window.onload = () => {
             initGameLayout();
             initGates();
@@ -600,9 +654,11 @@
                 u.addEventListener('dragend', (e) => { e.target.style.opacity = '1'; draggedIndex = null; });
                 u.onmouseenter = () => highlightByGate(g);
                 u.onmouseleave = () => clearHighlight();
+                
+                // 【修改點】在點擊判定中加入了 isShakeCtrlActive 支援
                 u.onclick = (e) => {
                     if (isSolved) return;
-                    if (e.ctrlKey || e.metaKey) {
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
@@ -616,6 +672,7 @@
                         recalculate();
                     }
                 };
+                
                 let controls = [], target = -1;
                 if (g.startsWith('SWAP_')) {
                     let p = g.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]);
