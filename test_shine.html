@@ -553,14 +553,18 @@
             return false;
         }
         function handleDrop(e, targetIndex) {
-            if (draggedIndex === null || draggedIndex === targetIndex) return;
+            if (isSolved || draggedIndex === null || draggedIndex === targetIndex) return;
             e.stopPropagation();
             const oldHistory = [...gateHistory];
             const movedItem = gateHistory.splice(draggedIndex, 1)[0];
             gateHistory.splice(targetIndex, 0, movedItem);
-            actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+            actionStack.push({
+                type: 'replace',
+                index: 0,
+                oldGates: oldHistory,
+                newGate: null
+            });
             draggedIndex = null;
-            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             recalculate();
             return false;
         }
@@ -978,15 +982,76 @@
                 renderCircuit();
             }
         }
+        function updateFishUI() {
+            for (let nI = 0; nI < 16; nI++) {
+                const f = document.getElementById(`fish-${fishAtNode[nI]}`);
+                const n = nodePositions[nI];
+                if (f && n) { f.style.top = (n.t + 27) + "px"; f.style.left = (n.l + 15) + "px"; }
+            }
+        }
         function renderCircuit() {
             const c = document.getElementById('circuit-content');
             const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
+            let states = [];
+            if (activeTraceInput !== null) {
+                let curr = activeTraceInput;
+                states.push(curr);
+                for (let k = 0; k < gateHistory.length; k++) {
+                    curr = getPermutationForGate(gateHistory[k])[curr];
+                    states.push(curr);
+                }
+            }
+            const drawWires = (parentUnit, stepIdx) => {
+                for (let q = 0; q < 4; q++) {
+                    let wire = document.createElement('div');
+                    wire.className = 'circuit-wire-bg';
+                    wire.style.position = 'absolute';
+                    wire.style.left = '0';
+                    wire.style.width = '100%';
+                    wire.style.height = '4px';
+                    wire.style.top = (30 + q * 40 - 0.5) + 'px';
+                    wire.style.zIndex = '1';
+                    if (activeTraceInput !== null) {
+                        if (stepIdx <= currentTraceStep) {
+                            let bit = (states[stepIdx] >> (3 - q)) & 1;
+                            if (bit === 1) {
+                                wire.style.background = '#FFB7C5';
+                                wire.style.boxShadow = '0 0 8px #FFB7C5';
+                            } else {
+                                wire.style.background = '#8a6d1c';
+                                wire.style.boxShadow = 'none';
+                            }
+                        } else {
+                            wire.style.background = '#d1d5db';
+                            wire.style.boxShadow = 'none';
+                        }
+                    } else {
+                        wire.style.background = '#463438';
+                    }
+                    parentUnit.appendChild(wire);
+                }
+            };
+            const startU = document.createElement('div');
+            startU.className = 'circuit-unit';
+            startU.style.minWidth = '30px';
+            startU.style.cursor = 'default';
+            drawWires(startU, 0);
+            c.appendChild(startU);
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit';
                 u.draggable = true;
                 if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
+               
+                if (activeTraceInput !== null) {
+                    if (idx === currentTraceStep - 1) {
+                        u.classList.add('trace-active');
+                    } else if (idx >= currentTraceStep) {
+                        u.style.opacity = '0.2';
+                    }
+                }
+                drawWires(u, idx + 1);
                 u.addEventListener('dragstart', (e) => handleDragStart(e, idx));
                 u.addEventListener('dragover', (e) => handleDragOver(e));
                 u.addEventListener('drop', (e) => handleDrop(e, idx));
@@ -999,7 +1064,7 @@
                 let touchTimer = null;
                 let startX, startY;
                 u.addEventListener('touchstart', (e) => {
-                    if (isSolved || e.touches.length > 1) return;
+                    if (e.touches.length > 1) return;
                     startX = e.touches[0].clientX;
                     startY = e.touches[0].clientY;
                     touchTimer = setTimeout(() => {
@@ -1031,16 +1096,28 @@
                         endMobileDrag(e.changedTouches[0]);
                     }
                 });
+                u.addEventListener('touchcancel', (e) => {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                    if (mobileDragging) {
+                        const touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+                        if (touch) endMobileDrag(touch);
+                    }
+                });
                 u.onclick = (e) => {
-                    if (isSolved || mobileDragging) return;
+                    if (mobileDragging) return;
                     if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
                         renderCircuit();
                     } else {
-                        pop.currentTime = 0;
-                        pop.play();
+                        if (typeof pop !== 'undefined' && pop.play) {
+                            pop.currentTime = 0;
+                            pop.play().catch(e => {});
+                        }
                         const removed = gateHistory[idx];
                         actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
                         gateHistory.splice(idx, 1);
@@ -1064,23 +1141,34 @@
                 if (target !== -1) {
                     let lines = [target, ...controls.map(ctrl => ctrl.line)];
                     let minQ = Math.min(...lines), maxQ = Math.max(...lines);
+                   
                     const vLine = document.createElement('div');
                     vLine.className = 'connection-v-line';
-                    vLine.style.cssText = `top:${30 + minQ * 40}px; height:${(maxQ - minQ) * 40}px;`;
+                    vLine.style.cssText = `top:${30 + minQ * 40}px; height:${(maxQ - minQ) * 40}px; z-index: 5;`;
                     u.appendChild(vLine);
                     controls.forEach(ctrl => {
                         const dot = document.createElement('div'); dot.className = 'control-dot';
                         dot.style.top = (24 + ctrl.line * 40) + 'px';
+                        dot.style.zIndex = '6';
                         if (ctrl.type === 0) { dot.style.background = '#fff'; dot.style.border = '2px solid #463438'; }
                         u.appendChild(dot);
                     });
                     const t = document.createElement('div'); t.className = 'circuit-target';
-                    t.style.top = (32 + target * 40) + 'px'; u.appendChild(t);
+                    t.style.top = (32 + target * 40) + 'px';
+                    t.style.zIndex = '6';
+                    u.appendChild(t);
                 }
                 c.appendChild(u);
             });
+            const endU = document.createElement('div');
+            endU.className = 'circuit-unit';
+            endU.style.minWidth = '50px';
+            endU.style.flexGrow = '1';
+            endU.style.cursor = 'default';
+            drawWires(endU, states.length > 0 ? states.length - 1 : 0);
+            c.appendChild(endU);
             updateUndoStatus();
-            if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null) {
+            if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null && activeTraceInput === null) {
                 setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50);
             }
         }
