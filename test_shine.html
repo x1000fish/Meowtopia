@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200">
     <title>Meowtopia - Level 10</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
@@ -47,9 +47,9 @@
         .btn-red { background: #FFB7C5; }
         .btn-green { background: #99C44D; }
         .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
-        .multi-toggle-btn.mode-2 { background: #579af2; }
-        .multi-toggle-btn.mode-4 { background: #b17ae4; }
-        .multi-toggle-btn.mode-8 { background: #4bd5a7; }
+        .multi-toggle-btn.mode-2 { background: #629eed; }
+        .multi-toggle-btn.mode-4 { background: #b583e5; }
+        .multi-toggle-btn.mode-8 { background: #46c89d; }
         .multi-toggle-btn:hover,
         .game-btn:hover,
         .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438;}
@@ -95,13 +95,21 @@
         #canvas-bottom-btns { position: absolute; bottom: 15px; right: 30px; display: flex; gap: 10px; z-index: 100; }
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 85px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
+        /* 防護手機長按與文字選取 */
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { 
             -webkit-user-select: none; 
             user-select: none;
             -webkit-touch-callout: none; 
             touch-action: none; 
         }
-        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        /* 搖晃開關文字提示 (預設隱藏) */
+        #shake-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
+            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body id="body-root">
@@ -145,7 +153,6 @@
                     <span class="ind-fraction" id="ind-fraction">1 / 3</span>
                     <span class="ind-label" id="ind-label"></span>
                 </div>
-                
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
@@ -188,12 +195,14 @@
         let currentOptions = [];
         let draggedIndex = null;
         let leaderboardData;
+        // 搖晃與拖移變數
         let isShakeCtrlActive = false;
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
+        // 手機端與陀螺儀操控變數
         let isTouchDevice = false;
         let activeMobileLine = null;
         let touchStartY = 0;
@@ -448,12 +457,14 @@
                 const oldHistory = [...gateHistory];
                 const movedItem = gateHistory.splice(mDragIndex, 1)[0];
                 gateHistory.splice(targetIndex, 0, movedItem);
+
                 actionStack.push({
                     type: 'replace',
                     index: 0,
                     oldGates: oldHistory,
                     newGate: null
                 });
+
                 recalculate();
             }
             mobileDragging = false;
@@ -578,7 +589,7 @@
                     onmouseleave="clearHighlight()"
                     onclick="applyGate('${type}')">${getGateIcon(type)}</button>`;
             };
-            for(let i=0; i<4; i++) html += wrapBtn(`X${i}`, "bg-purple-100");
+            for(let i=0; i<4; i++) html += wrapBtn(`X${i}`, "bg-pink-100");
             for(let i=0; i<4; i++) {
                 for(let j=0; j<4; j++) {
                     if(i !== j) {
@@ -624,11 +635,11 @@
             if(dim===3){
                 line.style.height='8px';
                 line.style.background='transparent';
-                line.style.borderTop='3px dashed #000';
+                line.style.borderTop='3px dashed #463438';
                 line.style.opacity='0.4';
             } else {
                 line.style.height='3px';
-                line.style.background='#000';
+                line.style.background='#463438';
             }
             line.onmouseenter = () => {
                 if (isTouchDevice) return;
@@ -654,12 +665,22 @@
                     applyGate(`SWAP_${i}_${j}`);
                     return;
                 }
-                if (lineMode === 8) {
-                    applyGate(`X${3 - dim}`);
-                    return;
-                }
                 if (isTouchDevice) {
                     const lineId = line.id;
+                    if (lineMode === 8) {
+                        if (activeMobileLine !== lineId) {
+                            activeMobileLine = lineId;
+                            hoverLine = { i, j, dim };
+                            clearHighlight();
+                            highlightPairs(getAllPairs(dim));
+                            return;
+                        } else {
+                            applyGate(`X${3 - dim}`);
+                            activeMobileLine = null;
+                            hideIndicator();
+                            return;
+                        }
+                    }
                     if (activeMobileLine !== lineId) {
                         activeMobileLine = lineId;
                         hoverLine = { i, j, dim };
@@ -669,6 +690,7 @@
                         const indicator = document.getElementById('ios-indicator');
                         indicator.style.left = (e.clientX - canvasRect.left) + 'px';
                         indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+
                         showIndicator();
                         return;
                     } else {
@@ -677,11 +699,16 @@
                         }
                         activeMobileLine = null;
                         hideIndicator();
+                        return;
                     }
-                } else {
-                    if (currentOptions[currentOptionIndex]) {
-                        applyGate(currentOptions[currentOptionIndex].gateType);
-                    }
+                }
+                if (lineMode === 8) {
+                    highlightPairs(getAllPairs(dim));
+                    applyGate(`X${3 - dim}`);
+                    return;
+                }
+                if (currentOptions[currentOptionIndex]) {
+                    applyGate(currentOptions[currentOptionIndex].gateType);
                 }
             };
             document.getElementById('lines-layer').appendChild(line);
@@ -865,6 +892,7 @@
                     } else if (touchTimer) {
                         const dx = e.touches[0].clientX - startX;
                         const dy = e.touches[0].clientY - startY;
+
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                             clearTimeout(touchTimer);
                             touchTimer = null;
@@ -883,7 +911,6 @@
                 });
                 u.onclick = (e) => {
                     if (isSolved || mobileDragging) return;
-
                     if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
@@ -922,7 +949,7 @@
                     controls.forEach(ctrl => {
                         const dot = document.createElement('div'); dot.className = 'control-dot';
                         dot.style.top = (24 + ctrl.line * 40) + 'px';
-                        if (ctrl.type === 0) { dot.style.background = '#fff'; dot.style.border = '2px solid #000'; }
+                        if (ctrl.type === 0) { dot.style.background = '#fff'; dot.style.border = '2px solid #463438'; }
                         u.appendChild(dot);
                     });
                     const t = document.createElement('div'); t.className = 'circuit-target';
@@ -1007,6 +1034,3 @@
     </script>
 </body>
 </html>
-
-
-
