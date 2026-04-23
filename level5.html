@@ -225,7 +225,7 @@
                     const toast = document.getElementById('shake-toast');
                     toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
                     toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 8000);
+                    setTimeout(() => { toast.style.opacity = '0'; }, 5000);
                 }
             }
         }
@@ -348,7 +348,7 @@
             dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
             dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
             document.body.appendChild(dragGhost);
-            el.style.opacity = '0.2';
+            el.style.opacity = '0.35';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
