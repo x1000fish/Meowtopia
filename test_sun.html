@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200">
     <title>Meowtopia - LAB</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -130,7 +130,7 @@
         .line-v:nth-of-type(4) { left: 470px !important; }
         .circuit-title { text-align: center; font-weight: 900; font-size: 1.25rem; margin-bottom: 8px; color: #463438; }
         .lab-shell {
-            width: 915px; /* 270 + 20 + 625 */
+            width: 915px;
             margin: 0 auto;
         }
         .lab-topbar {
@@ -225,7 +225,7 @@
             z-index: 50;
             border-radius: 5px;
             transform: translateY(-50%);
-        }      
+        }  
         .circuit-unit { min-width: 50px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
         .circuit-unit:hover { background: rgba(239, 68, 68, 0.2); border-radius: 12px; }
         .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D; }
@@ -278,9 +278,7 @@
             transition: all 0.1s;
             min-width: 140px;
         }
-        .btn-share:hover {
-            background-color: #99C44D !important;
-        }
+        .btn-share:hover { background-color: #99C44D !important; }
         .nav-fab {
             position: fixed;
             top: 25px;
@@ -302,25 +300,44 @@
             transition: all 0.1s;
             text-shadow: 2px 2px 0 #463438;
         }
-        .nav-fab:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 0 #463438;
-        }
-        .nav-fab:active {
-            transform: translateY(4px);
-            box-shadow: 0 0px 0 #463438;
-        }
+        .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
+        .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #463438; }
 
         /* 防護手機長按與文字選取，解鎖雙指縮放功能 */
-        .game-canvas, .circuit-unit, .node, .gate-btn-circuit {
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-circuit {
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
             touch-action: manipulation;
         }
+
+        /* 搖晃開關文字提示 (預設隱藏) */
+        #shake-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
+            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        /* --- 新增：拖曳快照專用的乾淨紅框 --- */
+        .dragging-snapshot-frame {
+            position: absolute;
+            inset: -4px;
+            border: 4px solid #ef4444; 
+            border-radius: 12px;
+            opacity: 0; 
+            z-index: 50; 
+            pointer-events: none;
+        }
+        .circuit-unit.during-snapshot .dragging-snapshot-frame {
+            opacity: 1 !important;
+        }
     </style>
 </head>
 <body id="body-root" class="pro-active">
+    <div id="shake-toast">Ctrl Mode: ON</div>
+
     <button onclick="navWithSound('lab3.html')" class="nav-fab" title="Go to 3-Bit">3</button>
     <div class="lab-shell">
         <div class="lab-topbar">
@@ -450,28 +467,75 @@
         let currentTraceStep = 0;
         const pop = new Audio('pop.m4a');
 
-        // 手機版拖曳相關變數
+        // 手機版拖曳與搖晃/陀螺儀相關變數
         let isTouchDevice = false;
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
+        
+        let isShakeCtrlActive = false; 
+        let lastShakeTime = 0;
+        let gyroPermissionGranted = false;
 
         // 偵測是否為觸控設備
         window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
+
+        // 搖晃偵測
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+            const threshold = 20;
+            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+            if (delta > threshold) {
+                const now = Date.now();
+                if (now - lastShakeTime > 1000) { 
+                    isShakeCtrlActive = !isShakeCtrlActive;
+                    lastShakeTime = now;
+                    if (navigator.vibrate) navigator.vibrate([100]); 
+                    const toast = document.getElementById('shake-toast');
+                    toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.opacity = '0'; }, 8000);
+                }
+            }
+        }
 
         window.onload = () => {
             initLabData();
             recalculatePositions();
             finishMove();
            
+            // 電路區水平滾輪支援
             const cw = document.getElementById('circuit-content-wrapper');
             cw.addEventListener('wheel', (e) => {
                 e.preventDefault();
                 cw.scrollLeft += e.deltaY;
             });
+
+            // 雙平台權限請求 (Motion for Shake Ctrl)
+            const requestPermissions = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') gyroPermissionGranted = true;
+                    } catch (error) { console.log("Gyro permission denied:", error); }
+                } else { gyroPermissionGranted = true; }
+
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceMotionEvent.requestPermission();
+                        if (permission === 'granted') window.addEventListener('devicemotion', handleMotion);
+                    } catch (e) { console.log("Motion permission denied:", e); }
+                } else { window.addEventListener('devicemotion', handleMotion); }
+
+                window.removeEventListener('click', requestPermissions);
+                window.removeEventListener('touchstart', requestPermissions);
+            };
+            window.addEventListener('click', requestPermissions);
+            window.addEventListener('touchstart', requestPermissions);
         };
 
-        // --- 手機拖曳相關邏輯 ---
+        // --- 手機拖曳邏輯 ---
         function startMobileDrag(touch, el, index) {
             if (dragGhost) { dragGhost.remove(); dragGhost = null; }
             mobileDragging = true;
@@ -486,10 +550,10 @@
             dragGhost.style.transition = 'none';
             dragGhost.classList.remove('selected');
 
-            // 手機版透明背景，無邊框
-            dragGhost.style.background = 'rgba(255, 183, 197, 0.4)';
+            // 手機版加入紅框，確保背景透明、無原本黑框
+            dragGhost.classList.add('during-snapshot');
+            dragGhost.style.background = 'transparent';
             dragGhost.style.borderRadius = '12px';
-            dragGhost.style.boxShadow = '0 8px 16px rgba(70, 52, 56, 0.15)';
             dragGhost.style.boxSizing = 'border-box';
             dragGhost.style.border = 'none';
 
@@ -501,6 +565,7 @@
             dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
             document.body.appendChild(dragGhost);
 
+            // 原地方塊的視覺變淡
             const visuals = el.querySelector('.gate-visuals');
             if (visuals) visuals.style.opacity = '0.2';
             else el.style.opacity = '0.2';
@@ -792,9 +857,9 @@
             });
         }
         function recalculatePositions() {
-            let cp = [...initialFishAtNode]; // cp[node] = fishId at this node
+            let cp = [...initialFishAtNode]; 
             gateHistory.forEach(g => {
-                const pm = getPermutationForGate(g); // pm[oldNode] = newNode
+                const pm = getPermutationForGate(g); 
                 const next = new Array(4);
                 for (let oldNode = 0; oldNode < 4; oldNode++) {
                     const newNode = pm[oldNode];
@@ -888,6 +953,11 @@
 
                 drawWires(u, idx + 1);
 
+                // --- 新增：將隱藏的紅框加進去 ---
+                const sFrame = document.createElement('div');
+                sFrame.className = 'dragging-snapshot-frame';
+                u.appendChild(sFrame);
+
                 // 將 gate 視覺元素打包到獨立容器中，以控制半透明效果
                 const visuals = document.createElement('div');
                 visuals.className = 'gate-visuals';
@@ -906,42 +976,30 @@
 
                 // --- 電腦版拖曳事件 ---
                 if (!isTouchDevice && activeTraceInput === null) {
-                    let dragClone = null;
                     u.ondragstart = (e) => {
                         draggedIndex = idx;
                         e.dataTransfer.effectAllowed = 'move';
 
-                        dragClone = u.cloneNode(true);
-                        dragClone.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
-                        dragClone.style.position = 'absolute';
-                        dragClone.style.top = '-9999px';
-                        dragClone.style.left = '-9999px';
+                        // 1. 瞬間套用樣式狀態：顯示純淨紅框
+                        u.classList.add('during-snapshot'); 
+
+                        // 2. 瞬間隱藏水平線
+                        const wires = u.querySelectorAll('.horizontal-wire');
+                        wires.forEach(w => w.style.opacity = '0');
                         
-                        // 電腦版：帶有紅框背景
-                        dragClone.style.background = 'rgba(255, 183, 197, 0.4)';
-                        dragClone.style.borderRadius = '12px';
-                        dragClone.style.boxSizing = 'border-box';
-                        dragClone.style.border = 'none';
+                        // 3. 瞬間將背景設為透明 (防止 hover 顏色被拍進去)
+                        u.style.background = 'transparent'; 
+                        visuals.style.opacity = '1';
 
-                        document.body.appendChild(dragClone);
-
-                        const rect = u.getBoundingClientRect();
-                        const offsetX = e.clientX - rect.left;
-                        const offsetY = e.clientY - rect.top;
-                        e.dataTransfer.setDragImage(dragClone, offsetX, offsetY);
-
+                        // 4. 瀏覽器拍完快照後 (setTimeout 0)，立即恢復原狀
                         setTimeout(() => {
-                            if (document.body.contains(dragClone)) dragClone.remove();
+                            u.classList.remove('during-snapshot'); 
+                            wires.forEach(w => w.style.opacity = '1');
+                            u.style.background = '';
                             visuals.style.opacity = '0.2';
                         }, 0);
                     };
-
-                    u.ondragover = (e) => {
-                        e.preventDefault();
-                        e.dataTransfer.dropEffect = 'move';
-                        return false;
-                    };
-
+                    u.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; };
                     u.ondrop = (e) => {
                         if (draggedIndex === null || draggedIndex === idx) return;
                         e.stopPropagation();
@@ -955,26 +1013,24 @@
                         finishMove();
                         draggedIndex = null;
                     };
-
-                    u.ondragend = (e) => {
-                        if (dragClone && document.body.contains(dragClone)) dragClone.remove();
+                    u.ondragend = (e) => { 
                         visuals.style.opacity = '1';
-                        draggedIndex = null;
+                        draggedIndex = null; 
                     };
                 }
 
-                // --- 手機版拖曳事件 ---
+                // --- 手機版觸控監聽 ---
                 let touchTimer = null;
                 let startX, startY;
                 u.addEventListener('touchstart', (e) => {
                     if (activeTraceInput !== null || e.touches.length > 1) return;
-                    u.draggable = false;
+                    u.draggable = false; 
                     startX = e.touches[0].clientX;
                     startY = e.touches[0].clientY;
                     touchTimer = setTimeout(() => {
                         touchTimer = null;
                         startMobileDrag(e.touches[0], u, idx);
-                    }, 300);
+                    }, 300); 
                 }, {passive: true});
 
                 u.addEventListener('touchmove', (e) => {
@@ -1008,11 +1064,12 @@
 
                 u.onmouseover = () => syncGateHighlight(g, true);
                 u.onmouseout = () => syncGateHighlight(g, false);
-               
+                
                 u.onclick = (e) => {
                     if (activeTraceInput !== null || mobileDragging) return;
-                    if (e.ctrlKey || e.metaKey) {
-                        if (selectedIndices.includes(idx)) selectedIndices = selectedIndices.filter(i => i !== idx);
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
+                        const sIdx = selectedIndices.indexOf(idx);
+                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
                         renderCircuit();
                     } else {
@@ -1021,7 +1078,7 @@
                         deleteGate(idx);
                     }
                 };
-               
+                
                 if(g.startsWith('X')) {
                     const tQ = g==='X0'?0:1, tY = tQ===0?20:60, t = document.createElement('div');
                     t.className = 'circuit-target';
@@ -1044,7 +1101,7 @@
                     d.style.top = (cY)+'px';
                     if(is0){d.style.background='white'; d.style.border='2.5px solid black';}
                     visuals.appendChild(d);
-                   
+                    
                     const t = document.createElement('div');
                     t.className = 'circuit-target';
                     t.style.left = '50%';
@@ -1053,7 +1110,7 @@
                 }
                 c.appendChild(u);
             });
-           
+            
             const endU = document.createElement('div');
             endU.className = 'circuit-unit';
             endU.style.minWidth = '50px';
@@ -1061,7 +1118,7 @@
             endU.style.cursor = 'default';
             drawWires(endU, states.length > 0 ? states.length - 1 : 0);
             c.appendChild(endU);
-           
+            
             updateUndoStatus();
             if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null && activeTraceInput === null) {
                 setTimeout(() => { if(wrapper) wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }); }, 100);
