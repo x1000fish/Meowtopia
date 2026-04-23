@@ -206,12 +206,15 @@
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
-        let touchStartY = 0;
-        let lastSwipeTime = 0;
+        // --- 手機端與陀螺儀操控變數 ---
         let isTouchDevice = false;       // 判斷是否為手機觸控裝置
         let activeMobileLine = null;     // 記錄手機端目前「選取中」的線段
-        let touchEndY = 0;
-        const SWIPE_THRESHOLD = 30; // 滑動的靈敏度（移動超過 30px 才算滑動）
+        let touchStartY = 0;             // 滑動起始 Y 座標
+        let lastSwipeTime = 0;           // 紀錄上次滑動時間
+        let lastTiltDirection = 0;       // 記錄目前傾斜狀態：0=平放, 1=右傾, -1=左傾
+        const TILT_THRESHOLD = 25;       // 陀螺儀觸發角度 (超過25度切換)
+        const RETURN_THRESHOLD = 10;     // 陀螺儀回正角度 (小於10度視為平放)
+        let gyroPermissionGranted = false; // 記錄 Apple 設備的陀螺儀權限
 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
@@ -295,10 +298,25 @@
             }, { passive: false });
 
             // --- 觸控設備偵測 ---
-            // 只要螢幕被碰觸過一次就判定為手機/平板
             window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
 
             const canvas = document.getElementById('main-canvas');
+
+            // --- 授權 iOS 13+ 陀螺儀權限 (點擊畫布時觸發一次) ---
+            canvas.addEventListener('click', async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') {
+                            gyroPermissionGranted = true;
+                        }
+                    } catch (error) {
+                        console.log("陀螺儀權限請求失敗:", error);
+                    }
+                } else {
+                    gyroPermissionGranted = true;
+                }
+            }, { once: true });
 
             // --- 手機版：點擊畫布空白處時，取消線段的選取狀態 ---
             canvas.addEventListener('touchstart', (e) => {
@@ -309,9 +327,8 @@
                 }
             });
 
-            // --- 手機版：單指上下滑動 (切換 Mode 選項) ---
+            // --- 手機版：單指上下滑動 (保留作為傾斜外的另一種操作選擇) ---
             canvas.addEventListener('touchstart', (e) => {
-                // 只有在單指觸控，且已經點擊選取了某條線（Hover狀態）時，才開始記錄 Y 座標
                 if (e.touches.length === 1 && activeMobileLine) {
                     touchStartY = e.touches[0].clientY;
                 }
@@ -319,50 +336,69 @@
 
             canvas.addEventListener('touchmove', (e) => {
                 if (e.touches.length === 1 && activeMobileLine) {
-                    if (lineMode === 1 || lineMode === 8) return; // 這些模式不需切換選項
-                    if (e.cancelable) e.preventDefault(); // 防止畫面跟著上下縮放或滾動
+                    if (lineMode === 1 || lineMode === 8) return; 
+                    if (e.cancelable) e.preventDefault(); 
                     
                     let currentY = e.touches[0].clientY;
                     let diff = currentY - touchStartY;
                     let now = Date.now();
                     
-                    // 增加阻力避免切換太快 (移動超過 25px 且間隔大於 250ms 才觸發)
                     if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
-                        if (diff > 0) {
-                            // 向下滑動
-                            currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        } else {
-                            // 向上滑動
-                            currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        }
+                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                         
                         showIndicator();
-                        
-                        // 震動回饋 (Android 適用)
                         if ('vibrate' in navigator) navigator.vibrate(20);
                         
-                        // 重置起點與時間，允許連續不放手滑動切換
                         touchStartY = currentY; 
                         lastSwipeTime = now;
                     }
                 }
             }, { passive: false });
 
-            canvas.addEventListener('touchend', () => {
-                // 手指離開時重置起點座標
-                touchStartY = 0;
-            });
+            canvas.addEventListener('touchend', () => { touchStartY = 0; });
 
             // --- 電腦版：滑鼠指標跟隨 UI ---
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
-                // 加上 !isTouchDevice 判斷，避免手機端干擾手動定位的 UI
                 if (indicator.classList.contains('active') && !isTouchDevice) {
                     const rect = canvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     indicator.style.left = x + 'px';
                     indicator.style.top = (y - 15) + 'px';
+                }
+            });
+
+            // --- 手機版：陀螺儀左右傾斜 (切換 Mode 選項核心) ---
+            window.addEventListener('deviceorientation', (e) => {
+                // 確保是在手機觸控狀態下、有選中線段，且不是單一操作模式
+                if (!isTouchDevice || !activeMobileLine || lineMode === 1 || lineMode === 8) return;
+
+                let tilt = e.gamma; // 取得左右傾斜角度
+                if (tilt === null) return; 
+
+                // 如果手機目前被判定為「平放狀態」
+                if (lastTiltDirection === 0) {
+                    if (tilt > TILT_THRESHOLD) {
+                        // 向右傾斜 (下一個)
+                        lastTiltDirection = 1;
+                        currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                        
+                    } else if (tilt < -TILT_THRESHOLD) {
+                        // 向左傾斜 (上一個)
+                        lastTiltDirection = -1;
+                        currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                    }
+                } else {
+                    // 如果已經傾斜切換過，必須將手機回正到 10 度以內，才能進行下一次感測
+                    if (Math.abs(tilt) < RETURN_THRESHOLD) {
+                        lastTiltDirection = 0;
+                    }
                 }
             });
         };
