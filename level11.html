@@ -409,10 +409,9 @@
             originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
             dragGhost = el.cloneNode(true);
-            dragGhost.style.position = 'fixed';
-            dragGhost.style.zIndex = '9999';
-            dragGhost.style.opacity = '1';
-            dragGhost.style.pointerEvents = 'none';
+            dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
+            dragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
+            dragGhost.style.borderRadius = '12px';
             dragGhost.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
             dragGhost.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
             dragGhost.style.margin = '0';
@@ -428,6 +427,7 @@
                 node.style.pointerEvents = 'none';
             });
             document.body.appendChild(dragGhost);
+            el.style.opacity = '0.2';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
@@ -451,27 +451,22 @@
                 dragGhost = null;
             }
             if (originalDragEl) {
-                originalDragEl.style.visibility = 'visible';
+                originalDragEl.style.opacity = '1';
                 originalDragEl = null;
             }
             document.querySelectorAll('.circuit-unit').forEach(el => {
                 el.style.opacity = '1';
-                el.style.visibility = 'visible';
             });
             if (targetIndex !== null && mDragIndex !== null && targetIndex !== mDragIndex) {
                 const oldHistory = [...gateHistory];
                 const movedItem = gateHistory.splice(mDragIndex, 1)[0];
                 gateHistory.splice(targetIndex, 0, movedItem);
-
-
                 actionStack.push({
                     type: 'replace',
                     index: 0,
                     oldGates: oldHistory,
                     newGate: null
                 });
-
-
                 recalculate();
             }
             mobileDragging = false;
@@ -900,8 +895,6 @@
                     } else if (touchTimer) {
                         const dx = e.touches[0].clientX - startX;
                         const dy = e.touches[0].clientY - startY;
-
-
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                             clearTimeout(touchTimer);
                             touchTimer = null;
@@ -1043,4 +1036,3 @@
     </script>
 </body>
 </html>
-
