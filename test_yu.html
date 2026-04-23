@@ -196,25 +196,24 @@
         let isMode2 = false;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
 
-        // --- 搖晃感應變數 ---
+// --- 修正版搖晃感應區塊 ---
 let lastUpdate = 0;
 let lastX, lastY, lastZ;
-const SHAKE_THRESHOLD = 800; // 搖晃力道閥值 (可根據手感調整，越大越難觸發)
+const SHAKE_THRESHOLD = 800; 
 
 function initShakeSensor() {
-    // 檢查瀏覽器是否支援 DeviceMotionEvent
     if (window.DeviceMotionEvent) {
+        // 移除舊的監聽避免重複綁定
+        window.removeEventListener('devicemotion', deviceMotionHandler);
         window.addEventListener('devicemotion', deviceMotionHandler, false);
-    } else {
-        console.log("此裝置不支援搖晃感應");
     }
 }
 
 function deviceMotionHandler(eventData) {
     const acceleration = eventData.accelerationIncludingGravity;
-    const curTime = new Date().getTime();
+    if (!acceleration) return;
 
-    // 每 100ms 偵測一次，避免過於靈敏
+    const curTime = new Date().getTime();
     if ((curTime - lastUpdate) > 100) {
         const diffTime = curTime - lastUpdate;
         lastUpdate = curTime;
@@ -223,16 +222,10 @@ function deviceMotionHandler(eventData) {
         const y = acceleration.y;
         const z = acceleration.z;
 
-        // 計算搖晃速度
-        const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
-
-        if (speed > SHAKE_THRESHOLD) {
-            // 觸發切換 CTRL 模式
-            toggleCtrlMode();
-            
-            // 加入微震動回饋 (如果手機支援)
-            if (navigator.vibrate) {
-                navigator.vibrate(100);
+        if (lastX !== undefined) {
+            const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
+            if (speed > SHAKE_THRESHOLD) {
+                toggleCtrlMode(); // 觸發我們剛才修改的函式
             }
         }
 
@@ -242,24 +235,33 @@ function deviceMotionHandler(eventData) {
     }
 }
 
-// 統一管理 CTRL 狀態切換
-function toggleCtrlMode() {
-    isCtrlDown = !isCtrlDown; // 切換全域變數狀態
-    
-    // 同步更新 UI 風格 (參考你原本的按鈕樣式)
-    const ctrlBtn = document.getElementById('ctrlBtn');
-    if (ctrlBtn) {
-        if (isCtrlDown) {
-            ctrlBtn.classList.remove('bg-gray-200');
-            ctrlBtn.classList.add('bg-yellow-400', 'scale-110', 'ring-4', 'ring-yellow-600');
-        } else {
-            ctrlBtn.classList.remove('bg-yellow-400', 'scale-110', 'ring-4', 'ring-yellow-600');
-            ctrlBtn.classList.add('bg-gray-200');
-        }
+function requestMotionPermission() {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+        DeviceMotionEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    initShakeSensor();
+                }
+            })
+            .catch(console.error);
+    } else {
+        initShakeSensor();
     }
-    console.log("搖晃觸發：CTRL 模式已 " + (isCtrlDown ? "開啟" : "關閉"));
 }
 
+// 修改後的切換邏輯
+function toggleCtrlMode() {
+    if (isSolved) return; // 如果過關了就不執行
+    
+    // 呼叫原本既有的 toggleMode2 函式，這樣能同步音效、教學狀態與 UI
+    toggleMode2();
+    
+    // 加入微震動回饋
+    if (navigator.vibrate) {
+        navigator.vibrate(100);
+    }
+    console.log("搖晃觸發：Mode 1/2 已切換");
+}
 function requestMotionPermission() {
     if (typeof DeviceMotionEvent.requestPermission === 'function') {
         DeviceMotionEvent.requestPermission()
@@ -274,12 +276,25 @@ function requestMotionPermission() {
         initShakeSensor();
     }
 }
-        window.onload = () => {
-            timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
-            updateFishUI(); updateUndoStatus();
-            const cw = document.getElementById('circuit-content-wrapper');
-            cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
-        };
+window.onload = () => {
+    timerInterval = setInterval(() => { 
+        time++; 
+        document.getElementById('timer').innerText = time; 
+    }, 1000);
+    updateFishUI(); 
+    updateUndoStatus();
+    
+    const cw = document.getElementById('circuit-content-wrapper');
+    cw.addEventListener('wheel', (e) => { 
+        e.preventDefault(); 
+        cw.scrollLeft += e.deltaY; 
+    });
+
+    // 關鍵：使用者點擊畫面任何地方時，嘗試啟動感應器（解決 iOS 權限問題）
+    document.body.addEventListener('click', function() {
+        requestMotionPermission();
+    }, { once: true }); // 只需執行一次
+};
         function toggleMode2() {
             pop.currentTime = 0;
             pop.play();
