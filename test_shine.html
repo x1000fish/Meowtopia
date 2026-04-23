@@ -110,7 +110,7 @@
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
-            touch-action: none;
+            touch-action: manipulation;
         }
         .circuit-unit {
             -webkit-user-select: none;
@@ -119,15 +119,18 @@
             touch-action: none;
             transition: background 0.2s, box-shadow 0.2s;
         }
-        .gate-btn-v2,
-        .multi-toggle-btn,
-        .func-btn,
-        .game-btn,
-        .btn-share {
+        .gate-btn-v2, .multi-toggle-btn, .func-btn, .game-btn, .btn-share {
             -webkit-user-select: none;
             user-select: none;
             -webkit-touch-callout: none;
             touch-action: manipulation;
+        }
+        #shake-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
+            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -271,10 +274,31 @@
                 window.removeEventListener('touchstart', requestGyroPermission);
                 document.getElementById('mode-btn')?.removeEventListener('click', requestGyroPermission);
             };
-            window.addEventListener('click', requestGyroPermission);
-            window.addEventListener('touchstart', requestGyroPermission);
+            window.addEventListener('click', () => {
+                requestGyroPermission();
+                if (!shakePermissionRequested) {
+                    requestShakePermission();
+                    shakePermissionRequested = true;
+                }
+            });
+            window.addEventListener('touchstart', () => {
+                requestGyroPermission();
+                if (!shakePermissionRequested) {
+                    requestShakePermission();
+                    shakePermissionRequested = true;
+                }
+            }, { once: true });
+
             const btnMode = document.getElementById('mode-btn');
-            if (btnMode) btnMode.addEventListener('click', requestGyroPermission);
+            if (btnMode) {
+                btnMode.addEventListener('click', requestGyroPermission);
+                btnMode.addEventListener('click', () => {
+                    if (!shakePermissionRequested) {
+                        requestShakePermission();
+                        shakePermissionRequested = true;
+                    }
+                });
+            }
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
@@ -599,7 +623,7 @@
                 node.style.pointerEvents = 'none';
             });
             document.body.appendChild(dragGhost);
-            el.style.visibility = 'hidden';
+            //el.style.visibility = 'hidden';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
@@ -830,6 +854,10 @@
         function cycleLineMode(){
             pop.currentTime = 0;
             pop.play();
+            if (!shakePermissionRequested) {
+                requestShakePermission();
+                shakePermissionRequested = true;
+            }
             const modes = [1, 2, 4, 8];
             lineMode = modes[(modes.indexOf(lineMode) + 1) % modes.length];
             const btn = document.getElementById('mode-btn');
