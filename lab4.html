@@ -586,7 +586,7 @@
                     if (toast) {
                         toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
                         toast.style.opacity = '1';
-                        setTimeout(() => { toast.style.opacity = '0'; }, 1200);
+                        setTimeout(() => { toast.style.opacity = '0'; }, 5000);
                     }
                     console.log("Ctrl Mode:", isShakeCtrlActive);
                 }
@@ -1088,7 +1088,6 @@
                     } else if (touchTimer) {
                         const dx = e.touches[0].clientX - startX;
                         const dy = e.touches[0].clientY - startY;
-
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                             clearTimeout(touchTimer);
                             touchTimer = null;
