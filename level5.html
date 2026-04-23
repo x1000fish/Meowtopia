@@ -309,7 +309,7 @@
                 const rect = modeBtn.getBoundingClientRect();
                 const hint = document.getElementById('tutorial-hint');
                 modeBtn.classList.add('tutorial-focus');
-                hint.style.left = rect.left + 'px'; hint.style.top = (rect.top + 60) + 'px';
+                hint.style.left = (rect.left - 50) + 'px'; hint.style.top = (rect.top + 60) + 'px';
                 showTutorialHint('CLICK TO CHANGE MODE');
             } else if (tutorialStep === 2) {
                 showTutorialHint('HOVER THE LINE');
