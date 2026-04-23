@@ -349,12 +349,10 @@
             dragGhost.style.transition = 'none';
             dragGhost.classList.remove('selected-gate');
 
-            // 修改：設定拖移時的背景，不使用虛線邊框
-            dragGhost.style.background = 'rgba(255, 183, 197, 0.4)';
-            dragGhost.style.borderRadius = '12px';
-            dragGhost.style.boxShadow = '0 8px 16px rgba(70, 52, 56, 0.15)';
-            dragGhost.style.boxSizing = 'border-box';
-            dragGhost.style.border = 'none'; // 確保沒有邊框
+            // 手機版：移除背景與框線，只保留 Gate 視覺
+            dragGhost.style.background = 'transparent';
+            dragGhost.style.boxShadow = 'none';
+            dragGhost.style.border = 'none';
 
             // 移除拖曳殘影中的橫線
             dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
@@ -817,7 +815,7 @@
                 const oldHistory = [...gateHistory];
                 selectedIndices.forEach(idx => gateHistory.splice(idx, 1));
                 gateHistory[replaceIdx] = gateStr;
-                actionStack.push({ type: 'replace', index: replaceIdx, oldHistory: oldHistory, newGate: gateStr });
+                actionStack.push({ type: 'replace', index: replaceIdx, oldGates: oldHistory, newGate: gateStr });
                 selectedIndices = [];
             } else {
                 gateHistory.push(gateStr);
@@ -1033,11 +1031,11 @@
                         dragClone.style.top = '-9999px';
                         dragClone.style.left = '-9999px';
                         
-                        // --- 修改：設定拖曳時的背景，移除邊框 ---
+                        // --- 電腦版：保持紅框(背景) ---
                         dragClone.style.background = 'rgba(255, 183, 197, 0.4)';
                         dragClone.style.borderRadius = '12px';
                         dragClone.style.boxSizing = 'border-box';
-                        dragClone.style.border = 'none'; // 確保沒有邊框
+                        dragClone.style.border = 'none';
                         // ----------------------------------------
                         
                         document.body.appendChild(dragClone);
