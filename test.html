@@ -95,13 +95,28 @@
         #canvas-bottom-btns { position: absolute; bottom: 15px; right: 30px; display: flex; gap: 10px; z-index: 100; }
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 85px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
-        canvas, .game-canvas { touch-action: none; -webkit-user-select: none; -webkit-touch-callout: none; }
         
-        /* 搖晃模式啟用時的畫布外框提示 */
-        .ctrl-mode-active { outline: 8px solid #FFB7C5 !important; box-shadow: 0 0 20px #FFB7C5 !important; transition: all 0.3s ease; }
+        /* 防護手機長按與文字選取 */
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { 
+            -webkit-user-select: none; 
+            user-select: none;
+            -webkit-touch-callout: none; 
+            touch-action: none; 
+        }
+
+        /* 搖晃開關文字提示 (預設隱藏) */
+        #shake-toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
+            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
+            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body id="body-root">
+    <div id="shake-toast">Ctrl Mode: ON</div>
+
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
@@ -161,7 +176,6 @@
         </div>
         <div class="w-full text-center mt-6 mb-6">
             <a href="index.html" class="game-btn btn-red px-16">GIVE UP</a>
-            <button id="sensor-btn" onclick="requestShakePermission()" class="game-btn btn-green px-8 ml-4">START MOTION</button>
         </div>
     </div>
     <div id="victoryModal" class="modal-overlay">
@@ -185,9 +199,15 @@
         let draggedIndex = null;
         let leaderboardData;
         
-        // 搖晃模式變數
+        // 搖晃與拖移變數
         let isShakeCtrlActive = false; 
         let lastShakeTime = 0;
+        let shakePermissionRequested = false;
+        let mobileDragging = false;
+        let mDragIndex = null;
+        let dragGhost = null;
+        let touchStartY = 0;
+        let lastSwipeTime = 0;
 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
@@ -219,33 +239,30 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     
-                    const canvas = document.getElementById('main-canvas');
-                    if(isShakeCtrlActive) {
-                        canvas.classList.add('ctrl-mode-active');
-                    } else {
-                        canvas.classList.remove('ctrl-mode-active');
-                    }
+                    if (navigator.vibrate) navigator.vibrate([100]); // 小震動
+                    
+                    // 文字提示
+                    const toast = document.getElementById('shake-toast');
+                    toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.opacity = '0'; }, 2000);
 
-                    if (navigator.vibrate) navigator.vibrate(100);
                     console.log("Ctrl Mode:", isShakeCtrlActive);
                 }
             }
         }
 
-        // 請求 iOS 搖晃權限
+        // 請求 iOS 搖晃權限 (綁定在打開專業模式時)
         function requestShakePermission() {
             if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission()
                     .then(state => {
                         if (state === 'granted') {
                             window.addEventListener('devicemotion', handleMotion);
-                            document.getElementById('sensor-btn').style.display = 'none';
                         }
-                    })
-                    .catch(console.error);
+                    }).catch(console.error);
             } else {
                 window.addEventListener('devicemotion', handleMotion);
-                document.getElementById('sensor-btn').style.display = 'none';
             }
         }
 
@@ -257,10 +274,14 @@
             updateUndoStatus();
             fetchLeaderboard();
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
+            
+            // 電腦版滾輪支援 (電路區橫向滾動)
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
             });
+            
+            // 電腦版滾輪支援 (切換 Mode 選項)
             document.addEventListener('wheel', (e) => {
                 if (!hoverLine || lineMode === 1 || lineMode === 8) return;
                 e.preventDefault();
@@ -268,6 +289,35 @@
                 else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 showIndicator();
             }, { passive: false });
+
+            // 手機版兩指滑動 (切換 Mode 選項)
+            document.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) touchStartY = e.touches[0].clientY;
+            }, { passive: false });
+
+            document.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    if (!hoverLine || lineMode === 1 || lineMode === 8) return;
+                    if (e.cancelable) e.preventDefault(); // 防止畫面縮放/滾動
+                    
+                    let currentY = e.touches[0].clientY;
+                    let diff = currentY - touchStartY;
+                    let now = Date.now();
+                    
+                    // 增加阻力避免切換太快
+                    if (Math.abs(diff) > 25 && now - lastSwipeTime > 250) {
+                        if (diff < 0) {
+                            currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        } else {
+                            currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                        }
+                        showIndicator();
+                        touchStartY = currentY; 
+                        lastSwipeTime = now;
+                    }
+                }
+            }, { passive: false });
+
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
@@ -280,10 +330,13 @@
                 }
             });
         };
+        
         function toggleLeaderboard() {
             const wrapper = document.getElementById('leaderboard-wrapper');
             wrapper.classList.toggle('expanded');
         }
+        
+        // ----------------- 電腦版拖曳邏輯 -----------------
         function handleDragStart(e, index) {
             if (isSolved) return;
             draggedIndex = index;
@@ -301,16 +354,56 @@
             const oldHistory = [...gateHistory];
             const movedItem = gateHistory.splice(draggedIndex, 1)[0];
             gateHistory.splice(targetIndex, 0, movedItem);
-            actionStack.push({
-                type: 'replace',
-                index: 0,
-                oldGates: oldHistory,
-                newGate: null
-            });
+            actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
             draggedIndex = null;
             recalculate();
             return false;
         }
+
+        // ----------------- 手機版拖曳邏輯 -----------------
+        function startMobileDrag(touch, el, index) {
+            mobileDragging = true;
+            mDragIndex = index;
+            if (navigator.vibrate) navigator.vibrate(50); // 長按成功的小震動回饋
+            
+            dragGhost = el.cloneNode(true);
+            dragGhost.style.position = 'fixed';
+            dragGhost.style.zIndex = '9999';
+            dragGhost.style.opacity = '0.7';
+            dragGhost.style.pointerEvents = 'none'; // 讓 elementFromPoint 穿透
+            dragGhost.style.left = (touch.clientX - el.offsetWidth/2) + 'px';
+            dragGhost.style.top = (touch.clientY - el.offsetHeight/2) + 'px';
+            document.body.appendChild(dragGhost);
+            el.style.opacity = '0.3';
+        }
+        function moveMobileDrag(touch) {
+            if (!dragGhost) return;
+            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
+            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
+        }
+        function endMobileDrag(touch) {
+            mobileDragging = false;
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            
+            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
+
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
+            
+            if (dropUnit) {
+                let children = Array.from(document.getElementById('circuit-content').children);
+                let targetIndex = children.indexOf(dropUnit);
+                if (targetIndex > -1 && targetIndex !== mDragIndex) {
+                    const oldHistory = [...gateHistory];
+                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
+                    gateHistory.splice(targetIndex, 0, movedItem);
+                    actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+                    recalculate();
+                }
+            }
+            mDragIndex = null;
+        }
+
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
@@ -567,12 +660,20 @@
             });
         }
         function clearHighlight(){ document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight')); }
+        
         function togglePro() {
             pop.currentTime = 0;
             pop.play();
             isPro = !isPro;
             document.getElementById('body-root').classList.toggle('pro-active', isPro);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
+            
+            // 第一次開啟專業模式時，發送搖晃感測器授權請求
+            if (isPro && !shakePermissionRequested) {
+                requestShakePermission();
+                shakePermissionRequested = true;
+            }
+
             let startTime = Date.now();
             const animateMove = () => {
                 for (let i = 0; i < 16; i++) {
@@ -585,6 +686,7 @@
             };
             requestAnimationFrame(animateMove);
         }
+        
         function applyGate(type) {
             if (isSolved) return;
             if (selectedIndices.length > 0) {
@@ -648,6 +750,8 @@
                 u.className = 'circuit-unit';
                 u.draggable = true;
                 if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
+                
+                // 電腦版拖移
                 u.addEventListener('dragstart', (e) => handleDragStart(e, idx));
                 u.addEventListener('dragover', (e) => handleDragOver(e));
                 u.addEventListener('drop', (e) => handleDrop(e, idx));
@@ -655,9 +759,49 @@
                 u.onmouseenter = () => highlightByGate(g);
                 u.onmouseleave = () => clearHighlight();
                 
-                // 【修改點】在點擊判定中加入了 isShakeCtrlActive 支援
+                // 手機版拖移監聽
+                let touchTimer = null;
+                let startX, startY;
+                u.addEventListener('touchstart', (e) => {
+                    if(isSolved || e.touches.length > 1) return;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    // 長按 400 毫秒進入手機拖移模式
+                    touchTimer = setTimeout(() => {
+                        touchTimer = null;
+                        startMobileDrag(e.touches[0], u, idx);
+                    }, 400); 
+                }, {passive: true});
+
+                u.addEventListener('touchmove', (e) => {
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault(); // 拖移時防止頁面捲動
+                        moveMobileDrag(e.touches[0]);
+                    } else if (touchTimer) {
+                        let dx = e.touches[0].clientX - startX;
+                        let dy = e.touches[0].clientY - startY;
+                        // 若開始滑動，則取消長按判定
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                            clearTimeout(touchTimer);
+                            touchTimer = null;
+                        }
+                    }
+                }, {passive: false});
+
+                u.addEventListener('touchend', (e) => {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        endMobileDrag(e.changedTouches[0]);
+                    }
+                });
+
+                // 點擊邏輯 (相容手機短按與電腦單擊)
                 u.onclick = (e) => {
-                    if (isSolved) return;
+                    if (isSolved || mobileDragging) return;
                     if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
