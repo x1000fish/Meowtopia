@@ -434,7 +434,7 @@
                 node.style.pointerEvents = 'none';
             });
             document.body.appendChild(dragGhost);
-            //el.style.visibility = 'hidden';
+            el.style.opacity = '0.2';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
