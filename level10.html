@@ -414,8 +414,8 @@
             }
             dragGhost = el.cloneNode(true);
             dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
-            desktopDragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
-            desktopDragGhost.style.borderRadius = '12px';
+            dragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
+            dragGhost.style.borderRadius = '12px';
             dragGhost.style.position = 'fixed';
             dragGhost.style.zIndex = '9999';
             dragGhost.style.opacity = '1';
