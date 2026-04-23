@@ -348,7 +348,7 @@
             dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
             dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
             document.body.appendChild(dragGhost);
-            el.style.opacity = '0.2';
+            el.style.opacity = '0.3';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
@@ -636,14 +636,6 @@
             };
             line.onclick = (e) => {
                 e.stopPropagation();
-                if (isMobile && lineMode === 4) {
-                    if (activeMobileLine !== line.id) {
-                        activeMobileLine = line.id;
-                        return;
-                    } else {
-                        activeMobileLine = null;
-                    }
-                }
                 if(isSolved) return;
                 if (tutorialActive && tutorialStep === 5 && index !== 0) return; 
                 if (tutorialActive && tutorialStep === 2 && index !== 0) return;
