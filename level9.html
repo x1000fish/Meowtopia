@@ -423,6 +423,7 @@
             dragGhost.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
             dragGhost.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
             dragGhost.style.margin = '0';
+            dragGhost.style.opacity = '1';
             dragGhost.style.transition = 'none';
             dragGhost.style.animation = 'none';
             dragGhost.style.transform = 'translateZ(0)';
@@ -434,6 +435,7 @@
                 node.style.pointerEvents = 'none';
             });
             document.body.appendChild(dragGhost);
+            el.style.opacity = '0.2';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
