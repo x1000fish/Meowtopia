@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1200">
+    <meta name="viewport" content="width=1024">
     <title>Meowtopia - Level 3</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
@@ -91,9 +91,12 @@
         .yellow-glow { animation: yellow-pulse 1.5s infinite ease-in-out; z-index: 501 !important; }
         .gate-btn-circuit { padding: 0 !important; height: 76px; display: flex; align-items: center; justify-content: center; border-radius: 16px !important; position: relative; }
         .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4" id="body-root">
+    <div id="shake-toast">Ctrl Mode: ON</div>
     <div id="pro-guide-mask"></div><div id="guide-hint-text"></div><div id="guide-overlay"></div>
     <div id="mode-toggle-container">
         <div id="mode-toggle" class="mode-toggle-fixed yellow-glow" onclick="togglePro()">👁️</div>
@@ -194,107 +197,76 @@
         let actionStack = [];
         let selectedIndices = [];
         let isMode2 = false;
+        let isShakeCtrlActive = false; 
+        let lastShakeTime = 0;
+        let shakePermissionRequested = false;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
-
-// --- 修正版搖晃感應區塊 ---
-let lastUpdate = 0;
-let lastX, lastY, lastZ;
-const SHAKE_THRESHOLD = 800; 
-
-function initShakeSensor() {
-    if (window.DeviceMotionEvent) {
-        // 移除舊的監聽避免重複綁定
-        window.removeEventListener('devicemotion', deviceMotionHandler);
-        window.addEventListener('devicemotion', deviceMotionHandler, false);
-    }
-}
-
-function deviceMotionHandler(eventData) {
-    const acceleration = eventData.accelerationIncludingGravity;
-    if (!acceleration) return;
-
-    const curTime = new Date().getTime();
-    if ((curTime - lastUpdate) > 100) {
-        const diffTime = curTime - lastUpdate;
-        lastUpdate = curTime;
-
-        const x = acceleration.x;
-        const y = acceleration.y;
-        const z = acceleration.z;
-
-        if (lastX !== undefined) {
-            const speed = Math.abs(x + y + z - lastX - lastY - lastZ) / diffTime * 10000;
-            if (speed > SHAKE_THRESHOLD) {
-                toggleCtrlMode(); // 觸發我們剛才修改的函式
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+            const threshold = 20;
+            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+            if (delta > threshold) {
+                const now = Date.now();
+                if (now - lastShakeTime > 1000) {
+                    isShakeCtrlActive = !isShakeCtrlActive;
+                    lastShakeTime = now;
+                    if (navigator.vibrate) navigator.vibrate([100]);
+                    const toast = document.getElementById('shake-toast');
+                    if (toast) {
+                        toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
+                        toast.style.opacity = '1';
+                        setTimeout(() => { toast.style.opacity = '0'; }, 1200);
+                    }
+                    console.log("Ctrl Mode:", isShakeCtrlActive);
+                }
             }
         }
-
-        lastX = x;
-        lastY = y;
-        lastZ = z;
-    }
-}
-
-function requestMotionPermission() {
-    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission()
-            .then(permissionState => {
-                if (permissionState === 'granted') {
-                    initShakeSensor();
+        function requestShakePermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+        }
+        window.onload = () => {
+            timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
+            updateFishUI(); updateUndoStatus();
+            const cw = document.getElementById('circuit-content-wrapper');
+            const requestGyroPermission = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') {
+                            gyroPermissionGranted = true;
+                            console.log("Gyroscope access granted.");
+                        }
+                    } catch (error) {
+                        console.log("Gyroscope access request denied:", error);
+                    }
+                } else {
+                    gyroPermissionGranted = true;
                 }
-            })
-            .catch(console.error);
-    } else {
-        initShakeSensor();
-    }
-}
-
-// 修改後的切換邏輯
-function toggleCtrlMode() {
-    if (isSolved) return; // 如果過關了就不執行
-    
-    // 呼叫原本既有的 toggleMode2 函式，這樣能同步音效、教學狀態與 UI
-    toggleMode2();
-    
-    // 加入微震動回饋
-    if (navigator.vibrate) {
-        navigator.vibrate(100);
-    }
-    console.log("搖晃觸發：Mode 1/2 已切換");
-}
-function requestMotionPermission() {
-    if (typeof DeviceMotionEvent.requestPermission === 'function') {
-        DeviceMotionEvent.requestPermission()
-            .then(permissionState => {
-                if (permissionState === 'granted') {
-                    initShakeSensor();
-                }
-            })
-            .catch(console.error);
-    } else {
-        // 非 iOS 裝置直接啟動
-        initShakeSensor();
-    }
-}
-window.onload = () => {
-    timerInterval = setInterval(() => { 
-        time++; 
-        document.getElementById('timer').innerText = time; 
-    }, 1000);
-    updateFishUI(); 
-    updateUndoStatus();
-    
-    const cw = document.getElementById('circuit-content-wrapper');
-    cw.addEventListener('wheel', (e) => { 
-        e.preventDefault(); 
-        cw.scrollLeft += e.deltaY; 
-    });
-
-    // 關鍵：使用者點擊畫面任何地方時，嘗試啟動感應器（解決 iOS 權限問題）
-    document.body.addEventListener('click', function() {
-        requestMotionPermission();
-    }, { once: true }); // 只需執行一次
-};
+                window.removeEventListener('click', requestGyroPermission);
+                window.removeEventListener('touchstart', requestGyroPermission);
+                document.getElementById('mode-toggle')?.removeEventListener('click', requestGyroPermission);
+            };
+            window.addEventListener('click', requestGyroPermission);
+            window.addEventListener('touchstart', requestGyroPermission);
+            const btnPro = document.getElementById('mode-toggle');
+            if (btnPro) btnPro.addEventListener('click', requestGyroPermission);
+            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
+                e.preventDefault();
+                e.currentTarget.scrollLeft += e.deltaY;
+            });
+            cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
+        };
         function toggleMode2() {
             pop.currentTime = 0;
             pop.play();
