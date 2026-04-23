@@ -930,15 +930,6 @@
                         endMobileDrag(e.changedTouches[0]);
                     }
                 });
-                u.addEventListener('touchcancel', (e) => {
-                    if (touchTimer) {
-                        clearTimeout(touchTimer);
-                        touchTimer = null;
-                    }
-                    if (mobileDragging) {
-                        endMobileDrag(e.changedTouches[0] || e.touches[0]);
-                    }
-                });
                 u.onclick = (e) => {
                     if (isSolved || mobileDragging) return;
                     if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
