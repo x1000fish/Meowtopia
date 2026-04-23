@@ -408,6 +408,10 @@
             mDragIndex = index;
             originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
             dragGhost = el.cloneNode(true);
             dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
             dragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
@@ -424,7 +428,6 @@
             dragGhost.style.transform = 'translateZ(0)';
             dragGhost.style.willChange = 'left, top';
             dragGhost.style.boxShadow = 'none';
-            dragGhost.style.background = 'transparent';
             dragGhost.querySelectorAll('*').forEach(node => {
                 node.style.transition = 'none';
                 node.style.animation = 'none';
