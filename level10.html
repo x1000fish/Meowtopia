@@ -409,6 +409,9 @@
             originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
             dragGhost = el.cloneNode(true);
+            dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
+            desktopDragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
+            desktopDragGhost.style.borderRadius = '12px';
             dragGhost.style.position = 'fixed';
             dragGhost.style.zIndex = '9999';
             dragGhost.style.opacity = '1';
@@ -452,12 +455,11 @@
                 dragGhost = null;
             }
             if (originalDragEl) {
-                originalDragEl.style.visibility = 'visible';
+                originalDragEl.style.opacity = '1';
                 originalDragEl = null;
             }
             document.querySelectorAll('.circuit-unit').forEach(el => {
                 el.style.opacity = '1';
-                el.style.visibility = 'visible';
             });
             if (targetIndex !== null && mDragIndex !== null && targetIndex !== mDragIndex) {
                 const oldHistory = [...gateHistory];
