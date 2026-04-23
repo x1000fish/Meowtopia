@@ -213,7 +213,7 @@
         let lastSwipeTime = 0;           // 紀錄上次滑動時間
         let lastTiltDirection = 0;       // 記錄目前傾斜狀態：0=平放, 1=右傾, -1=左傾
         const TILT_THRESHOLD = 15;       // 陀螺儀觸發角度 (超過25度切換)
-        const RETURN_THRESHOLD = 5;     // 陀螺儀回正角度 (小於10度視為平放)
+        const RETURN_THRESHOLD = 10;     // 陀螺儀回正角度 (小於10度視為平放)
         let gyroPermissionGranted = false; // 記錄 Apple 設備的陀螺儀權限
 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
