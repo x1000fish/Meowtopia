@@ -656,7 +656,7 @@
             dragGhost.style.transform = 'translateZ(0)';
             dragGhost.style.willChange = 'left, top';
             dragGhost.style.boxShadow = 'none';
-            
+            el.style.opacity = '0.2';
             dragGhost.querySelectorAll('*').forEach(node => {
                 node.style.transition = 'none';
                 node.style.animation = 'none';
@@ -686,12 +686,12 @@
                 dragGhost = null;
             }
             if (originalDragEl) {
-                originalDragEl.style.visibility = 'visible';
+                originalDragEl.style.visibility = '1';
                 originalDragEl = null;
             }
             document.querySelectorAll('.circuit-unit').forEach(el => {
                 el.style.opacity = '1';
-                el.style.visibility = 'visible';
+                el.style.visibility = '1';
             });
             if (targetIndex !== null && mDragIndex !== null && targetIndex !== mDragIndex) {
                 const oldHistory = [...gateHistory];
