@@ -536,40 +536,35 @@
         };
 
         // --- 手機拖曳邏輯 ---
-        function startMobileDrag(touch, el, index) {
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
-            mobileDragging = true;
-            mDragIndex = index;
-            if (navigator.vibrate) navigator.vibrate(50);
+      // --- 手機拖曳邏輯 ---
+function startMobileDrag(touch, el, index) {
+    if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+    mobileDragging = true;
+    mDragIndex = index;
+    if (navigator.vibrate) navigator.vibrate(50);
 
-            dragGhost = el.cloneNode(true);
-            dragGhost.style.position = 'fixed';
-            dragGhost.style.zIndex = '999999';
-            dragGhost.style.opacity = '0.9';
-            dragGhost.style.pointerEvents = 'none';
-            dragGhost.style.transition = 'none';
-            dragGhost.classList.remove('selected');
+    dragGhost = el.cloneNode(true);
+    dragGhost.style.position = 'fixed';
+    dragGhost.style.zIndex = '999999';
+    dragGhost.style.opacity = '0.9';
+    dragGhost.style.pointerEvents = 'none';
+    dragGhost.style.transition = 'none';
+    dragGhost.classList.remove('selected');
 
-            // 手機版加入紅框，確保背景透明、無原本黑框
-            dragGhost.classList.add('during-snapshot');
-            dragGhost.style.background = 'transparent';
-            dragGhost.style.borderRadius = '12px';
-            dragGhost.style.boxSizing = 'border-box';
-            dragGhost.style.border = 'none';
+    // --- 關鍵修改：刪除原本在這裡的 dragGhost.classList.add('during-snapshot'); ---
+    
+    dragGhost.style.background = 'transparent';
+    dragGhost.style.border = 'none';
+    dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
 
-            // 移除拖曳殘影中的橫線
-            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
+    const rect = el.getBoundingClientRect();
+    dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
+    dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
+    document.body.appendChild(dragGhost);
 
-            const rect = el.getBoundingClientRect();
-            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
-            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
-            document.body.appendChild(dragGhost);
-
-            // 原地方塊的視覺變淡
-            const visuals = el.querySelector('.gate-visuals');
-            if (visuals) visuals.style.opacity = '0.2';
-            else el.style.opacity = '0.2';
-        }
+    const visuals = el.querySelector('.gate-visuals');
+    if (visuals) visuals.style.opacity = '0.2';
+}
 
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
