@@ -231,6 +231,19 @@
                 }
             }
         }
+        function requestShakePermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
+        }
         window.onload = () => {
             initLabData();
             initGameLayout();
@@ -244,12 +257,7 @@
                         if (permission === 'granted') gyroPermissionGranted = true;
                     } catch (error) { console.log("Gyro permission denied:", error); }
                 } else { gyroPermissionGranted = true; }
-                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try {
-                        const permission = await DeviceMotionEvent.requestPermission();
-                        if (permission === 'granted') window.addEventListener('devicemotion', handleMotion);
-                    } catch (e) { console.log("Motion permission denied:", e); }
-                } else { window.addEventListener('devicemotion', handleMotion); }
+                requestShakePermission();
                 window.removeEventListener('click', requestPermissions);
                 window.removeEventListener('touchstart', requestPermissions);
             };
@@ -757,10 +765,7 @@
         function cycleLineMode() {
             pop.currentTime = 0;
             pop.play();
-            if (!shakePermissionRequested) {
-                window.addEventListener('devicemotion', handleMotion);
-                shakePermissionRequested = true;
-            }
+            requestShakePermission();
             const modes = [1, 2, 4];
             lineMode = modes[(modes.indexOf(lineMode) + 1) % modes.length];
             const btn = document.getElementById('mode-btn');
