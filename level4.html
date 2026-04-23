@@ -81,10 +81,10 @@
         #circuit-content { display: flex; height: 100%; padding: 0 7px; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 20px, 0 60px; }
         .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #463438; z-index: 5; }
         
-        /* 電路方塊的拖曳防護與手勢設定 */
+        /* === 拖曳保護設定 === */
         .circuit-unit { 
             min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: grab; transition: all 0.2s; 
-            touch-action: none; /* 防止 iOS 拖曳時觸發頁面滑動 */
+            touch-action: none; /* 絕對不可拿掉：防止 iOS 拖曳時觸發頁面滑動 */
         }
         .circuit-unit:active { cursor: grabbing; }
         .circuit-unit:hover { background: rgba(255, 183, 197, 0.3); border-radius: 12px; }
@@ -100,7 +100,19 @@
         .no-fish-anim .fish-wrapper, .no-fish-anim .node { transition: none !important; }
         #pro-guide-mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 900; display: none; }
         #guide-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 450; display: flex; }
-        #guide-hint-text { position: absolute; background: #99C44D; color: #fff; padding: 4px 12px; border-radius: 9999px; font-weight: 900; font-size: 16px; z-index: 1000; display: none; transition: all 0.3s; min-width: 150px; box-shadow: 0 4px 0 #463438; border: 3px solid #463438; text-align: center; }
+        
+        /* === 完美防走失的 Hint 設計 === */
+        #guide-hint-text { 
+            position: absolute !important; /* 解除 fixed，讓它跟隨文件座標 */
+            background: #99C44D; color: #fff; padding: 12px 20px; border-radius: 9999px; 
+            font-weight: 900; font-size: 16px; 
+            z-index: 10005 !important; /* 保證不被排行榜或遮罩蓋住 */
+            display: none; transition: all 0.3s; 
+            min-width: 150px; max-width: 250px; /* 控制寬度避免破版 */
+            word-wrap: break-word; white-space: normal; line-height: 1.4;
+            box-shadow: 0 4px 0 #463438; border: 3px solid #463438; text-align: center; 
+        }
+
         .next-btn { margin-top: 8px; background: #463438; color: #fff; padding: 4px 12px; border-radius: 10px; font-size: 14px; cursor: pointer; border: none; font-weight: 900; }
         .lock-btn { opacity: 1; cursor: not-allowed !important; pointer-events: none !important; filter: grayscale(1); }
         .highlight-focus { position: relative !important; z-index: 950 !important; pointer-events: auto !important; animation: pulse-btn-border 1.5s infinite ease-in-out !important; }
@@ -128,9 +140,17 @@
         #canvas-bottom-btns { position: absolute; bottom: 20px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
-        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
-        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-    </style>
+
+        /* 搖晃開關文字提示 */
+        #shake-toast {
+            position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8);
+            background: #99C44D; color: #463438; padding: 15px 40px;
+            border-radius: 50px; font-weight: 900; font-size: 24px; z-index: 10000;
+            opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none; border: 4px solid #463438;
+            box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438;
+        }
+        #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4" id="body-root">
@@ -252,6 +272,7 @@
             <button onclick="viewInLab().style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
         </div>
     </div>
+
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         let steps = 0, time = 0, isPro = false, fishAtNode = [3, 2, 1, 0], gateHistory = [], timerInterval, isSolved = false;
@@ -262,10 +283,15 @@
         let draggedIndex = null;
         let tutorialPhase = 1;
         let tutorialCompleted = false;
+        
+        // 搖晃開啟 Ctrl 功能相關變數
         let isShakeCtrlActive = false;
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
+
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
+        
+        // 處理手機搖晃事件
         function handleMotion(event) {
             const acc = event.accelerationIncludingGravity;
             if (!acc) return;
@@ -282,11 +308,14 @@
                     if (toast) {
                         toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
                         toast.style.color = isShakeCtrlActive ? "white" : "#463438";
-                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
+                        toast.innerText = isShakeCtrlActive ? "⚡️ CTRL MODE: ON" : "❌ CTRL MODE: OFF";
+                        toast.classList.add('show');
+                        setTimeout(() => toast.classList.remove('show'), 1500);
                     }
                 }
             }
         }
+
         function requestShakePermission() {
             if (!shakePermissionRequested) {
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -303,9 +332,11 @@
                 shakePermissionRequested = true;
             }
         }
+
         window.onload = () => {
             window.addEventListener('click', requestShakePermission, { once: true });
             window.addEventListener('touchstart', requestShakePermission, { once: true });
+
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             updateFishUI();
             updateUndoStatus();
@@ -313,26 +344,49 @@
             const cw = document.getElementById('circuit-content-wrapper');
             cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
         };
+
         function toggleLeaderboard() {
             const wrapper = document.getElementById('leaderboard-wrapper');
             wrapper.classList.toggle('expanded');
         }
+
         function clearAllHighlights() {
             document.querySelectorAll('.highlight-focus, .highlight-static, .highlight-canvas-obj, .fish-top-layer, .line-highlight, .highlight-fixed').forEach(el => el.classList.remove('highlight-focus', 'highlight-static', 'highlight-canvas-obj', 'fish-top-layer', 'line-highlight', 'highlight-fixed'));
             document.querySelectorAll('.gate-btn-v2, .func-btn').forEach(el => el.classList.remove('lock-btn'));
             document.getElementById('circuit-area').classList.remove('tutorial-active');
             document.getElementById('leaderboard-wrapper').style.zIndex = "150";
         }
+
+        // 精準定位並主動運鏡的 Hint 函數
+        function positionHint(idOrEl, ox, oy) {
+            const h = document.getElementById('guide-hint-text');
+            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
+            if (!el) return;
+            const r = el.getBoundingClientRect();
+            h.style.display = 'block';
+            
+            // 確保座標相對於整份文件，不會因放大而跑位
+            h.style.left = (r.right + window.scrollX + ox) + 'px';
+            h.style.top = (r.top + window.scrollY + oy) + 'px';
+
+            // 強制捲動視窗，讓使用者看到提示（解決放大後找不到的問題）
+            setTimeout(() => {
+                h.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }, 50);
+        }
+
         function updateTutorialUI() {
             if (tutorialCompleted) return;
             clearAllHighlights();
             const h = document.getElementById('guide-hint-text');
             const mask = document.getElementById('pro-guide-mask');
             const gates = document.querySelectorAll('.gate-btn-v2, .func-btn');
+            
             if ([2, 3, 4, 5].includes(tutorialPhase)) {
                 mask.style.display = 'block';
                 document.getElementById('circuit-area').classList.add('tutorial-active');
             }
+            
             if (tutorialPhase === 2) {
                 gates.forEach(g => g.classList.add('lock-btn'));
                 const targetBtn = document.getElementById('gate-cx01');
@@ -340,7 +394,7 @@
                     targetBtn.classList.remove('lock-btn');
                     targetBtn.classList.add('highlight-focus');
                     h.innerHTML = `CLICK 1CNOT q0→q1`;
-                    positionHint(targetBtn, -100, 90);
+                    positionHint(targetBtn, 40, 10); // 放在按鈕右邊 20px
                 }
             }
             else if (tutorialPhase === 3) {
@@ -350,17 +404,23 @@
                     targetBtn.classList.remove('lock-btn');
                     targetBtn.classList.add('highlight-focus');
                     h.innerHTML = `CLICK 1CNOT q1→q0`;
-                    positionHint(targetBtn, -130, 80);
+                    positionHint(targetBtn, 10, 10); // 放在按鈕右邊 20px
                 }
             }
             else if (tutorialPhase === 4) {
                 gates.forEach(g => g.classList.add('lock-btn'));
                 h.innerHTML = `DRAG THE 2ND GATE ONTO THE 1ST TO SWAP THEM`;
-                const circuitWrapper = document.getElementById('circuit-area');
-                if (circuitWrapper) {
-                    positionHint(circuitWrapper, -1060, 20);
-                }
-                renderCircuit();
+                renderCircuit(); 
+                
+                // 等待方塊繪製完成後，精準定位在第二顆方塊旁邊
+                setTimeout(() => {
+                    const secondGate = document.querySelectorAll('.circuit-unit')[1];
+                    if (secondGate) {
+                        positionHint(secondGate, 20, -20);
+                    } else {
+                        positionHint('circuit-area', 0, 0);
+                    }
+                }, 100);
             }
             else if (tutorialPhase === 5) {
                 gates.forEach(g => g.classList.add('lock-btn'));
@@ -368,21 +428,15 @@
                 board.classList.add('highlight-fixed');
                 board.classList.add('expanded'); 
                 h.innerHTML = `CHECK OUT THE LEADERBOARD OVER HERE!<br><button onclick="endTutorial()" class="next-btn">GOT IT</button>`;
+                
+                // 等待展開動畫(0.5s)結束再定位，才會精準抓到位置
                 setTimeout(() => {
-                    positionHint(board, 60, 70);
-                }, 300);
+                    positionHint(board, 30, 150);
+                }, 550);
                 renderCircuit();
             }
         }
-        function positionHint(idOrEl, ox, oy) {
-            const h = document.getElementById('guide-hint-text');
-            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
-            if (!el) return;
-            const r = el.getBoundingClientRect();
-            h.style.display = 'block';
-            h.style.left = (r.right + window.scrollX + ox) + 'px';
-            h.style.top = (r.top + window.scrollY + oy) + 'px';
-        }
+
         function endTutorial() {
             tutorialPhase = 6;
             tutorialCompleted = true;
@@ -392,18 +446,26 @@
             clearAllHighlights();
             updateUndoStatus();
         }
+        
+        // === 拖曳事件處理 (完全相容 DragDropTouch) ===
         function handleDragStart(e, index) {
             if (isSolved) return;
             draggedIndex = index;
             e.dataTransfer.effectAllowed = 'move';
+            
+            // 強制寫入 setData 以確保手機版拖曳被瀏覽器接受
             e.dataTransfer.setData('text/plain', index.toString());
+            
+            // 使用 setTimeout 來解決 iOS 拖曳時原件透明度卡死的問題
             setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
         }
+        
         function handleDragOver(e) {
-            e.preventDefault();
+            e.preventDefault(); // 必須阻止預設行為才能允許 Drop
             e.dataTransfer.dropEffect = 'move';
             return false;
         }
+        
         function handleDrop(e, targetIndex) {
             e.preventDefault();
             if (isSolved || draggedIndex === null || draggedIndex === targetIndex) return;
@@ -427,6 +489,7 @@
                 setTimeout(updateTutorialUI, 100);
             }
         }
+
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
@@ -589,16 +652,21 @@
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                
+                // 拖曳相關設定
                 u.draggable = !isSolved;
                 u.ondragstart = (e) => handleDragStart(e, idx);
                 u.ondragover = (e) => handleDragOver(e);
                 u.ondrop = (e) => handleDrop(e, idx);
                 u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIndex = null; };
+                
                 u.onmouseover = () => syncGateHighlight(g, true);
                 u.onmouseout = () => syncGateHighlight(g, false);
+                
                 if (tutorialPhase === 4 && idx === 1) {
                     u.classList.add('highlight-focus');
                 }
+
                 u.onclick = (e) => {
                     if (isSolved) return;
                     if (tutorialPhase > 0 && tutorialPhase < 6) return;
@@ -612,6 +680,7 @@
                         deleteGate(idx);
                     }
                 };
+
                 if(g.startsWith('X')) {
                     const tQ = g==='X0'?0:1, tY = tQ===0?20:60, t = document.createElement('div');
                     t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY+1.2)+'px'; u.appendChild(t);
