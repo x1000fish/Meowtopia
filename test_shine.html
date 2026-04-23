@@ -557,11 +557,9 @@
             desktopDragGhost = dragEl.cloneNode(true);
             // 移除 q0~q3 背景橫線，只保留 gate 本身
             desktopDragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
-            // 移除淡粉色框 / 綠框 / trace框
-            desktopDragGhost.classList.remove('selected-gate', 'trace-active');
-            desktopDragGhost.style.background = 'transparent';
-            desktopDragGhost.style.boxShadow = 'none';
-            desktopDragGhost.style.borderRadius = '0';
+            desktopDragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
+            desktopDragGhost.style.borderRadius = '12px';
+            desktopDragGhost.classList.remove('selected-gate', 'trace-active'); 
             // 避免影響畫面，但又要存在 DOM 才能給 setDragImage 用
             desktopDragGhost.style.position = 'fixed';
             desktopDragGhost.style.top = '-9999px';
