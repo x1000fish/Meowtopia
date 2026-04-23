@@ -638,27 +638,10 @@
                 e.stopPropagation();
                 if (isMobile && lineMode === 4) {
                     if (activeMobileLine !== line.id) {
-                        // 【第一下點擊】
-                        // 此時系統已經自動觸發了 onmouseenter 顯示 Indicator
-                        // 我們在這裡記錄這條線，並中斷程式，不讓它直接套用
                         activeMobileLine = line.id;
-                        
-                        // 跳出 Toast 提示玩家需要再點一次
-                        const toast = document.getElementById('shake-toast');
-                        if (toast) {
-                            toast.innerText = "👆 TAP AGAIN TO CONFIRM";
-                            toast.style.background = "#99C44D";
-                            toast.style.color = "white";
-                            toast.classList.add('show');
-                            setTimeout(() => toast.classList.remove('show'), 1500);
-                        }
-                        return; // 🛑 停在這裡，不會往下執行 applyGate
-                        
+                        return;
                     } else {
-                        // 【第二下點擊同一個地方】
-                        // 確認套用，清除選取狀態，並隱藏 Indicator
                         activeMobileLine = null;
-                        if (typeof hideIndicator === 'function') hideIndicator(); 
                     }
                 }
                 if(isSolved) return;
