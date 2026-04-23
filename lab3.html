@@ -91,7 +91,13 @@
         .nav-fab { position: fixed; top: 25px; right: 25px; width: 65px; height: 65px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
         .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .nav-fab:active { transform: translateY(4px); box-shadow: 0 0 0 #463438; }
-        .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        .game-canvas, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        .circuit-unit {
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            touch-action: none;
+        }
         #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
@@ -177,13 +183,17 @@
         let fishAtNode = [];
         let lineMode = 1, hoverLine = null;
         let currentOptionIndex = 0, currentOptions = [], draggedIndex = null;
-        let isShakeCtrlActive = false; 
+        let isShakeCtrlActive = false;
         let lastShakeTime = 0;
+        let shakePermissionRequested = false;
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
+        let originalDragEl = null;
         let isTouchDevice = false;
         let activeMobileLine = null;
+        let touchStartY = 0;
+        let lastSwipeTime = 0;
         let lastTiltDirection = 0;
         const TILT_THRESHOLD = 15;
         const RETURN_THRESHOLD = 10;
@@ -217,7 +227,7 @@
                     const toast = document.getElementById('shake-toast');
                     toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
                     toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 8000);
+                    setTimeout(() => { toast.style.opacity = '0'; }, 5000);
                 }
             }
         }
@@ -279,6 +289,37 @@
                     hideIndicator();
                 }
             });
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && activeMobileLine) {
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && activeMobileLine) {
+                    if (lineMode === 1) return;
+                    if (e.cancelable) e.preventDefault();
+
+                    const currentY = e.touches[0].clientY;
+                    const diff = currentY - touchStartY;
+                    const now = Date.now();
+
+                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
+                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+
+                        touchStartY = currentY;
+                        lastSwipeTime = now;
+                    }
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                touchStartY = 0;
+            });
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', e => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
@@ -299,54 +340,78 @@
             });
         };
         function startMobileDrag(touch, el, index) {
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
             mobileDragging = true;
             mDragIndex = index;
+            originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
             dragGhost = el.cloneNode(true);
+            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
             dragGhost.style.position = 'fixed';
             dragGhost.style.zIndex = '999999';
-            dragGhost.style.opacity = '0.9';
+            dragGhost.style.opacity = '1';
             dragGhost.style.pointerEvents = 'none';
             dragGhost.style.transition = 'none';
-            dragGhost.classList.remove('selected-gate');
-            dragGhost.style.background = 'transparent';
+            dragGhost.style.animation = 'none';
+            dragGhost.style.transform = 'translateZ(0)';
+            dragGhost.style.willChange = 'left, top';
+            dragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
+            dragGhost.style.borderRadius = '12px';
             dragGhost.style.boxShadow = 'none';
             dragGhost.style.border = 'none';
-            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
             const rect = el.getBoundingClientRect();
             dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
             dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
+            dragGhost.querySelectorAll('*').forEach(node => {
+                node.style.transition = 'none';
+                node.style.animation = 'none';
+                node.style.pointerEvents = 'none';
+            });
             document.body.appendChild(dragGhost);
-            const visuals = el.querySelector('.gate-visuals');
-            if (visuals) visuals.style.opacity = '0.2';
-            else el.style.opacity = '0.2'; 
+            el.style.opacity = '0.35';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
-            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
-            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
+            const x = touch.clientX - dragGhost.offsetWidth / 2;
+            const y = touch.clientY - dragGhost.offsetHeight / 2;
+            dragGhost.style.left = x + 'px';
+            dragGhost.style.top = y + 'px';
         }
         function endMobileDrag(touch) {
             mobileDragging = false;
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
             document.querySelectorAll('.gate-visuals').forEach(v => v.style.opacity = '1');
-            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1'); 
+            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
             const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
             let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
             if (dropUnit) {
                 let children = Array.from(document.getElementById('circuit-content').children);
-                let targetIndex = children.indexOf(dropUnit) - 1; 
+                let targetIndex = children.indexOf(dropUnit) - 1;
                 if (targetIndex >= 0 && targetIndex < gateHistory.length && targetIndex !== mDragIndex) {
-                    if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                    if (typeof pop !== 'undefined' && pop.play) {
+                        pop.currentTime = 0;
+                        pop.play().catch(e => {});
+                    }
                     const oldHistory = [...gateHistory];
                     const movedItem = gateHistory.splice(mDragIndex, 1)[0];
                     gateHistory.splice(targetIndex, 0, movedItem);
-                    actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+                    actionStack.push({
+                        type: 'replace',
+                        index: 0,
+                        oldGates: oldHistory,
+                        newGate: null
+                    });
                     selectedIndices = [];
                     recalculate();
                 }
             }
+            originalDragEl = null;
             mDragIndex = null;
         }
         function navWithSound(url) {
@@ -692,6 +757,10 @@
         function cycleLineMode() {
             pop.currentTime = 0;
             pop.play();
+            if (!shakePermissionRequested) {
+                window.addEventListener('devicemotion', handleMotion);
+                shakePermissionRequested = true;
+            }
             const modes = [1, 2, 4];
             lineMode = modes[(modes.indexOf(lineMode) + 1) % modes.length];
             const btn = document.getElementById('mode-btn');
