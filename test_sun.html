@@ -344,17 +344,30 @@
             dragGhost = el.cloneNode(true);
             dragGhost.style.position = 'fixed';
             dragGhost.style.zIndex = '999999';
-            dragGhost.style.opacity = '0.8';
+            dragGhost.style.opacity = '0.9'; // 提高清晰度
             dragGhost.style.pointerEvents = 'none';
             dragGhost.style.transition = 'none';
             dragGhost.classList.remove('selected-gate');
+
+            // 修改：設定拖移時的背景，不使用虛線邊框
+            dragGhost.style.background = 'rgba(255, 183, 197, 0.4)';
+            dragGhost.style.borderRadius = '12px';
+            dragGhost.style.boxShadow = '0 8px 16px rgba(70, 52, 56, 0.15)';
+            dragGhost.style.boxSizing = 'border-box';
+            dragGhost.style.border = 'none'; // 確保沒有邊框
+
+            // 移除拖曳殘影中的橫線
+            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
             
             const rect = el.getBoundingClientRect();
             dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
             dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
             document.body.appendChild(dragGhost);
             
-            el.style.opacity = '0.2';
+            // 讓原本位置的 gate 變半透明，但線保持不透明
+            const visuals = el.querySelector('.gate-visuals');
+            if (visuals) visuals.style.opacity = '0.2';
+            else el.style.opacity = '0.2'; // 備用方案
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
@@ -364,7 +377,10 @@
         function endMobileDrag(touch) {
             mobileDragging = false;
             if (dragGhost) { dragGhost.remove(); dragGhost = null; }
-            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
+            
+            // 恢復所有原本被半透明的 gate 視覺元素
+            document.querySelectorAll('.gate-visuals').forEach(v => v.style.opacity = '1');
+            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1'); // 備用恢復
 
             const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
             let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
@@ -557,7 +573,6 @@
             }
         }
         
-        // 確保初始建立魚的節點時，位置直接卡進貓嘴，避免沒電路時從 (0,0) 滑進來的問題
         function initGameLayout() {
             const nL = document.getElementById('nodes-layer');
             const fL = document.getElementById('fishes-layer');
@@ -568,7 +583,6 @@
                 fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper" style="top:${n.t + 78}px; left:${n.l + 22}px;"><div class="fish-label">${bin}</div><img src="./image/Fish${i + 1}.svg"></div>`;
             }
         }
-        
         function highlightByGate(type) {
             clearHighlight();
             const { ctrl, target, zero } = parseGateSpec(type);
@@ -803,7 +817,7 @@
                 const oldHistory = [...gateHistory];
                 selectedIndices.forEach(idx => gateHistory.splice(idx, 1));
                 gateHistory[replaceIdx] = gateStr;
-                actionStack.push({ type: 'replace', index: replaceIdx, oldGates: oldHistory, newGate: gateStr });
+                actionStack.push({ type: 'replace', index: replaceIdx, oldHistory: oldHistory, newGate: gateStr });
                 selectedIndices = [];
             } else {
                 gateHistory.push(gateStr);
@@ -947,6 +961,7 @@
             const drawWires = (parentUnit, stepIdx) => {
                 for (let q = 0; q < 3; q++) {
                     let wire = document.createElement('div');
+                    wire.className = 'horizontal-wire'; 
                     wire.style.position = 'absolute';
                     wire.style.left = '0';
                     wire.style.width = '100%';
@@ -979,6 +994,7 @@
             startU.style.cursor = 'default';
             drawWires(startU, 0);
             c.appendChild(startU);
+            
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected-gate' : '');
@@ -986,16 +1002,64 @@
                 u.draggable = !isTouchDevice && activeTraceInput === null;
                 u.oncontextmenu = (e) => { e.preventDefault(); return false; };
 
-                if (activeTraceInput !== null) {
-                    if (idx === currentTraceStep - 1) u.classList.add('trace-active');
-                    else if (idx >= currentTraceStep) u.style.opacity = '0.2';
-                }
-
                 drawWires(u, idx + 1);
 
+                // 將 gate 視覺元素打包到獨立容器中，以控制半透明效果
+                const visuals = document.createElement('div');
+                visuals.className = 'gate-visuals';
+                visuals.style.position = 'absolute';
+                visuals.style.inset = '0';
+                visuals.style.width = '100%';
+                visuals.style.height = '100%';
+                visuals.style.pointerEvents = 'none'; 
+                
+                if (activeTraceInput !== null) {
+                    if (idx === currentTraceStep - 1) u.classList.add('trace-active');
+                    else if (idx >= currentTraceStep) visuals.style.opacity = '0.2';
+                }
+
+                u.appendChild(visuals);
+
                 if (!isTouchDevice && activeTraceInput === null) {
-                    u.ondragstart = (e) => { draggedIndex = idx; e.dataTransfer.effectAllowed = 'move'; e.target.style.opacity = '0.5'; };
-                    u.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; };
+                    let dragClone = null;
+                    u.ondragstart = (e) => { 
+                        draggedIndex = idx; 
+                        e.dataTransfer.effectAllowed = 'move'; 
+                        
+                        // 建立沒有橫線的分身，供系統當作拖曳縮圖
+                        dragClone = u.cloneNode(true);
+                        dragClone.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
+                        dragClone.style.position = 'absolute';
+                        dragClone.style.top = '-9999px';
+                        dragClone.style.left = '-9999px';
+                        
+                        // --- 修改：設定拖曳時的背景，移除邊框 ---
+                        dragClone.style.background = 'rgba(255, 183, 197, 0.4)';
+                        dragClone.style.borderRadius = '12px';
+                        dragClone.style.boxSizing = 'border-box';
+                        dragClone.style.border = 'none'; // 確保沒有邊框
+                        // ----------------------------------------
+                        
+                        document.body.appendChild(dragClone);
+                        
+                        const rect = u.getBoundingClientRect();
+                        const offsetX = e.clientX - rect.left;
+                        const offsetY = e.clientY - rect.top;
+                        e.dataTransfer.setDragImage(dragClone, offsetX, offsetY);
+                        
+                        // 利用 setTimeout 將原本位置的 gate 本身調暗，但橫線恢復正常
+                        setTimeout(() => {
+                            if (document.body.contains(dragClone)) dragClone.remove();
+                            visuals.style.opacity = '0.2';
+                        }, 0);
+                    };
+                    
+                    u.ondragover = (e) => { 
+                        e.preventDefault(); 
+                        e.dataTransfer.dropEffect = 'move'; 
+                        return false; 
+                    };
+
                     u.ondrop = (e) => {
                         if (draggedIndex === null || draggedIndex === idx) return;
                         pop.currentTime = 0; pop.play();
@@ -1005,7 +1069,11 @@
                         actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
                         selectedIndices = []; recalculate(); draggedIndex = null;
                     };
-                    u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIndex = null; };
+                    u.ondragend = (e) => { 
+                        if (dragClone && document.body.contains(dragClone)) dragClone.remove();
+                        visuals.style.opacity = '1';
+                        draggedIndex = null; 
+                    };
                 }
 
                 let touchTimer = null;
@@ -1077,7 +1145,7 @@
                     const v = document.createElement('div');
                     v.className = 'connection-v-line';
                     v.style.cssText = `top:${30 + min * 40}px; height:${(max - min) * 40}px; z-index: 5;`;
-                    u.appendChild(v);
+                    visuals.appendChild(v);
                     ctrl.forEach(cl => {
                         const d = document.createElement('div');
                         d.className = 'control-dot';
@@ -1087,7 +1155,7 @@
                             d.style.background = '#fff';
                             d.style.border = '2.5px solid #463438';
                         }
-                        u.appendChild(d);
+                        visuals.appendChild(d);
                     });
                 }
                 if (target !== -1) {
@@ -1095,7 +1163,7 @@
                     t.className = 'circuit-target';
                     t.style.top = `${31 + target * 40}px`;
                     t.style.zIndex = '6';
-                    u.appendChild(t);
+                    visuals.appendChild(t);
                 }
                 c.appendChild(u);
             });
