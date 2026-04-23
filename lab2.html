@@ -20,24 +20,23 @@
         .trace-fish-active { filter: drop-shadow(0 0 12px #FFB7C5) drop-shadow(0 0 20px #FFB7C5) !important; transform: scale(1.15) !important; z-index: 45 !important; }
         .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 70px; height: auto; }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
+        .fish-label { background: #000000b6; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
         .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 2px 2px 0 #463438; box-shadow: 0 4px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
         .game-btn:active { top: 6px; box-shadow: 0 2px 0 #463438; }
         .btn-red { background: #FFB7C5; }
         .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: #fff; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
-        .multi-toggle-btn.active-mode { background: #629eed; }
-        .multi-toggle-btn.mode-5 { background: #ee9ac6; }
+        .trace-active-btn { background: #FFB7C5 !important; border-color: #463438 !important; }
+        .mode2-active-btn { background: #629eed !important; border-color: #463438 !important; }
         .view-btn { background: #3d6183; }
-        .multi-toggle-btn:hover, .mode-toggle-fixed:hover, .view-btn:hover, .game-btn:hover, .btn-share:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
-        .multi-toggle-btn:active, .mode-toggle-fixed:active, .view-btn:active, .game-btn:active, .btn-share:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438; }
-        .gate-btn-v2 { background: #ffffff; border: 2.5px solid #463438; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #463438; cursor: pointer; box-shadow: 0 3px 6px #463438; transition: all 0.1s; text-align: center; }
+        .multi-toggle-btn:hover, .mode-toggle-fixed:hover, .view-btn:hover, .game-btn:hover, .btn-share:hover {transform: translateY(-2px);box-shadow: 0 6px 0 #000; }
+        .multi-toggle-btn:active, .mode-toggle-fixed:active, .view-btn:active, .game-btn:active, .btn-share:active {transform: translateY(2px); box-shadow: 0 2px 0 #000;}
+        .gate-btn-v2 { background: #ffffff; border: 2.5px solid #000; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
         .gate-btn-v2:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .gate-btn-v2:hover, .func-btn:hover { background-color: #fee58b !important; border-color: #463438 !important; color: #463438 !important; box-shadow: 0 0 5px #463438, 0 3px 0 #463438 !important; transform: translateY(-2px); }
+        .gate-btn-v2:hover, .func-btn:hover { background-color: #ffb7c5 !important; border-color: #000 !important; color: #000 !important; box-shadow: 0 0 5px rgba(0, 0, 0, 0.7), 0 3px 0 #000 !important; transform: translateY(-2px); }
         .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); }
         .btn-reset { background: #FFF9F0; color: #463438; }
         .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; pointer-events: none; }
         .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; pointer-events: auto; }
-        .gate-btn-v2:hover, .func-btn:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; transform: translateY(-2px); box-shadow: 0 3px 0 #463438; }
         #node-0, #node-2 { left: 65px !important; }
         #node-1, #node-3 { left: 405px !important; }
         .line-h { left: 130px !important; }
@@ -61,14 +60,14 @@
         .circuit-unit { min-width: 50px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
         .circuit-unit:hover { background: rgba(239, 68, 68, 0.2); border-radius: 12px; }
         .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D; }
-        .circuit-unit.trace-active { background: #bdfc507a !important; box-shadow: inset 0 0 0 3px #99C44D ; border-radius: 12px; z-index: 100 !important; }
+        .circuit-unit.trace-active { background: #bdfc507a !important; box-shadow: inset 0 0 0 3px #99C44D !important; border-radius: 12px; z-index: 100 !important; }
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; z-index: 5; transform: translate(-50%, -50%); }
         .connection-v-line { position: absolute; width: 2.5px; background: #463438; z-index: 3; transform: translateX(-50%); }
         .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid #463438; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
         .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background-color: #463438; }
         .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background-color: #463438; }
         .gate-btn-circuit { padding: 0 !important; height: 76px; display: flex; align-items: center; justify-content: center; border-radius: 16px !important; position: relative; }
-        .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
+        .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#000, #000), linear-gradient(#000, #000); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
@@ -78,20 +77,24 @@
         #tt-body td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         #tt-body td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
         #tt-body tr:hover td { background-color: rgba(0, 0, 0, 0.05); cursor: pointer; }
-        #tt-body tr.active-trace td { background-color: #a3cd5a9f !important; color: #463438 !important; }
-        #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 40px; padding: 10px 4px; gap: 4px; margin-top: 8px; margin-bottom: 10px; border: 2.5px solid #463438; }
+        #tt-body tr.active-trace td { background-color: #a3cd5a9f !important; color: #463438 !important; font-weight: bold; }
+        #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 40px; padding: 10px 4px; gap: 4px; margin-top: 8px; margin-bottom: 10px; border: 2.5px solid #000; }
         #trace-controls .func-btn { margin: 0; padding: 10px 8px; font-size: 11px; border-radius: 50px; background: #e7e5dc; color: white; }
         #trace-controls .btn-red { background: #FFB7C5; border-color: #463438; }
         #trace-step-text { color: #463438; font-family: 'Courier New', monospace; font-size: 24px; }
-        #trace-controls span.text-green-700 { color: #99C44D; font-size: 14px; }
         .btn-share { background: #99C44D; border: 4px solid #463438; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; }
         .btn-share:hover { background-color: #99C44D !important; }
         .nav-fab { position: fixed; top: 25px; right: 25px; width: 70px; height: 70px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
         .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #463438; }
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-circuit { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .dragging-snapshot-frame { position: absolute; inset: 4px; border: 4px; border-radius: 12px; opacity: 0; z-index: 50; pointer-events: none; }
+        .circuit-unit.during-snapshot .dragging-snapshot-frame { opacity: 1 !important; }
     </style>
 </head>
 <body id="body-root" class="pro-active">
+    <div id="shake-toast">Ctrl Mode: ON</div>
     <button onclick="navWithSound('lab3.html')" class="nav-fab" title="Go to 3-Bit">3</button>
     <div class="lab-shell">
         <div class="lab-topbar">
@@ -171,13 +174,13 @@
                     </div>
                 </div>
                 <div id="trace-controls" class="hidden-el shrink-0 w-full mt-auto flex gap-1 items-center bg-gray-100 p-2 rounded-2xl border-4 border-black shadow-[0_4px_0_0_rgba(0,0,0,0.1)] opacity-50 pointer-events-none transition-opacity">
-                    <button class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #463438;" onclick="traceMove(-1)">◀</button>
+                    <button class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #000;" onclick="traceMove(-1)">◀</button>
                     <div class="flex flex-col items-center justify-center px-1 min-w-[50px]">
-                        <span class="text-[10px] font-black text-green-700 leading-none">STEP</span>
+                        <span class="text-[14px] font-black leading-none" style="color: #99C44D;">STEP</span>
                         <span id="trace-step-text" class="font-black text-lg leading-none">0</span>
                     </div>
-                    <button class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #463438;" onclick="traceMove(1)">▶</button>
-                    <button class="func-btn btn-red m-0 py-2 px-1 text-xs text-white border-black flex-1" style="box-shadow: 0 2px 0 #463438;" onclick="exitTrace()">EXIT</button>
+                    <button class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #000;" onclick="traceMove(1)">▶</button>
+                    <button class="func-btn btn-red m-0 py-2 px-1 text-xs text-white border-black flex-1" style="box-shadow: 0 2px 0 #000;" onclick="exitTrace()">EXIT</button>
                 </div>
             </div>
             <div class="game-canvas" id="main-canvas">
@@ -214,10 +217,37 @@
         let gateHistory = [], historyStack = [[]];
         let selectedIndices = [], draggedIndex = null;
         let isMode2 = false;
+        let pendingMode2Dir = null;
         let isTraceMode = false;
         let activeTraceInput = null;
         let currentTraceStep = 0;
         const pop = new Audio('pop.m4a');
+        let isTouchDevice = false;
+        let mobileDragging = false;
+        let mDragIndex = null;
+        let dragGhost = null;
+        let isShakeCtrlActive = false; 
+        let lastShakeTime = 0;
+        let gyroPermissionGranted = false;
+        window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+            const threshold = 20;
+            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+            if (delta > threshold) {
+                const now = Date.now();
+                if (now - lastShakeTime > 1000) { 
+                    isShakeCtrlActive = !isShakeCtrlActive;
+                    lastShakeTime = now;
+                    if (navigator.vibrate) navigator.vibrate([100]); 
+                    const toast = document.getElementById('shake-toast');
+                    toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+                }
+            }
+        }
         window.onload = () => {
             initLabData();
             recalculatePositions();
@@ -227,7 +257,74 @@
                 e.preventDefault();
                 cw.scrollLeft += e.deltaY;
             });
+            const requestPermissions = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') gyroPermissionGranted = true;
+                    } catch (error) { console.log("Gyro permission denied:", error); }
+                } else { gyroPermissionGranted = true; }
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceMotionEvent.requestPermission();
+                        if (permission === 'granted') window.addEventListener('devicemotion', handleMotion);
+                    } catch (e) { console.log("Motion permission denied:", e); }
+                } else { window.addEventListener('devicemotion', handleMotion); }
+                window.removeEventListener('click', requestPermissions);
+                window.removeEventListener('touchstart', requestPermissions);
+            };
+            window.addEventListener('click', requestPermissions);
+            window.addEventListener('touchstart', requestPermissions);
         };
+        function startMobileDrag(touch, el, index) {
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            mobileDragging = true;
+            mDragIndex = index;
+            if (navigator.vibrate) navigator.vibrate(50);
+            dragGhost = el.cloneNode(true);
+            dragGhost.style.position = 'fixed';
+            dragGhost.style.zIndex = '999999';
+            dragGhost.style.opacity = '0.9';
+            dragGhost.style.pointerEvents = 'none';
+            dragGhost.style.transition = 'none';
+            dragGhost.classList.remove('selected');
+            dragGhost.style.background = 'transparent';
+            dragGhost.style.border = 'none';
+            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
+            const rect = el.getBoundingClientRect();
+            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
+            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
+            document.body.appendChild(dragGhost);
+            const visuals = el.querySelector('.gate-visuals');
+            if (visuals) visuals.style.opacity = '0.35';
+        }
+        function moveMobileDrag(touch) {
+            if (!dragGhost) return;
+            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
+            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
+        }
+        function endMobileDrag(touch) {
+            mobileDragging = false;
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            document.querySelectorAll('.gate-visuals').forEach(v => v.style.opacity = '1');
+            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
+            if (dropUnit) {
+                let children = Array.from(document.getElementById('circuit-content').children);
+                let targetIndex = children.indexOf(dropUnit) - 1;
+                if (targetIndex >= 0 && targetIndex <= gateHistory.length && targetIndex !== mDragIndex) {
+                    if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
+                    gateHistory.splice(targetIndex, 0, movedItem);
+                    pushHistory();
+                    selectedIndices = [];
+                    recalculatePositions();
+                    finishMove();
+                }
+            }
+            mDragIndex = null;
+        }
         function initLabData() {
             const urlParams = new URLSearchParams(window.location.search);
             const sharedCircuit = urlParams.get('circuit');
@@ -243,8 +340,7 @@
             }
         }
         function toggleTraceMode() {
-            pop.currentTime = 0;
-            pop.play();
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             isTraceMode = !isTraceMode;
             const btn = document.getElementById('view-toggle-btn');
             const gView = document.getElementById('gate-view-container');
@@ -252,14 +348,14 @@
             const tCtrl = document.getElementById('trace-controls');
             if (isTraceMode) {
                 btn.innerText = "Trace: ON";
-                btn.classList.add('mode-5');
+                btn.classList.add('trace-active-btn');
                 gView.classList.add('hidden-el');
                 tView.classList.remove('hidden-el');
                 tCtrl.classList.remove('hidden-el', 'opacity-50', 'pointer-events-none');
                 updateTruthTable();
             } else {
                 btn.innerText = "Trace: OFF";
-                btn.classList.remove('mode-5');
+                btn.classList.remove('trace-active-btn');
                 gView.classList.remove('hidden-el');
                 tView.classList.add('hidden-el');
                 tCtrl.classList.add('hidden-el', 'opacity-50', 'pointer-events-none');
@@ -389,44 +485,27 @@
                     </tr>`;
             }
         }
-        function handleDragStart(e, index) {
-            draggedIndex = index;
-            e.dataTransfer.effectAllowed = 'move';
-            e.target.style.opacity = '0.5';
-        }
-        function handleDragOver(e) {
-            if (e.preventDefault) e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-       
-        function handleDrop(e, targetIndex) {
-            if (draggedIndex === null || draggedIndex === targetIndex) return;
-            e.stopPropagation();
-            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
-           
-            const movedGate = gateHistory.splice(draggedIndex, 1)[0];
-            gateHistory.splice(targetIndex, 0, movedGate);
-            pushHistory();
-            selectedIndices = [];
-            recalculatePositions();
-            finishMove();
-            draggedIndex = null;
-        }
         function toggleMode2() {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             isMode2 = !isMode2;
             const btn = document.getElementById('mode-2-btn');
             btn.innerText = isMode2 ? "Mode: 2" : "Mode: 1";
-            btn.classList.toggle('active-mode', isMode2);
+            btn.classList.toggle('mode2-active-btn', isMode2);
+            pendingMode2Dir = null;
+            document.querySelectorAll('.connection-line').forEach(el => el.classList.remove('line-highlight'));
         }
         function syncHighlight(dir, isOn) {
             if (!isMode2) return;
             const lines = dir === 'H' ? ['line-h-0', 'line-h-1'] : ['line-v-0', 'line-v-1'];
             lines.forEach(id => {
                 const el = document.getElementById(id);
-                if (isOn) el.classList.add('line-highlight');
-                else el.classList.remove('line-highlight');
+                if (isOn) {
+                    el.classList.add('line-highlight');
+                } else {
+                    if (pendingMode2Dir !== dir) {
+                        el.classList.remove('line-highlight');
+                    }
+                }
             });
         }
         function syncGateHighlight(gate, isOn) {
@@ -437,7 +516,6 @@
             else if (gate === 'CX01') lineIds = ['line-h-1'];
             else if (gate === 'C0X10') lineIds = ['line-v-0'];
             else if (gate === 'CX10') lineIds = ['line-v-1'];
-           
             lineIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
@@ -448,8 +526,20 @@
         }
         function handleLineClick(dir) {
             if (isMode2) {
-                const gate = (dir === 'H') ? 'X1' : 'X0';
-                applyGate(gate);
+                if (pendingMode2Dir === dir) {
+                    const gate = (dir === 'H') ? 'X1' : 'X0';
+                    pendingMode2Dir = null;    
+                    syncHighlight(dir, false); 
+                    applyGate(gate);           
+                } else {
+                    if (pendingMode2Dir) {
+                        const oldDir = pendingMode2Dir;
+                        pendingMode2Dir = null;
+                        syncHighlight(oldDir, false);
+                    }
+                    pendingMode2Dir = dir;
+                    syncHighlight(dir, true);
+                }
             } else {
                 const eventId = event.currentTarget.id;
                 if (eventId === 'line-h-0') applyGate('C0X01');
@@ -461,7 +551,7 @@
         function pushHistory() { historyStack.push([...gateHistory]); }
         function applyGate(g) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
-           
+            
             if (selectedIndices.length > 0) {
                 let targetIdx = Math.min(...selectedIndices);
                 let newHistory = [];
@@ -494,9 +584,9 @@
             });
         }
         function recalculatePositions() {
-            let cp = [...initialFishAtNode];
+            let cp = [...initialFishAtNode]; 
             gateHistory.forEach(g => {
-                const pm = getPermutationForGate(g);
+                const pm = getPermutationForGate(g); 
                 const next = new Array(4);
                 for (let oldNode = 0; oldNode < 4; oldNode++) {
                     const newNode = pm[oldNode];
@@ -532,7 +622,6 @@
             const c = document.getElementById('circuit-content');
             const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
-           
             let states = [];
             if (activeTraceInput !== null) {
                 let curr = activeTraceInput;
@@ -545,6 +634,7 @@
             const drawWires = (parentUnit, stepIdx) => {
                 for (let q = 0; q < 2; q++) {
                     let wire = document.createElement('div');
+                    wire.className = 'horizontal-wire';
                     wire.style.position = 'absolute';
                     wire.style.left = '0';
                     wire.style.width = '100%';
@@ -580,23 +670,103 @@
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
-                u.draggable = (activeTraceInput === null);
-                u.ondragstart = (e) => handleDragStart(e, idx);
-                u.ondragover = (e) => handleDragOver(e);
-                u.ondrop = (e) => handleDrop(e, idx);
-                u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIndex = null; };
-                u.onmouseover = () => syncGateHighlight(g, true);
-                u.onmouseout = () => syncGateHighlight(g, false);
-               
+                u.draggable = !isTouchDevice && (activeTraceInput === null);
+                u.oncontextmenu = (e) => { e.preventDefault(); return false; };
+                drawWires(u, idx + 1);
+                const sFrame = document.createElement('div');
+                sFrame.className = 'dragging-snapshot-frame';
+                u.appendChild(sFrame);
+                const visuals = document.createElement('div');
+                visuals.className = 'gate-visuals';
+                visuals.style.position = 'absolute';
+                visuals.style.inset = '0';
+                visuals.style.width = '100%';
+                visuals.style.height = '100%';
+                visuals.style.pointerEvents = 'none';
                 if (activeTraceInput !== null) {
                     if (idx === currentTraceStep - 1) u.classList.add('trace-active');
-                    else if (idx >= currentTraceStep) u.style.opacity = '0.2';
+                    else if (idx >= currentTraceStep) visuals.style.opacity = '0.2';
                 }
-                drawWires(u, idx + 1);
+                u.appendChild(visuals);
+                if (!isTouchDevice && activeTraceInput === null) {
+                    u.ondragstart = (e) => {
+                        draggedIndex = idx;
+                        e.dataTransfer.effectAllowed = 'move';
+                        u.classList.add('during-snapshot'); 
+                        const wires = u.querySelectorAll('.horizontal-wire');
+                        wires.forEach(w => w.style.opacity = '0');
+                        u.style.background = 'transparent'; 
+                        visuals.style.opacity = '1';
+                        setTimeout(() => {
+                            u.classList.remove('during-snapshot'); 
+                            wires.forEach(w => w.style.opacity = '1');
+                            u.style.background = '';
+                            visuals.style.opacity = '0.2';
+                        }, 0);
+                    };
+                    u.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; };
+                    u.ondrop = (e) => {
+                        if (draggedIndex === null || draggedIndex === idx) return;
+                        e.stopPropagation();
+                        if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(err=>{}); }
+                        const movedGate = gateHistory.splice(draggedIndex, 1)[0];
+                        gateHistory.splice(idx, 0, movedGate);
+                        pushHistory();
+                        selectedIndices = [];
+                        recalculatePositions();
+                        finishMove();
+                        draggedIndex = null;
+                    };
+                    u.ondragend = (e) => { 
+                        visuals.style.opacity = '1';
+                        draggedIndex = null; 
+                    };
+                }
+                let touchTimer = null;
+                let startX, startY;
+                u.addEventListener('touchstart', (e) => {
+                    if (activeTraceInput !== null || e.touches.length > 1) return;
+                    u.draggable = false; 
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    touchTimer = setTimeout(() => {
+                        touchTimer = null;
+                        startMobileDrag(e.touches[0], u, idx);
+                    }, 300); 
+                }, {passive: true});
+                u.addEventListener('touchmove', (e) => {
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        moveMobileDrag(e.touches[0]);
+                    } else if (touchTimer) {
+                        let dx = e.touches[0].clientX - startX;
+                        let dy = e.touches[0].clientY - startY;
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                            clearTimeout(touchTimer);
+                            touchTimer = null;
+                        }
+                    }
+                }, {passive: false});
+                u.addEventListener('touchend', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        endMobileDrag(e.changedTouches[0]);
+                    }
+                    if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                });
+                u.addEventListener('touchcancel', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (mobileDragging) endMobileDrag(e.changedTouches[0]);
+                    if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                });
+                u.onmouseover = () => syncGateHighlight(g, true);
+                u.onmouseout = () => syncGateHighlight(g, false);
                 u.onclick = (e) => {
-                    if (activeTraceInput !== null) return;
-                    if (e.ctrlKey) {
-                        if (selectedIndices.includes(idx)) selectedIndices = selectedIndices.filter(i => i !== idx);
+                    if (activeTraceInput !== null || mobileDragging) return;
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
+                        const sIdx = selectedIndices.indexOf(idx);
+                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
                         renderCircuit();
                     } else {
@@ -610,7 +780,7 @@
                     t.className = 'circuit-target';
                     t.style.left = '50%';
                     t.style.top = (tY+1.2)+'px';
-                    u.appendChild(t);
+                    visuals.appendChild(t);
                 }
                 else {
                     const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01?20:60, tY = is01?60:20;
@@ -619,18 +789,19 @@
                     v.style.left = '50%';
                     v.style.top = Math.min(cY,tY)+'px';
                     v.style.height = '41px';
-                    u.appendChild(v);
+                    visuals.appendChild(v);
                     const d = document.createElement('div');
                     d.className = 'control-dot';
                     d.style.left = '50%';
                     d.style.top = (cY)+'px';
                     if(is0){d.style.background='white'; d.style.border='2.5px solid black';}
-                    u.appendChild(d);
+                    visuals.appendChild(d);
+                    
                     const t = document.createElement('div');
                     t.className = 'circuit-target';
                     t.style.left = '50%';
                     t.style.top = (tY+1.2)+'px';
-                    u.appendChild(t);
+                    visuals.appendChild(t);
                 }
                 c.appendChild(u);
             });
@@ -641,7 +812,6 @@
             endU.style.cursor = 'default';
             drawWires(endU, states.length > 0 ? states.length - 1 : 0);
             c.appendChild(endU);
-           
             updateUndoStatus();
             if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null && activeTraceInput === null) {
                 setTimeout(() => { if(wrapper) wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }); }, 100);
