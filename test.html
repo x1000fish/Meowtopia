@@ -210,6 +210,8 @@
         let lastSwipeTime = 0;
         let isTouchDevice = false;       // 判斷是否為手機觸控裝置
         let activeMobileLine = null;     // 記錄手機端目前「選取中」的線段
+        let touchEndY = 0;
+        const SWIPE_THRESHOLD = 30; // 滑動的靈敏度（移動超過 30px 才算滑動）
 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
@@ -276,14 +278,14 @@
             updateUndoStatus();
             fetchLeaderboard();
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
-            
-            // 電腦版滾輪支援 (電路區橫向滾動)
+
+            // --- 電腦版：滾輪支援 (電路區橫向滾動) ---
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
             });
-            
-            // 電腦版滾輪支援 (切換 Mode 選項)
+
+            // --- 電腦版：滾輪支援 (切換 Mode 選項) ---
             document.addEventListener('wheel', (e) => {
                 if (!hoverLine || lineMode === 1 || lineMode === 8) return;
                 e.preventDefault();
@@ -292,40 +294,14 @@
                 showIndicator();
             }, { passive: false });
 
-            // 手機版兩指滑動 (切換 Mode 選項)
-            document.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 2) touchStartY = e.touches[0].clientY;
-            }, { passive: false });
-
-            document.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 2) {
-                    if (!hoverLine || lineMode === 1 || lineMode === 8) return;
-                    if (e.cancelable) e.preventDefault(); // 防止畫面縮放/滾動
-                    
-                    let currentY = e.touches[0].clientY;
-                    let diff = currentY - touchStartY;
-                    let now = Date.now();
-                    
-                    // 增加阻力避免切換太快
-                    if (Math.abs(diff) > 25 && now - lastSwipeTime > 250) {
-                        if (diff < 0) {
-                            currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        } else {
-                            currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        }
-                        showIndicator();
-                        touchStartY = currentY; 
-                        lastSwipeTime = now;
-                    }
-                }
-            }, { passive: false });
-
-            // 偵測是否為觸控設備 (只要螢幕被碰觸過一次就判定為是)
+            // --- 觸控設備偵測 ---
+            // 只要螢幕被碰觸過一次就判定為手機/平板
             window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
 
-            // 點擊畫布空白處時，取消線段的選取狀態
-            document.getElementById('main-canvas').addEventListener('touchstart', (e) => {
-                // 如果點擊到的不是線段，就隱藏選項
+            const canvas = document.getElementById('main-canvas');
+
+            // --- 手機版：點擊畫布空白處時，取消線段的選取狀態 ---
+            canvas.addEventListener('touchstart', (e) => {
                 if (!e.target.classList.contains('connection-line')) {
                     activeMobileLine = null;
                     hoverLine = null;
@@ -333,10 +309,55 @@
                 }
             });
 
-            const canvas = document.getElementById('main-canvas');
+            // --- 手機版：單指上下滑動 (切換 Mode 選項) ---
+            canvas.addEventListener('touchstart', (e) => {
+                // 只有在單指觸控，且已經點擊選取了某條線（Hover狀態）時，才開始記錄 Y 座標
+                if (e.touches.length === 1 && activeMobileLine) {
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && activeMobileLine) {
+                    if (lineMode === 1 || lineMode === 8) return; // 這些模式不需切換選項
+                    if (e.cancelable) e.preventDefault(); // 防止畫面跟著上下縮放或滾動
+                    
+                    let currentY = e.touches[0].clientY;
+                    let diff = currentY - touchStartY;
+                    let now = Date.now();
+                    
+                    // 增加阻力避免切換太快 (移動超過 25px 且間隔大於 250ms 才觸發)
+                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
+                        if (diff > 0) {
+                            // 向下滑動
+                            currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        } else {
+                            // 向上滑動
+                            currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                        }
+                        
+                        showIndicator();
+                        
+                        // 震動回饋 (Android 適用)
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                        
+                        // 重置起點與時間，允許連續不放手滑動切換
+                        touchStartY = currentY; 
+                        lastSwipeTime = now;
+                    }
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', () => {
+                // 手指離開時重置起點座標
+                touchStartY = 0;
+            });
+
+            // --- 電腦版：滑鼠指標跟隨 UI ---
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
-                if (indicator.classList.contains('active')) {
+                // 加上 !isTouchDevice 判斷，避免手機端干擾手動定位的 UI
+                if (indicator.classList.contains('active') && !isTouchDevice) {
                     const rect = canvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
