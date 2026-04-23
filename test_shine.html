@@ -219,6 +219,7 @@
         let fishAtNode = [];    
         let lineMode = 1, hoverLine = null;
         let currentOptionIndex = 0, currentOptions = [], draggedIndex = null;
+        let desktopDragGhost = null;
         // 搖晃與拖移變數
         let isShakeCtrlActive = false;
         let lastShakeTime = 0;
@@ -545,27 +546,45 @@
         function handleDragStart(e, index) {
             draggedIndex = index;
             e.dataTransfer.effectAllowed = 'move';
-            e.target.style.opacity = '0.5';
+            const dragEl = e.currentTarget;
+            dragEl.style.opacity = '0.5';
+            // 清掉舊的 ghost
+            if (desktopDragGhost) {
+                desktopDragGhost.remove();
+                desktopDragGhost = null;
+            }
+            // 複製一份給桌機原生拖曳預覽圖用
+            desktopDragGhost = dragEl.cloneNode(true);
+            // 移除 q0~q3 背景橫線，只保留 gate 本身
+            desktopDragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
+            // 移除淡粉色框 / 綠框 / trace框
+            desktopDragGhost.classList.remove('selected-gate', 'trace-active');
+            desktopDragGhost.style.background = 'transparent';
+            desktopDragGhost.style.boxShadow = 'none';
+            desktopDragGhost.style.borderRadius = '0';
+            // 避免影響畫面，但又要存在 DOM 才能給 setDragImage 用
+            desktopDragGhost.style.position = 'fixed';
+            desktopDragGhost.style.top = '-9999px';
+            desktopDragGhost.style.left = '-9999px';
+            desktopDragGhost.style.pointerEvents = 'none';
+            desktopDragGhost.style.opacity = '1';
+            desktopDragGhost.querySelectorAll('*').forEach(node => {
+                node.style.transition = 'none';
+                node.style.animation = 'none';
+            });
+            document.body.appendChild(desktopDragGhost);
+            // 用自訂 ghost 取代瀏覽器預設拖曳圖
+            if (e.dataTransfer.setDragImage) {
+                e.dataTransfer.setDragImage(
+                    desktopDragGhost,
+                    desktopDragGhost.offsetWidth / 2,
+                    desktopDragGhost.offsetHeight / 2
+                );
+            }
         }
         function handleDragOver(e) {
             if (e.preventDefault) e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-        function handleDrop(e, targetIndex) {
-            if (isSolved || draggedIndex === null || draggedIndex === targetIndex) return;
-            e.stopPropagation();
-            const oldHistory = [...gateHistory];
-            const movedItem = gateHistory.splice(draggedIndex, 1)[0];
-            gateHistory.splice(targetIndex, 0, movedItem);
-            actionStack.push({
-                type: 'replace',
-                index: 0,
-                oldGates: oldHistory,
-                newGate: null
-            });
-            draggedIndex = null;
-            recalculate();
             return false;
         }
         function handleDrop(e, targetIndex) {
@@ -576,6 +595,10 @@
             gateHistory.splice(targetIndex, 0, movedItem);
             actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
             draggedIndex = null;
+            if (desktopDragGhost) {
+                desktopDragGhost.remove();
+                desktopDragGhost = null;
+            }
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             recalculate();
             return false;
@@ -613,30 +636,34 @@
             } else {
                 window.addEventListener('devicemotion', handleMotion);
             }
-        }function startMobileDrag(touch, el, index) {
-            // 確保沒有舊殘影卡在畫面上
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
-            
+        }
+        function startMobileDrag(touch, el, index) {
             mobileDragging = true;
             mDragIndex = index;
-            if (navigator.vibrate) navigator.vibrate(50); // 長按小震動
-            
+            originalDragEl = el;
+            if (navigator.vibrate) navigator.vibrate(50);
             dragGhost = el.cloneNode(true);
+            dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
             dragGhost.style.position = 'fixed';
-            dragGhost.style.zIndex = '999999';
-            dragGhost.style.opacity = '0.8';
-            dragGhost.style.pointerEvents = 'none'; // 讓滑鼠/手指事件穿透
-            dragGhost.style.transition = 'none';    // 移除 CSS 動畫延遲，確保跟手
-            dragGhost.classList.remove('selected'); // 拖移時不要帶著選取的綠框
+            dragGhost.style.zIndex = '9999';
+            dragGhost.style.opacity = '1';
+            dragGhost.style.pointerEvents = 'none';
+            dragGhost.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
+            dragGhost.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
+            dragGhost.style.margin = '0';
+            dragGhost.style.transition = 'none';
+            dragGhost.style.animation = 'none';
+            dragGhost.style.transform = 'translateZ(0)';
+            dragGhost.style.willChange = 'left, top';
+            dragGhost.style.boxShadow = 'none';
             
-            const rect = el.getBoundingClientRect();
-            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
-            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
+            dragGhost.querySelectorAll('*').forEach(node => {
+                node.style.transition = 'none';
+                node.style.animation = 'none';
+                node.style.pointerEvents = 'none';
+            });
             document.body.appendChild(dragGhost);
-            
-            el.style.opacity = '0.2'; // 原本的位子變淡
         }
-        
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
             const x = touch.clientX - dragGhost.offsetWidth / 2;
@@ -1066,6 +1093,10 @@
                 u.addEventListener('dragend', (e) => {
                     e.target.style.opacity = '1';
                     draggedIndex = null;
+                    if (desktopDragGhost) {
+                        desktopDragGhost.remove();
+                        desktopDragGhost = null;
+                    }
                 });
                 u.onmouseenter = () => highlightByGate(g);
                 u.onmouseleave = () => clearHighlight();
