@@ -91,9 +91,12 @@
         .nav-fab { position: fixed; top: 25px; right: 25px; width: 65px; height: 65px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
         .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .nav-fab:active { transform: translateY(4px); box-shadow: 0 0 0 #463438; }
+        .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body id="body-root">
+    <div id="shake-toast">Ctrl Mode: ON</div>
     <button onclick="navWithSound('lab4.html')" class="nav-fab" title="Go to 4-Bit">4</button>
     <div class="w-full max-w-5xl">
         <div class="flex w-full px-4 mb-4 items-center">
@@ -174,6 +177,17 @@
         let fishAtNode = [];
         let lineMode = 1, hoverLine = null;
         let currentOptionIndex = 0, currentOptions = [], draggedIndex = null;
+        let isShakeCtrlActive = false; 
+        let lastShakeTime = 0;
+        let mobileDragging = false;
+        let mDragIndex = null;
+        let dragGhost = null;
+        let isTouchDevice = false;
+        let activeMobileLine = null;
+        let lastTiltDirection = 0;
+        const TILT_THRESHOLD = 15;
+        const RETURN_THRESHOLD = 10;
+        let gyroPermissionGranted = false;
         const pop = new Audio('pop.m4a');
         const baseOffsetY = 130;
         const side = 220;
@@ -189,12 +203,82 @@
             Object.defineProperty(pos, 'l', { get: () => pos.relX + offsetPro });
             return pos;
         });
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+            const threshold = 20;
+            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+            if (delta > threshold) {
+                const now = Date.now();
+                if (now - lastShakeTime > 1000) { 
+                    isShakeCtrlActive = !isShakeCtrlActive;
+                    lastShakeTime = now;
+                    if (navigator.vibrate) navigator.vibrate([100]); 
+                    const toast = document.getElementById('shake-toast');
+                    toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
+                    toast.style.opacity = '1';
+                    setTimeout(() => { toast.style.opacity = '0'; }, 8000);
+                }
+            }
+        }
         window.onload = () => {
             initLabData();
             initGameLayout();
             initGates();
             drawStaticLines();
             recalculate();
+            const requestPermissions = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') gyroPermissionGranted = true;
+                    } catch (error) { console.log("Gyro permission denied:", error); }
+                } else { gyroPermissionGranted = true; }
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceMotionEvent.requestPermission();
+                        if (permission === 'granted') window.addEventListener('devicemotion', handleMotion);
+                    } catch (e) { console.log("Motion permission denied:", e); }
+                } else { window.addEventListener('devicemotion', handleMotion); }
+                window.removeEventListener('click', requestPermissions);
+                window.removeEventListener('touchstart', requestPermissions);
+            };
+            window.addEventListener('click', requestPermissions);
+            window.addEventListener('touchstart', requestPermissions);
+            window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
+            window.addEventListener('deviceorientation', (e) => {
+                if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
+                let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
+                let tilt = 0;
+                if (orientation === 0) tilt = e.gamma;
+                else if (orientation === 90) tilt = e.beta;
+                else if (orientation === -90 || orientation === 270) tilt = -e.beta;
+                else if (orientation === 180) tilt = -e.gamma;
+                if (tilt === null) return;
+                if (lastTiltDirection === 0) {
+                    if (tilt > TILT_THRESHOLD) {
+                        lastTiltDirection = 1;
+                        currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                    } else if (tilt < -TILT_THRESHOLD) {
+                        lastTiltDirection = -1;
+                        currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                    }
+                } else {
+                    if (Math.abs(tilt) < RETURN_THRESHOLD) lastTiltDirection = 0;
+                }
+            });
+            const canvas = document.getElementById('main-canvas');
+            canvas.addEventListener('touchstart', (e) => {
+                if (!e.target.classList.contains('connection-line')) {
+                    activeMobileLine = null;
+                    hoverLine = null;
+                    hideIndicator();
+                }
+            });
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', e => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
@@ -206,15 +290,65 @@
                 else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 showIndicator();
             }, { passive: false });
-            const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', e => {
-                if (!indicator.classList.contains('active')) return;
+                if (!indicator.classList.contains('active') || isTouchDevice) return;
                 const rect = canvas.getBoundingClientRect();
                 indicator.style.left = `${e.clientX - rect.left}px`;
                 indicator.style.top = `${e.clientY - rect.top - 15}px`;
             });
         };
+        function startMobileDrag(touch, el, index) {
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            mobileDragging = true;
+            mDragIndex = index;
+            if (navigator.vibrate) navigator.vibrate(50);
+            dragGhost = el.cloneNode(true);
+            dragGhost.style.position = 'fixed';
+            dragGhost.style.zIndex = '999999';
+            dragGhost.style.opacity = '0.9';
+            dragGhost.style.pointerEvents = 'none';
+            dragGhost.style.transition = 'none';
+            dragGhost.classList.remove('selected-gate');
+            dragGhost.style.background = 'transparent';
+            dragGhost.style.boxShadow = 'none';
+            dragGhost.style.border = 'none';
+            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
+            const rect = el.getBoundingClientRect();
+            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
+            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
+            document.body.appendChild(dragGhost);
+            const visuals = el.querySelector('.gate-visuals');
+            if (visuals) visuals.style.opacity = '0.2';
+            else el.style.opacity = '0.2'; 
+        }
+        function moveMobileDrag(touch) {
+            if (!dragGhost) return;
+            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
+            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
+        }
+        function endMobileDrag(touch) {
+            mobileDragging = false;
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            document.querySelectorAll('.gate-visuals').forEach(v => v.style.opacity = '1');
+            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1'); 
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
+            if (dropUnit) {
+                let children = Array.from(document.getElementById('circuit-content').children);
+                let targetIndex = children.indexOf(dropUnit) - 1; 
+                if (targetIndex >= 0 && targetIndex < gateHistory.length && targetIndex !== mDragIndex) {
+                    if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                    const oldHistory = [...gateHistory];
+                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
+                    gateHistory.splice(targetIndex, 0, movedItem);
+                    actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+                    selectedIndices = [];
+                    recalculate();
+                }
+            }
+            mDragIndex = null;
+        }
         function navWithSound(url) {
             if (typeof pop !== 'undefined') {
                 pop.currentTime = 0;
@@ -385,38 +519,15 @@
                     </tr>`;
             }
         }
-        function handleDragStart(e, index) {
-            draggedIndex = index;
-            e.dataTransfer.effectAllowed = 'move';
-            e.target.style.opacity = '0.5';
-        }
-        function handleDragOver(e) {
-            if (e.preventDefault) e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-        function handleDrop(e, targetIndex) {
-            if (draggedIndex === null || draggedIndex === targetIndex) return;
-            e.stopPropagation();
-            const oldHistory = [...gateHistory];
-            const movedItem = gateHistory.splice(draggedIndex, 1)[0];
-            gateHistory.splice(targetIndex, 0, movedItem);
-            actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
-            draggedIndex = null;
-            if (typeof pop !== 'undefined' && pop.play) {
-                pop.currentTime = 0;
-                pop.play().catch(e => {});
-            }
-            recalculate();
-            return false;
-        }
+        
         function initGameLayout() {
             const nL = document.getElementById('nodes-layer');
             const fL = document.getElementById('fishes-layer');
             for (let i = 0; i < 8; i++) {
                 const bin = i.toString(2).padStart(3, '0');
-                nL.innerHTML += `<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px; left:${nodePositions[i].l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${i + 1}.svg"></div>`;
-                fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper"><div class="fish-label">${bin}</div><img src="./image/Fish${i + 1}.svg"></div>`;
+                const n = nodePositions[i];
+                nL.innerHTML += `<div class="node" id="node-${i}" style="top:${n.t}px; left:${n.l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${i + 1}.svg"></div>`;
+                fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper" style="top:${n.t + 78}px; left:${n.l + 22}px;"><div class="fish-label">${bin}</div><img src="./image/Fish${i + 1}.svg"></div>`;
             }
         }
         function highlightByGate(type) {
@@ -520,6 +631,7 @@
             line.id = `line-${Math.min(i, j)}-${Math.max(i, j)}`;
             line.style.cssText = `width:${len}px; height:4px; background:#463438; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
             line.onmouseenter = () => {
+                if (isTouchDevice || isTraceMode) return;
                 hoverLine = { i, j, dim };
                 if (lineMode === 1) {
                     highlightPairs([[i, j]]);
@@ -534,18 +646,46 @@
                 }
             };
             line.onmouseleave = () => {
+                if (isTouchDevice) return;
                 hoverLine = null;
                 hideIndicator();
             };
             line.onclick = e => {
                 e.stopPropagation();
+                if (isTraceMode) return;
                 if (lineMode === 1) {
                     const targetBit = 2 - dim;
                     const otherBits = [0, 1, 2].filter(b => b !== targetBit);
                     const cv1 = (i & (1 << (2 - otherBits[0]))) ? 1 : 0;
                     const cv2 = (i & (1 << (2 - otherBits[1]))) ? 1 : 0;
                     applyGate(`TOF_${cv1}_${cv2}_${otherBits[0]}_${otherBits[1]}_${targetBit}`);
-                } else if (currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                    return;
+                }
+                if (isTouchDevice) {
+                    const lineId = line.id;
+                    if (activeMobileLine !== lineId) {
+                        activeMobileLine = lineId;
+                        hoverLine = { i, j, dim };
+                        currentOptions = buildGateOptions(i, j, dim);
+                        currentOptionIndex = 0;
+
+
+                        const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                        const indicator = document.getElementById('ios-indicator');
+                        indicator.classList.remove('hidden-el');
+                        indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+                        indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+
+
+                        showIndicator();
+                    } else {
+                        if (currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                        activeMobileLine = null;
+                        hideIndicator();
+                    }
+                } else {
+                    if (currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                }
             };
             document.getElementById('lines-layer').appendChild(line);
         }
@@ -572,7 +712,8 @@
             highlightPairs(opt.highlightPairs);
         }
         function hideIndicator() {
-            document.getElementById('ios-indicator').classList.remove('active');
+            const ind = document.getElementById('ios-indicator');
+            if(ind) ind.classList.remove('active');
             clearHighlight();
         }
         function buildGateOptions(i, j, dim) {
@@ -618,11 +759,14 @@
             if (selectedIndices.length > 0) {
                 selectedIndices.sort((a, b) => b - a);
                 const replaceIdx = selectedIndices.pop();
+                const oldHistory = [...gateHistory];
                 selectedIndices.forEach(idx => gateHistory.splice(idx, 1));
                 gateHistory[replaceIdx] = gateStr;
+                actionStack.push({ type: 'replace', index: replaceIdx, oldGates: oldHistory, newGate: gateStr });
                 selectedIndices = [];
             } else {
                 gateHistory.push(gateStr);
+                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: gateStr });
             }
             if (typeof pop !== 'undefined' && pop.play) {
                 pop.currentTime = 0;
@@ -762,6 +906,7 @@
             const drawWires = (parentUnit, stepIdx) => {
                 for (let q = 0; q < 3; q++) {
                     let wire = document.createElement('div');
+                    wire.className = 'horizontal-wire'; 
                     wire.style.position = 'absolute';
                     wire.style.left = '0';
                     wire.style.width = '100%';
@@ -797,37 +942,120 @@
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected-gate' : '');
-                u.draggable = true;
+                u.draggable = !isTouchDevice && activeTraceInput === null;
+                u.oncontextmenu = (e) => { e.preventDefault(); return false; };
+                drawWires(u, idx + 1);
+                const visuals = document.createElement('div');
+                visuals.className = 'gate-visuals';
+                visuals.style.position = 'absolute';
+                visuals.style.inset = '0';
+                visuals.style.width = '100%';
+                visuals.style.height = '100%';
+                visuals.style.pointerEvents = 'none'; 
                 if (activeTraceInput !== null) {
                     if (idx === currentTraceStep - 1) u.classList.add('trace-active');
-                    else if (idx >= currentTraceStep) u.style.opacity = '0.2';
+                    else if (idx >= currentTraceStep) visuals.style.opacity = '0.2';
                 }
-                drawWires(u, idx + 1);
-                u.addEventListener('dragstart', e => handleDragStart(e, idx));
-                u.addEventListener('dragover', e => handleDragOver(e));
-                u.addEventListener('drop', e => handleDrop(e, idx));
-                u.addEventListener('dragend', e => {
-                    e.target.style.opacity = '1';
-                    draggedIndex = null;
+                u.appendChild(visuals);
+                if (!isTouchDevice && activeTraceInput === null) {
+                    let dragClone = null;
+                    u.ondragstart = (e) => { 
+                        draggedIndex = idx; 
+                        e.dataTransfer.effectAllowed = 'move'; 
+                        dragClone = u.cloneNode(true);
+                        dragClone.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
+                        dragClone.style.position = 'absolute';
+                        dragClone.style.top = '-9999px';
+                        dragClone.style.left = '-9999px';
+                        dragClone.style.background = 'rgba(255, 183, 197, 0.4)';
+                        dragClone.style.borderRadius = '12px';
+                        dragClone.style.boxSizing = 'border-box';
+                        dragClone.style.border = 'none';
+                        document.body.appendChild(dragClone);
+                        const rect = u.getBoundingClientRect();
+                        const offsetX = e.clientX - rect.left;
+                        const offsetY = e.clientY - rect.top;
+                        e.dataTransfer.setDragImage(dragClone, offsetX, offsetY);
+                        setTimeout(() => {
+                            if (document.body.contains(dragClone)) dragClone.remove();
+                            visuals.style.opacity = '0.2';
+                        }, 0);
+                    };
+                    u.ondragover = (e) => { 
+                        e.preventDefault(); 
+                        e.dataTransfer.dropEffect = 'move'; 
+                        return false; 
+                    };
+                    u.ondrop = (e) => {
+                        if (draggedIndex === null || draggedIndex === idx) return;
+                        pop.currentTime = 0; pop.play();
+                        const oldHistory = [...gateHistory];
+                        const movedGate = gateHistory.splice(draggedIndex, 1)[0];
+                        gateHistory.splice(idx, 0, movedGate);
+                        actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+                        selectedIndices = []; recalculate(); draggedIndex = null;
+                    };
+                    u.ondragend = (e) => { 
+                        if (dragClone && document.body.contains(dragClone)) dragClone.remove();
+                        visuals.style.opacity = '1';
+                        draggedIndex = null; 
+                    };
+                }
+                let touchTimer = null;
+                let startX, startY;
+                u.addEventListener('touchstart', (e) => {
+                    if (activeTraceInput !== null || e.touches.length > 1) return;
+                    u.draggable = false; 
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    touchTimer = setTimeout(() => {
+                        touchTimer = null;
+                        startMobileDrag(e.touches[0], u, idx);
+                    }, 300); 
+                }, {passive: true});
+                u.addEventListener('touchmove', (e) => {
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        moveMobileDrag(e.touches[0]);
+                    } else if (touchTimer) {
+                        let dx = e.touches[0].clientX - startX;
+                        let dy = e.touches[0].clientY - startY;
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                            clearTimeout(touchTimer);
+                            touchTimer = null;
+                        }
+                    }
+                }, {passive: false});
+                u.addEventListener('touchend', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        endMobileDrag(e.changedTouches[0]);
+                    }
+                    if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                });
+                u.addEventListener('touchcancel', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (mobileDragging) endMobileDrag(e.changedTouches[0]);
+                    if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
                 });
                 u.onmouseenter = () => { if (typeof highlightByGate === 'function') highlightByGate(g); };
                 u.onmouseleave = () => { if (typeof clearHighlight === 'function') clearHighlight(); };
                 u.onclick = e => {
-                    if (e.ctrlKey || e.metaKey) {
+                    if (mobileDragging || activeTraceInput !== null) return;
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
                         renderCircuit();
                     } else {
-                        if (typeof pop !== 'undefined' && pop.play) {
-                            pop.currentTime = 0;
-                            pop.play().catch(e => {});
-                        }
+                        if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e => {}); }
                         const removed = gateHistory[idx];
                         actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
                         gateHistory.splice(idx, 1);
                         selectedIndices = [];
                         recalculate();
+                        hideIndicator();
                     }
                 };
                 const { ctrl, target, zero } = parseGateSpec(g);
@@ -837,7 +1065,7 @@
                     const v = document.createElement('div');
                     v.className = 'connection-v-line';
                     v.style.cssText = `top:${30 + min * 40}px; height:${(max - min) * 40}px; z-index: 5;`;
-                    u.appendChild(v);
+                    visuals.appendChild(v);
                     ctrl.forEach(cl => {
                         const d = document.createElement('div');
                         d.className = 'control-dot';
@@ -847,7 +1075,7 @@
                             d.style.background = '#fff';
                             d.style.border = '2.5px solid #463438';
                         }
-                        u.appendChild(d);
+                        visuals.appendChild(d);
                     });
                 }
                 if (target !== -1) {
@@ -855,7 +1083,7 @@
                     t.className = 'circuit-target';
                     t.style.top = `${31 + target * 40}px`;
                     t.style.zIndex = '6';
-                    u.appendChild(t);
+                    visuals.appendChild(t);
                 }
                 c.appendChild(u);
             });
