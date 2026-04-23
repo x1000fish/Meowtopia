@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200">
-    <title>Meowtopia - Level 8</title>
+    <title>Meowtopia - Level 7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
@@ -92,7 +92,7 @@
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px;padding: 8px 5px; text-transform: uppercase; border-width: 3px;}
         .pro-active #canvas-bottom-btns {display: none !important;}
         
-        /* 防護手機長按與文字選取 */
+        /* 防護手機長按與文字選取，並將 none 改為 manipulation 以解鎖雙指縮放功能 */
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { 
             -webkit-user-select: none; 
             user-select: none;
@@ -134,7 +134,7 @@
             <div class="text-3xl font-black" style="color: #463438;">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
             <div class="flex items-center gap-12 ml-auto">
                 <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-            <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 8</div>
+            <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 7</div>
             </div>
         </div>
         <div class="main-layout">
@@ -190,7 +190,7 @@
             gateHistory = [],
             historyStack = [[]],
             selectedIndices = [],
-            fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4],
+            fishAtNode = [0, 1, 2, 4, 3, 5, 6, 7], // Level 7 初始陣列
             isSolved = false,
             lineMode = 1,
             hoverLine = null,
@@ -544,7 +544,8 @@
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=8`);
+                // 修改為取得 Level 7 排行榜
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=7`);
                 const data = await response.json();
                 if (data && Array.isArray(data) && data.length > 0) {
                     leaderboardData = data;
@@ -902,7 +903,8 @@
             fishAtNode = newFishAtNode;
         }
         function recalculate() {
-            fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4];
+            // 回復為 Level 7 的初始陣列
+            fishAtNode = [0, 1, 2, 4, 3, 5, 6, 7];
             let h = [...gateHistory];
             gateHistory = [];
             h.forEach(g => {
@@ -1108,7 +1110,8 @@
                 if (timerInterval) clearInterval(timerInterval);
                 const ft = time, st = steps, u = sessionStorage.getItem('currentUser');
                 const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
-                if (savedLevel < 9) sessionStorage.setItem('currentLevel', 9);
+                // 修改為解鎖 Level 8
+                if (savedLevel < 8) sessionStorage.setItem('currentLevel', 8);
                 setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
@@ -1118,7 +1121,8 @@
                     fetch(SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
-                        body: JSON.stringify({ action: 'saveRecord', username: u, level: 8, steps: st, time: ft, circuit: gateHistory.join(',') })
+                        // 修改為 Level 7
+                        body: JSON.stringify({ action: 'saveRecord', username: u, level: 7, steps: st, time: ft, circuit: gateHistory.join(',') })
                     }).then(() => setTimeout(fetchLeaderboard, 1200));
                 }
             }
