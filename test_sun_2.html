@@ -47,13 +47,13 @@
         .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438;}
         .multi-toggle-btn:active,
         .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
-        .gate-btn-v2 { position: relative; height: 60px; width: 45px; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 15px, center 30px, center 45px; padding: 0; border: 2px solid #463438; cursor: pointer; transition: all 0.2s; border-radius: 8px; margin: auto; background-color: #ffffff; color: #463438; box-shadow: 0 3px 6px rgba(70,52,56,0.1);}
+        .gate-btn-v2 { position: relative; height: 60px; width: 45px; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 15px, center 30px, center 45px; padding: 0; border: 2px solid #463438; cursor: pointer; transition: all 0.2s; border-radius: 8px; margin: auto; background-color: #ffffff; color: #463438; box-shadow: 0 3px 6px rgba(70,52,56,0.1); }
         .gate-not { background-color: #fce4ec !important; }
         .gate-tof { background-color: #f0fdf4 !important; }
         .gate-btn-v2:hover, .func-btn:hover, .gate-not:hover, .gate-tof:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; box-shadow: 0 3px 0 #463438 !important; transform: scale(1.05); z-index: 10; }
         .gate-btn-v2:active { transform: translateY(2px) scale(1.05); box-shadow: 0 1px 2px rgba(70,52,56,0.2); }
         .gate-v-line { position: absolute; width: 1.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 1; }
-        .gate-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
+        .gate-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
         .gate-dot.fill { background: #463438; }
         .gate-dot.empty { background: #fff; }
         .gate-target-circle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #463438; background: #fff; left: 50%; transform: translate(-50%, -50%); z-index: 3; }
@@ -92,17 +92,22 @@
         #ios-indicator { position: absolute; top: 0; left: 0; transform: translate(-50%, -120%) scale(0.8); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(15px); border-radius: 50px; padding: 6px 18px; display: flex; align-items: center; box-shadow: 0 8px 24px rgba(70,52,56,0.12); opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; pointer-events: none; border: 1px solid rgba(70,52,56,0.35); }
         #ios-indicator.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
         .ind-fraction { color: #463438; font-size: 18px; font-weight: 900; }
-        #tutorial-pointer { position: fixed; z-index: 1002; display: none; font-size: 42px; pointer-events: none; animation: pointerFloat 1.1s ease-in-out infinite; }
+        
+        /* 改為 absolute 以修正定位錯位問題 */
+        #tutorial-pointer { position: absolute; z-index: 1002; display: none; font-size: 42px; pointer-events: none; animation: pointerFloat 1.1s ease-in-out infinite; }
         @keyframes pointerFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        
         .tutorial-focus { position: relative !important; z-index: 950 !important; pointer-events: auto !important; animation: pulse-btn-border 1.5s infinite ease-in-out !important; }
         @keyframes pulse-btn-border { 0%, 100% { border-color: #463438; transform: scale(1); } 50% { border-color: #99C44D; transform: scale(1.05); box-shadow: 0 0 15px #99C44D; } }
         .tutorial-node-focus { z-index: 1000 !important; box-shadow: 0 0 20px #99C44D, 0 0 40px rgba(153, 196, 77, 0.9) !important; }
         .tutorial-fish-focus { z-index: 1001 !important; }
         .tutorial-line-focus { z-index: 1000 !important; box-shadow: 0 0 16px #99C44D !important; animation: tutorialLinePulse 1.2s infinite ease-in-out; }
         @keyframes tutorialLinePulse { 0%, 100% { opacity: 1; box-shadow: 0 0 10px #99C44D; } 50% { opacity: 1; box-shadow: 0 0 22px #99C44D; } }
-        #tutorial-hint { position: fixed; z-index: 10001; display: none; opacity: 0; background: #99C44D; color: #fff; font-weight: 900; padding: 4px 12px; border-radius: 9999px; font-size: 16px; text-align: center; border: 3px solid #463438; box-shadow: 0 4px 0 #463438; transition: left 0.4s cubic-bezier(0.25, 1, 0.5, 1), top 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease; }
         
-        /* 防護手機長按與文字選取，解鎖雙指縮放功能 */
+        /* 改為 absolute 並調整過渡以維持版面正確 */
+        #tutorial-hint { position: absolute; z-index: 10001; display: none; opacity: 0; background: #99C44D; color: #fff; font-weight: 900; padding: 4px 12px; border-radius: 9999px; font-size: 16px; text-align: center; border: 3px solid #463438; box-shadow: 0 4px 0 #463438; transition: opacity 0.3s ease; }
+
+        /* 防護手機長按與文字選取，解鎖雙指縮放 */
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { 
             -webkit-user-select: none; 
             user-select: none;
@@ -126,6 +131,7 @@
     <div id="tutorial-mask"></div>
     <div id="tutorial-hint"></div>
     <div id="tutorial-pointer">👆🏻</div>
+    
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
@@ -211,8 +217,6 @@
         // --- 手機端與陀螺儀操控變數 ---
         let isTouchDevice = false;       // 判斷是否為手機觸控裝置
         let activeMobileLine = null;     // 記錄手機端目前「選取中」的線段
-        let touchStartY = 0;             // 滑動起始 Y 座標
-        let lastSwipeTime = 0;           // 紀錄上次滑動時間
         let lastTiltDirection = 0;       // 記錄目前傾斜狀態：0=平放, 1=右傾, -1=左傾
         const TILT_THRESHOLD = 15;       // 陀螺儀觸發角度
         const RETURN_THRESHOLD = 10;     // 陀螺儀回正角度
@@ -236,19 +240,14 @@
         function handleMotion(event) {
             const acc = event.accelerationIncludingGravity;
             if (!acc) return;
-
-            const threshold = 20; // 搖晃門檻
+            const threshold = 20; 
             const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
-
             if (delta > threshold) {
                 const now = Date.now();
                 if (now - lastShakeTime > 1000) { 
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
-                    
-                    if (navigator.vibrate) navigator.vibrate([100]); // 小震動
-                    
-                    // 文字提示
+                    if (navigator.vibrate) navigator.vibrate([100]); 
                     const toast = document.getElementById('shake-toast');
                     toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
                     toast.style.opacity = '1';
@@ -262,9 +261,7 @@
             if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission()
                     .then(state => {
-                        if (state === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion);
-                        }
+                        if (state === 'granted') window.addEventListener('devicemotion', handleMotion);
                     }).catch(console.error);
             } else {
                 window.addEventListener('devicemotion', handleMotion);
@@ -282,12 +279,8 @@
                 if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                     try {
                         const permission = await DeviceOrientationEvent.requestPermission();
-                        if (permission === 'granted') {
-                            gyroPermissionGranted = true;
-                        }
-                    } catch (error) {
-                        console.log("陀螺儀權限請求被拒絕:", error);
-                    }
+                        if (permission === 'granted') gyroPermissionGranted = true;
+                    } catch (error) { console.log("陀螺儀權限請求被拒絕:", error); }
                 } else {
                     gyroPermissionGranted = true;
                 }
@@ -347,45 +340,7 @@
                 }
             });
 
-            // --- 手機版：單指上下滑動切換 ---
-            canvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1 && activeMobileLine) {
-                    touchStartY = e.touches[0].clientY;
-                }
-            }, { passive: true });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && activeMobileLine) {
-                    if (lineMode === 1) return; 
-                    if (e.cancelable) e.preventDefault(); 
-                    
-                    let currentY = e.touches[0].clientY;
-                    let diff = currentY - touchStartY;
-                    let now = Date.now();
-                    
-                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
-                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                        
-                        touchStartY = currentY; 
-                        lastSwipeTime = now;
-
-                        // 手機版滑動推進教學
-                        if (tutorialActive && (tutorialStep === 3 || tutorialStep === 4)) {
-                            if (tutorialStep === 3) { tutorialStep = 4; scrollCount = 0; }
-                            if (tutorialStep === 4) { scrollCount++; if (scrollCount >= 2) tutorialStep = 5; }
-                            updateWheelTutorial();
-                        }
-                    }
-                }
-            }, { passive: false });
-
-            canvas.addEventListener('touchend', () => { touchStartY = 0; });
-
-            // --- 手機/平板版：陀螺儀左右傾斜 ---
+            // --- 手機/平板版：陀螺儀左右傾斜 (已移除上下滑動，純依賴傾斜切換) ---
             window.addEventListener('deviceorientation', (e) => {
                 if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
                 let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
@@ -544,7 +499,7 @@
             grid.innerHTML = html;
         }
 
-        // --- 教學動畫 (動態判斷觸控與電腦版) ---
+        // --- 教學動畫 (動態判斷觸控與電腦版，並使用絕對定位固定位置) ---
         function startWheelTutorial() {
             tutorialActive = true; tutorialStep = 1;
             document.getElementById('tutorial-mask').style.display = 'block';
@@ -557,32 +512,45 @@
             const topLine = document.getElementById('line-edge-0');
             const currentOpt = currentOptions[currentOptionIndex];
             
+            const hint = document.getElementById('tutorial-hint');
+            const scrollX = window.scrollX || document.documentElement.scrollLeft;
+            const scrollY = window.scrollY || document.documentElement.scrollTop;
+            
             if (tutorialStep === 1) {
                 const rect = modeBtn.getBoundingClientRect();
-                const hint = document.getElementById('tutorial-hint');
                 modeBtn.classList.add('tutorial-focus');
-                hint.style.left = rect.left + 'px'; hint.style.top = (rect.top + 60) + 'px';
-                showTutorialHint('CLICK TO CHANGE MODE');
+                hint.style.left = (rect.left + scrollX) + 'px'; 
+                hint.style.top = (rect.bottom + scrollY + 15) + 'px';
+                hint.style.transform = 'none';
+                showTutorialHint(isTouchDevice ? 'TAP TO CHANGE MODE' : 'CLICK TO CHANGE MODE');
             } else if (tutorialStep === 2) {
+                const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                hint.style.left = (canvasRect.left + scrollX + canvasRect.width / 2) + 'px'; 
+                hint.style.top = (canvasRect.top + scrollY + canvasRect.height * 0.46) + 'px'; 
+                hint.style.transform = 'translateX(-50%)';
                 showTutorialHint(isTouchDevice ? 'TAP THE LINE' : 'HOVER THE LINE');
-                const hint = document.getElementById('tutorial-hint');
-                hint.style.left = '50%'; hint.style.top = '46%'; hint.style.transform = 'translateX(-50%)';
                 highlightTutorialPairs([[0, 1]]);
                 if (topLine) showTutorialPointer(topLine, -25, 3);
             } else if (tutorialStep === 3 || tutorialStep === 4) {
-                let msg = isTouchDevice ? 'SWIPE UP/DOWN TO CHOOSE!' : 'SCROLL TO CHOOSE!';
+                const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                hint.style.left = (canvasRect.left + scrollX + canvasRect.width / 2) + 'px'; 
+                hint.style.top = (canvasRect.top + scrollY + canvasRect.height * 0.15) + 'px'; 
+                hint.style.transform = 'translateX(-50%)';
+                
+                let msg = isTouchDevice ? 'TILT PHONE L/R TO CHOOSE!' : 'SCROLL TO CHOOSE!';
                 if (tutorialStep === 3) {
                     showTutorialHint(`THERE ARE TWO OPTIONS<br>${msg}`);
                 } else {
-                    showTutorialHint(isTouchDevice ? 'AND SWIPE...' : 'AND SCROLL...');
+                    showTutorialHint(isTouchDevice ? 'AND TILT...' : 'AND SCROLL...');
                 }
-                const hint = document.getElementById('tutorial-hint');
-                hint.style.left = '50%'; hint.style.top = '15%'; hint.style.transform = 'translateX(-50%)';
                 if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
             } else if (tutorialStep === 5) {
+                const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                hint.style.left = (canvasRect.left + scrollX + canvasRect.width / 2) + 'px'; 
+                hint.style.top = (canvasRect.top + scrollY + canvasRect.height * 0.15) + 'px'; 
+                hint.style.transform = 'translateX(-50%)';
+                
                 showTutorialHint(isTouchDevice ? 'TAP AGAIN TO CONFIRM' : 'CLICK TO CONFIRM');
-                const hint = document.getElementById('tutorial-hint');
-                hint.style.left = '50%'; hint.style.top = '15%'; hint.style.transform = 'translateX(-50%)';
                 if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
             }
         }
@@ -615,8 +583,13 @@
         function showTutorialHint(text) { const hint = document.getElementById('tutorial-hint'); if (hint) { hint.innerHTML = text; hint.style.display = 'block'; hint.style.opacity = '1'; } }
         function hideTutorialHint() { document.getElementById('tutorial-hint').style.display = 'none'; hideTutorialPointer(); }
         function showTutorialPointer(targetEl, offsetX = -10, offsetY = -50) {
-            const pointer = document.getElementById('tutorial-pointer'); const rect = targetEl.getBoundingClientRect();
-            pointer.style.left = (rect.left + rect.width / 2 + offsetX) + 'px'; pointer.style.top = (rect.top + offsetY) + 'px'; pointer.style.display = 'block';
+            const pointer = document.getElementById('tutorial-pointer'); 
+            const rect = targetEl.getBoundingClientRect();
+            const scrollX = window.scrollX || document.documentElement.scrollLeft;
+            const scrollY = window.scrollY || document.documentElement.scrollTop;
+            pointer.style.left = (rect.left + scrollX + rect.width / 2 + offsetX) + 'px'; 
+            pointer.style.top = (rect.top + scrollY + offsetY) + 'px'; 
+            pointer.style.display = 'block';
         }
         function hideTutorialPointer() { document.getElementById('tutorial-pointer').style.display = 'none'; }
 
@@ -782,7 +755,7 @@
         function swapNodes(idxA, idxB) {
             if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
             if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
-            const diff = idxA ^ idxB;
+            const diff = idxA ^ idxB; 
             let target = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
             let ctrl = [0, 1, 2].filter(c => c !== target);
             let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
@@ -794,7 +767,7 @@
                 gateHistory.push(gateStr);
                 historyStack.push([...gateHistory]);
                 steps = gateHistory.length;
-                finishMove();
+                finishMove(); 
             }
         }
         function togglePro() {
