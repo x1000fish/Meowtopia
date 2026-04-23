@@ -613,34 +613,30 @@
             } else {
                 window.addEventListener('devicemotion', handleMotion);
             }
-        }
-        function startMobileDrag(touch, el, index) {
+        }function startMobileDrag(touch, el, index) {
+            // 確保沒有舊殘影卡在畫面上
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            
             mobileDragging = true;
             mDragIndex = index;
-            originalDragEl = el;
-            if (navigator.vibrate) navigator.vibrate(50);
+            if (navigator.vibrate) navigator.vibrate(50); // 長按小震動
+            
             dragGhost = el.cloneNode(true);
-            dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
             dragGhost.style.position = 'fixed';
-            dragGhost.style.zIndex = '9999';
-            dragGhost.style.opacity = '1';
-            dragGhost.style.pointerEvents = 'none';
-            dragGhost.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
-            dragGhost.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
-            dragGhost.style.margin = '0';
-            dragGhost.style.transition = 'none';
-            dragGhost.style.animation = 'none';
-            dragGhost.style.transform = 'translateZ(0)';
-            dragGhost.style.willChange = 'left, top';
-            dragGhost.style.boxShadow = 'none';
-            dragGhost.style.background = 'transparent';
-            dragGhost.querySelectorAll('*').forEach(node => {
-                node.style.transition = 'none';
-                node.style.animation = 'none';
-                node.style.pointerEvents = 'none';
-            });
+            dragGhost.style.zIndex = '999999';
+            dragGhost.style.opacity = '0.8';
+            dragGhost.style.pointerEvents = 'none'; // 讓滑鼠/手指事件穿透
+            dragGhost.style.transition = 'none';    // 移除 CSS 動畫延遲，確保跟手
+            dragGhost.classList.remove('selected'); // 拖移時不要帶著選取的綠框
+            
+            const rect = el.getBoundingClientRect();
+            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
+            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
             document.body.appendChild(dragGhost);
+            
+            el.style.opacity = '0.2'; // 原本的位子變淡
         }
+        
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
             const x = touch.clientX - dragGhost.offsetWidth / 2;
