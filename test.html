@@ -371,14 +371,32 @@
             });
 
             // --- 手機版：陀螺儀左右傾斜 (切換 Mode 選項核心) ---
+            // --- 手機/平板版：陀螺儀左右傾斜 (修正橫幅/直幅判定) ---
             window.addEventListener('deviceorientation', (e) => {
-                // 確保是在手機觸控狀態下、有選中線段，且不是單一操作模式
                 if (!isTouchDevice || !activeMobileLine || lineMode === 1 || lineMode === 8) return;
 
-                let tilt = e.gamma; // 取得左右傾斜角度
+                // 1. 取得目前螢幕旋轉角度 (0:直向, 90:左橫, -90:右橫, 180:倒立)
+                let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
+                let tilt = 0;
+
+                // 2. 根據螢幕方向，動態映射「左右傾斜」的數值
+                if (orientation === 0) {
+                    // 直向：使用 gamma 軸
+                    tilt = e.gamma;
+                } else if (orientation === 90) {
+                    // 橫向 (逆時針轉 90 度)：原本的前後傾斜 (beta) 變成現在的左右傾斜
+                    tilt = -e.beta; 
+                } else if (orientation === -90 || orientation === 270) {
+                    // 橫向 (順時針轉 90 度)：原本的前後傾斜 (beta) 變成現在的左右傾斜
+                    tilt = e.beta;
+                } else if (orientation === 180) {
+                    // 倒立直向
+                    tilt = -e.gamma;
+                }
+
                 if (tilt === null) return; 
 
-                // 如果手機目前被判定為「平放狀態」
+                // 3. 傾斜偵測邏輯 (保持不變)
                 if (lastTiltDirection === 0) {
                     if (tilt > TILT_THRESHOLD) {
                         // 向右傾斜 (下一個)
@@ -395,7 +413,7 @@
                         if ('vibrate' in navigator) navigator.vibrate(20);
                     }
                 } else {
-                    // 如果已經傾斜切換過，必須將手機回正到 10 度以內，才能進行下一次感測
+                    // 回正判定 (小於 10 度重置)
                     if (Math.abs(tilt) < RETURN_THRESHOLD) {
                         lastTiltDirection = 0;
                     }
