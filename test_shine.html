@@ -216,10 +216,23 @@
         let fishAtNode = [];    
         let lineMode = 1, hoverLine = null;
         let currentOptionIndex = 0, currentOptions = [], draggedIndex = null;
+        // 搖晃與拖移變數
+        let isShakeCtrlActive = false;
+        let lastShakeTime = 0;
+        let shakePermissionRequested = false;
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
         let originalDragEl = null;
+        // 手機端與陀螺儀操控變數
+        let isTouchDevice = false;
+        let activeMobileLine = null;
+        let touchStartY = 0;
+        let lastSwipeTime = 0;
+        let lastTiltDirection = 0;
+        const TILT_THRESHOLD = 15;
+        const RETURN_THRESHOLD = 10;
+        let gyroPermissionGranted = false;
         const pop = new Audio('pop.m4a');
         const baseOffsetY = 195;
         const side = 120;
@@ -240,7 +253,28 @@
             initGates();
             drawStaticLines();
             recalculate();
-           
+            const requestGyroPermission = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') {
+                            gyroPermissionGranted = true;
+                            console.log("陀螺儀權限已順利取得");
+                        }
+                    } catch (error) {
+                        console.log("陀螺儀權限請求被拒絕:", error);
+                    }
+                } else {
+                    gyroPermissionGranted = true;
+                }
+                window.removeEventListener('click', requestGyroPermission);
+                window.removeEventListener('touchstart', requestGyroPermission);
+                document.getElementById('mode-btn')?.removeEventListener('click', requestGyroPermission);
+            };
+            window.addEventListener('click', requestGyroPermission);
+            window.addEventListener('touchstart', requestGyroPermission);
+            const btnMode = document.getElementById('mode-btn');
+            if (btnMode) btnMode.addEventListener('click', requestGyroPermission);
             document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
                 e.preventDefault();
                 e.currentTarget.scrollLeft += e.deltaY;
@@ -252,15 +286,82 @@
                 else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 showIndicator();
             }, { passive: false });
-                        const canvas = document.getElementById('main-canvas');
+            window.addEventListener('touchstart', () => {
+                isTouchDevice = true;
+            }, { once: true });
+            const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
+            canvas.addEventListener('touchstart', (e) => {
+                if (!e.target.classList.contains('connection-line')) {
+                    activeMobileLine = null;
+                    hoverLine = null;
+                    hideIndicator();
+                }
+            });
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && activeMobileLine) {
+                    touchStartY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && activeMobileLine) {
+                    if (lineMode === 1 || lineMode === 8) return;
+                    if (e.cancelable) e.preventDefault();
+                    let currentY = e.touches[0].clientY;
+                    let diff = currentY - touchStartY;
+                    let now = Date.now();
+                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
+                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                        touchStartY = currentY;
+                        lastSwipeTime = now;
+                    }
+                }
+            }, { passive: false });
+            canvas.addEventListener('touchend', () => {
+                touchStartY = 0;
+            });
             canvas.addEventListener('mousemove', (e) => {
-                if (indicator.classList.contains('active')) {
+                if (indicator.classList.contains('active') && !isTouchDevice) {
                     const rect = canvas.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
                     indicator.style.left = x + 'px';
                     indicator.style.top = (y - 15) + 'px';
+                }
+            });
+            window.addEventListener('deviceorientation', (e) => {
+                if (!isTouchDevice || !activeMobileLine || lineMode === 1 || lineMode === 8) return;
+                let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
+                let tilt = 0;
+                if (orientation === 0) {
+                    tilt = e.gamma;
+                } else if (orientation === 90) {
+                    tilt = e.beta;
+                } else if (orientation === -90 || orientation === 270) {
+                    tilt = -e.beta;
+                } else if (orientation === 180) {
+                    tilt = -e.gamma;
+                }
+                if (tilt === null) return;
+                if (lastTiltDirection === 0) {
+                    if (tilt > TILT_THRESHOLD) {
+                        lastTiltDirection = 1;
+                        currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                    } else if (tilt < -TILT_THRESHOLD) {
+                        lastTiltDirection = -1;
+                        currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                        showIndicator();
+                        if ('vibrate' in navigator) navigator.vibrate(20);
+                    }
+                } else {
+                    if (Math.abs(tilt) < RETURN_THRESHOLD) {
+                        lastTiltDirection = 0;
+                    }
                 }
             });
         };
@@ -438,6 +539,40 @@
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             recalculate();
             return false;
+        }
+        function handleMotion(event) {
+            const acc = event.accelerationIncludingGravity;
+            if (!acc) return;
+            const threshold = 20;
+            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
+            if (delta > threshold) {
+                const now = Date.now();
+                if (now - lastShakeTime > 1000) {
+                    isShakeCtrlActive = !isShakeCtrlActive;
+                    lastShakeTime = now;
+                    if (navigator.vibrate) navigator.vibrate([100]);
+                    const toast = document.getElementById('shake-toast');
+                    if (toast) {
+                        toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
+                        toast.style.opacity = '1';
+                        setTimeout(() => { toast.style.opacity = '0'; }, 1200);
+                    }
+                    console.log("Ctrl Mode:", isShakeCtrlActive);
+                }
+            }
+        }
+        function requestShakePermission() {
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+            }
         }
         function startMobileDrag(touch, el, index) {
             mobileDragging = true;
@@ -624,27 +759,71 @@
                 line.style.height='3px'; line.style.background='#463438';
             }
             line.onmouseenter = () => {
+                if (isTouchDevice) return;
+                if (lineMode === 1) return;
                 hoverLine = { i, j, dim };
-                if (lineMode === 1) {
-                    highlightPairs([[i, j]]);
-                } else if (lineMode === 8) {
+                if (lineMode === 8) {
                     highlightPairs(getAllPairs(dim));
                 } else {
                     currentOptions = buildGateOptions(i, j, dim);
                     currentOptionIndex = 0;
-                    const pill = document.getElementById('ios-indicator');
-                    if (pill) {
-                        pill.classList.remove('hidden-el');
-                        showIndicator();
-                    }
+                    showIndicator();
                 }
             };
-            line.onmouseleave = () => { hoverLine = null; hideIndicator(); };
+            line.onmouseleave = () => {
+                if (isTouchDevice) return;
+                hoverLine = null;
+                hideIndicator();
+            };
             line.onclick = (e) => {
                 e.stopPropagation();
-                if(lineMode === 1) applyGate(`SWAP_${i}_${j}`);
-                else if(lineMode === 8) applyGate(`X${3-dim}`);
-                else if(currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                if (lineMode === 1) {
+                    applyGate(`SWAP_${i}_${j}`);
+                    return;
+                }
+                if (isTouchDevice) {
+                    const lineId = line.id;
+                    if (lineMode === 8) {
+                        if (activeMobileLine !== lineId) {
+                            activeMobileLine = lineId;
+                            hoverLine = { i, j, dim };
+                            clearHighlight();
+                            highlightPairs(getAllPairs(dim));
+                            return;
+                        } else {
+                            applyGate(`X${3 - dim}`);
+                            activeMobileLine = null;
+                            hideIndicator();
+                            return;
+                        }
+                    }
+                    if (activeMobileLine !== lineId) {
+                        activeMobileLine = lineId;
+                        hoverLine = { i, j, dim };
+                        currentOptions = buildGateOptions(i, j, dim);
+                        currentOptionIndex = 0;
+                        const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                        const indicator = document.getElementById('ios-indicator');
+                        indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+                        indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+                        showIndicator();
+                        return;
+                    } else {
+                        if (currentOptions[currentOptionIndex]) {
+                            applyGate(currentOptions[currentOptionIndex].gateType);
+                        }
+                        activeMobileLine = null;
+                        hideIndicator();
+                        return;
+                    }
+                }
+                if (lineMode === 8) {
+                    applyGate(`X${3 - dim}`);
+                    return;
+                }
+                if (currentOptions[currentOptionIndex]) {
+                    applyGate(currentOptions[currentOptionIndex].gateType);
+                }
             };
             document.getElementById('lines-layer').appendChild(line);
         }
@@ -896,7 +1075,7 @@
                 });
                 u.onclick = (e) => {
                     if (mobileDragging) return;
-                    if (e.ctrlKey || e.metaKey) {
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
