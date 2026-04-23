@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200">
-    <title>Meowtopia - Level 7</title>
+    <title>Meowtopia - Level 6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
@@ -134,7 +134,7 @@
             <div class="text-3xl font-black" style="color: #463438;">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
             <div class="flex items-center gap-12 ml-auto">
                 <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-            <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 7</div>
+            <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 6</div>
             </div>
         </div>
         <div class="main-layout">
@@ -544,7 +544,7 @@
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
-                // 修改為取得 Level 7 排行榜
+                // 修改為取得 排行榜
                 const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=7`);
                 const data = await response.json();
                 if (data && Array.isArray(data) && data.length > 0) {
@@ -903,8 +903,8 @@
             fishAtNode = newFishAtNode;
         }
         function recalculate() {
-            // 回復為 Level 7 的初始陣列
-            fishAtNode = [0, 1, 2, 4, 3, 5, 6, 7];
+            // 回復為初始陣列
+            fishAtNode = [1, 0, 3, 2, 5, 7, 4, 6];
             let h = [...gateHistory];
             gateHistory = [];
             h.forEach(g => {
