@@ -348,7 +348,7 @@
             dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
             dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
             document.body.appendChild(dragGhost);
-            el.style.opacity = '0.3';
+            el.style.opacity = '0.35';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
@@ -470,7 +470,7 @@
                 hint.style.transform = 'translateX(-50%)';
                 showTutorialHint(isTouchDevice ? 'TAP THE LINE' : 'HOVER THE LINE');
                 highlightTutorialPairs([[0, 1]]);
-                if (topLine) showTutorialPointer(topLine, -60, 3);
+                if (topLine) showTutorialPointer(topLine, -25, 3);
             } else if (tutorialStep === 3 || tutorialStep === 4) {
                 const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
                 hint.style.left = (canvasRect.left + scrollX + canvasRect.width / 2) + 'px'; 
@@ -489,6 +489,7 @@
                 hint.style.left = (canvasRect.left + scrollX + canvasRect.width / 2) + 'px'; 
                 hint.style.top = (canvasRect.top + scrollY + canvasRect.height * 0.15) + 'px'; 
                 hint.style.transform = 'translateX(-50%)';
+                
                 showTutorialHint(isTouchDevice ? 'TAP AGAIN TO CONFIRM' : 'CLICK TO CONFIRM');
                 if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
             }
@@ -640,6 +641,10 @@
                 if (tutorialActive && tutorialStep === 5 && index !== 0) return; 
                 if (tutorialActive && tutorialStep === 2 && index !== 0) return;
                 if(lineMode === 1) { swapNodes(i, j); return; }
+                if (isTouchDevice && lineMode === 4) {
+                    if (activeMobileLine !== line.id) { activeMobileLine = line.id; return; }
+                    else ctiveMobileLine = null;
+                }
                 if (isTouchDevice) {
                     const lineId = line.id;
                     if (activeMobileLine !== lineId) {
