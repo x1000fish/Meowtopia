@@ -408,8 +408,15 @@
             mDragIndex = index;
             originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
             dragGhost = el.cloneNode(true);
             dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
+            dragGhost.style.position = 'fixed';
+            dragGhost.style.zIndex = '9999';
+            dragGhost.style.pointerEvents = 'none';
             dragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
             dragGhost.style.borderRadius = '12px';
             dragGhost.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
@@ -420,7 +427,6 @@
             dragGhost.style.transform = 'translateZ(0)';
             dragGhost.style.willChange = 'left, top';
             dragGhost.style.boxShadow = 'none';
-            dragGhost.style.background = 'transparent';
             dragGhost.querySelectorAll('*').forEach(node => {
                 node.style.transition = 'none';
                 node.style.animation = 'none';
@@ -461,12 +467,16 @@
                 const oldHistory = [...gateHistory];
                 const movedItem = gateHistory.splice(mDragIndex, 1)[0];
                 gateHistory.splice(targetIndex, 0, movedItem);
+
+
                 actionStack.push({
                     type: 'replace',
                     index: 0,
                     oldGates: oldHistory,
                     newGate: null
                 });
+
+
                 recalculate();
             }
             mobileDragging = false;
@@ -895,6 +905,8 @@
                     } else if (touchTimer) {
                         const dx = e.touches[0].clientX - startX;
                         const dy = e.touches[0].clientY - startY;
+
+
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                             clearTimeout(touchTimer);
                             touchTimer = null;
@@ -1036,3 +1048,4 @@
     </script>
 </body>
 </html>
+
