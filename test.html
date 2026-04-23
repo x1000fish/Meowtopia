@@ -237,7 +237,7 @@
             const acc = event.accelerationIncludingGravity;
             if (!acc) return;
 
-            const threshold = 15; // 搖晃門檻
+            const threshold = 30; // 搖晃門檻
             const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
 
             if (delta > threshold) {
