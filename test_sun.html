@@ -3,15 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200">
-    <title>Meowtopia - Level 10</title>
+    <title>Meowtopia - Level 11</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
+    <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
+
     <style>
         body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
         .hidden { display: none !important; }
-        .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
-        .game-canvas { position: relative; width: 1900px; height: 550px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
+        .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; width: 1155px; }
+        
+        /* 修正 1：移除無效的 flex 置中，回歸純相對定位 */
+        .game-canvas { position: relative; flex-grow: 1; height: 550px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
+        
+        /* 修正 2：明確指定 top: 0; left: 0; 讓圖層不會亂跑 */
+        #lines-layer, #nodes-layer, #fishes-layer{position: absolute; width: 100%; height: 100%; top: 0; left: 0;}
+        
         #leaderboard-wrapper { position: fixed; left: -220px; top: 50px; transform: none; display: flex; z-index: 150; transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         #leaderboard-wrapper.expanded {left: 0; }
         .side-leaderboard-content { width: 220px; background: white; border: 6px solid #463438; border-left: none; border-radius: 0 30px 30px 0; padding: 15px; display: flex; flex-direction: column; max-height: 80vh; position: relative; z-index: 2; }
@@ -95,6 +105,18 @@
         #canvas-bottom-btns { position: absolute; bottom: 15px; right: 30px; display: flex; gap: 10px; z-index: 100; }
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 85px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
+
+        /* 手機版專用 UI 樣式 */
+        .mobile-only-ui { display: none !important; }
+        
+        @media (pointer: coarse) {
+            .mobile-only-ui { display: flex !important; }
+            #ios-indicator { display: none !important; }
+        }
+
+        .edit-mode-btn { background: #fff; border: 3px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; color: #463438; cursor: pointer; transition: all 0.2s; font-size: 14px;}
+        .edit-mode-btn.active { background: #99C44D; color: #fff; }
+        .delete-selected-btn { background: #FFB7C5; border: 3px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; color: #fff; cursor: pointer; display: none; font-size: 14px;}
     </style>
 </head>
 <body id="body-root">
@@ -119,7 +141,7 @@
             <div class="text-3xl font-black" style="color: #463438">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span></div>
             <div class="flex items-center gap-12 ml-auto">
                 <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-                <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 10</div>
+                <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 11</div>
             </div>
         </div>
         <div class="main-layout">
@@ -140,7 +162,7 @@
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
-               
+                
                 <div id="canvas-bottom-btns">
                     <button class="func-btn btn-reset" onclick="resetCircuit()">RESET</button>
                     <button id="undo-btn-bottom" class="func-btn btn-undo" onclick="undo()">UNDO</button>
@@ -148,7 +170,13 @@
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
-            <div class="circuit-title font-black text-xl text-center" style="color: #463438;">Circuit Diagram</div>
+            <div class="flex justify-between items-center px-6 mt-2 mb-2 w-full">
+                <div class="circuit-title font-black text-xl" style="color: #463438;">Circuit Diagram</div>
+                <div class="mobile-only-ui gap-2">
+                    <button id="toggle-edit-btn" class="edit-mode-btn" onclick="toggleEditMode()">Select: OFF</button>
+                    <button id="delete-selected-btn" class="delete-selected-btn" onclick="deleteSelected()">Delete</button>
+                </div>
+            </div>
             <div class="qubit-label" style="top: 60px;">q0</div>
             <div class="qubit-label" style="top: 100px;">q1</div>
             <div class="qubit-label" style="top: 140px;">q2</div>
@@ -167,12 +195,61 @@
             <button onclick="viewInLab().style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
         </div>
     </div>
+
+    <div id="optionsModal" class="modal-overlay">
+        <div class="modal-content" style="width: 320px; padding: 20px;">
+            <h3 class="text-2xl font-black mb-4" style="color: #463438;">Select Gate</h3>
+            <div id="options-list" class="flex flex-col gap-2">
+            </div>
+            <button onclick="document.getElementById('optionsModal').style.display='none'" class="func-btn btn-reset mt-4">CANCEL</button>
+        </div>
+    </div>
+
     <script>
+        MobileDragDrop.polyfill({ holdToDrag: 300 });
+        window.addEventListener('touchmove', function() {}, {passive: false});
+
+        let isEditMode = false;
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('toggle-edit-btn');
+            btn.innerText = isEditMode ? "Select: ON" : "Select: OFF";
+            btn.classList.toggle('active', isEditMode);
+            if (!isEditMode) {
+                selectedIndices = [];
+                renderCircuit();
+            }
+            updateDeleteButton();
+        }
+
+        function updateDeleteButton() {
+            const delBtn = document.getElementById('delete-selected-btn');
+            if (delBtn) delBtn.style.display = selectedIndices.length > 0 ? 'block' : 'none';
+        }
+
+        function deleteSelected() {
+            if (selectedIndices.length === 0 || isSolved) return;
+            pop.currentTime = 0; pop.play();
+            
+            selectedIndices.sort((a, b) => b - a); 
+            const removedGates = [];
+            selectedIndices.forEach(idx => {
+                removedGates.push(gateHistory[idx]);
+                gateHistory.splice(idx, 1);
+            });
+            
+            actionStack.push({ type: 'delete', index: selectedIndices[selectedIndices.length - 1], oldGates: removedGates.reverse() });
+            
+            selectedIndices = [];
+            toggleEditMode();
+            recalculate();
+        }
+
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
         let steps = 0, time = 0, isPro = false, timerInterval, gateHistory = [], isSolved = false;
         let selectedIndices = [];
         let actionStack = [];
-        let fishAtNode = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];    
+        let fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];    
         let lineMode = 1;
         let hoverLine = null;
         let currentOptionIndex = 0;
@@ -180,20 +257,32 @@
         let draggedIndex = null;
         let leaderboardData;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
-        const baseOffsetY = 195;
+        
+        // 修正 3：完美垂直居中 (因為 Y 座標最低會到 -160)
+        const baseOffsetY = 245; 
         const side = 120;
-        const hyperOffset = 400;
-        const offsetNormal = 240;
-        const offsetPro = 100;
+        const hyperOffset = 300;
+        
         const nodePositions = Array.from({ length: 16 }, (_, i) => {
             let x = (i & 1) ? side : 0;
             let y = (i & 2) ? side : 0;
             if (i & 4) { x += (i & 1) ? 90 : -80; y += (i & 2) ? 80 : -80; }
             if (i & 8) { x += hyperOffset; y -= 80; }
             const pos = { t: y + baseOffsetY, relX: x };
-            Object.defineProperty(pos, 'l', { get: () => pos.relX + (isPro ? offsetPro : offsetNormal) });
+            
+            Object.defineProperty(pos, 'l', {
+                get: () => {
+                    const canvas = document.getElementById('main-canvas');
+                    if (!canvas) return pos.relX;
+                    const canvasWidth = canvas.clientWidth;
+                    // 修正 4：完美水平居中 (因為最左邊的節點 X 座標其實是 -80，整個寬度中心在 265)
+                    return pos.relX + (canvasWidth / 2) - 265; 
+                } 
+            });
+            
             return pos;
         });
+
         window.onload = () => {
             initGameLayout();
             initGates();
@@ -259,7 +348,7 @@
         async function fetchLeaderboard() {
             const listArea = document.getElementById('rankList');
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=10`);
+                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=11`);
                 const data = await response.json();
                 if (data && Array.isArray(data) && data.length > 0) {
                     leaderboardData = data;
@@ -366,7 +455,7 @@
                     content += `<div class="gate-dot ${ctrl.type === 1 ? 'fill' : 'empty'}" style="top:${getY(ctrl.q)}px;"></div>`;
                 });
                 content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
-               
+                
                 return content;
             };
             const wrapBtn = (type, extraClass = "") => {
@@ -439,12 +528,39 @@
                 }
             };
             line.onmouseleave = () => { hoverLine = null; hideIndicator(); };
+            
             line.onclick = (e) => {
                 e.stopPropagation();
                 if(isSolved) return;
-                if(lineMode === 1) applyGate(`SWAP_${i}_${j}`);
-                else if(lineMode === 8) applyGate(`X${3-dim}`);
-                else if(currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                
+                if(lineMode === 1) {
+                    applyGate(`SWAP_${i}_${j}`);
+                } else if(lineMode === 8) {
+                    applyGate(`X${3-dim}`);
+                } else {
+                    currentOptions = buildGateOptions(i,j,dim);
+                    
+                    const isTouchScreen = window.matchMedia("(pointer: coarse)").matches;
+                    
+                    if (isTouchScreen && currentOptions.length > 1) {
+                        const list = document.getElementById('options-list');
+                        list.innerHTML = '';
+                        currentOptions.forEach(opt => {
+                            const btn = document.createElement('button');
+                            btn.className = "func-btn";
+                            btn.style.backgroundColor = "#FFF9F0";
+                            btn.innerText = opt.label;
+                            btn.onclick = () => {
+                                document.getElementById('optionsModal').style.display = 'none';
+                                applyGate(opt.gateType);
+                            };
+                            list.appendChild(btn);
+                        });
+                        document.getElementById('optionsModal').style.display = 'flex';
+                    } else if (currentOptions[currentOptionIndex]) {
+                        applyGate(currentOptions[currentOptionIndex].gateType);
+                    }
+                }
             };
             document.getElementById('lines-layer').appendChild(line);
         }
@@ -518,14 +634,18 @@
             isPro = !isPro;
             document.getElementById('body-root').classList.toggle('pro-active', isPro);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
+            
             let startTime = Date.now();
             const animateMove = () => {
+                drawStaticLines(); 
+                updateFishUI();    
                 for (let i = 0; i < 16; i++) {
                     const n = document.getElementById(`node-${i}`);
-                    if (n) { n.style.left = nodePositions[i].l + "px"; n.style.top = nodePositions[i].t + "px"; }
+                    if (n) { 
+                        n.style.left = nodePositions[i].l + "px"; 
+                        n.style.top = nodePositions[i].t + "px"; 
+                    }
                 }
-                drawStaticLines();
-                updateFishUI();
                 if (Date.now() - startTime < 600) requestAnimationFrame(animateMove);
             };
             requestAnimationFrame(animateMove);
@@ -572,7 +692,7 @@
             fishAtNode = newFish;
         }
         function recalculate() {
-            fishAtNode = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
+            fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];
             let h = [...gateHistory]; gateHistory = [];
             h.forEach(g => { executeLogic(g); gateHistory.push(g); });
             steps = gateHistory.length; finishMove();
@@ -599,9 +719,10 @@
                 u.addEventListener('dragend', (e) => { e.target.style.opacity = '1'; draggedIndex = null; });
                 u.onmouseenter = () => highlightByGate(g);
                 u.onmouseleave = () => clearHighlight();
+                
                 u.onclick = (e) => {
                     if (isSolved) return;
-                    if (e.ctrlKey || e.metaKey) {
+                    if (e.ctrlKey || e.metaKey || isEditMode) {
                         const sIdx = selectedIndices.indexOf(idx);
                         if (sIdx > -1) selectedIndices.splice(sIdx, 1);
                         else selectedIndices.push(idx);
@@ -647,6 +768,7 @@
                 c.appendChild(u);
             });
             updateUndoStatus();
+            updateDeleteButton();
             if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null) {
                 setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50);
             }
@@ -667,6 +789,7 @@
             if (isSolved) return;
             pop.currentTime = 0; pop.play();
             gateHistory = []; actionStack = []; selectedIndices = [];
+            if(isEditMode) toggleEditMode();
             recalculate();
         }
         function updateUndoStatus() {
@@ -685,8 +808,8 @@
                 const st = steps;
                 const u = sessionStorage.getItem('currentUser');
                 const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
-                if (savedLevel < 11) {
-                    sessionStorage.setItem('currentLevel', 11);
+                if (savedLevel < 12) {
+                    sessionStorage.setItem('currentLevel', 12);
                 }
                 setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
@@ -700,7 +823,7 @@
                         body: JSON.stringify({
                             action: 'saveRecord',
                             username: u,
-                            level: 10,          
+                            level: 11,          
                             steps: st,
                             time: ft,
                             circuit: gateHistory.join(',')
