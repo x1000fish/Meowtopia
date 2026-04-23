@@ -4,41 +4,45 @@
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meowtopia - Level 1</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; background-color: #016f66; color: #000; }
-        .game-btn { cursor: pointer; border: 5px solid #000; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #000; box-shadow: 0 4px 0 #000; position: relative; transition: all 0.1s; display: inline-block; }
-        .game-btn:active { top: 6px; box-shadow: 0 2px 0 #000; }
-        .btn-red { background: #c92727; } .btn-green { background: #006fbf; }
-        .game-canvas { position: relative; width: 850px; height: 410px; background: #EEE8D3; border: 8px solid #000; border-radius: 40px; margin: 20px auto; overflow: hidden; }
-        .connection-line { height: 8px; background: #000; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; transition: all 0.3s ease; z-index: 10; }
-        .connection-line:hover { background: #ffc822; box-shadow: 0 0 20px rgba(251, 191, 36, 0.5); }
-        .cat-node { width: 160px; height: 160px; background: white; border: 6px solid #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #000; top: 50%; transform: translateY(-50%); z-index: 20; }
+        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; }
+        .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #463438; box-shadow: 0 6px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
+        .game-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438; }
+        .game-btn:active { top: 6px; box-shadow: 0 2px 0 #463438; transform: translateY(0); }
+        .btn-red { background: #FFB7C5; } 
+        .btn-green { background: #99C44D; }
+        .game-canvas { position: relative; width: 850px; height: 410px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; margin: 20px auto; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
+        .connection-line { height: 8px; background: #463438; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; transition: all 0.3s ease; z-index: 10; }
+        .connection-line:hover { background: #99C44D; box-shadow: 0 0 20px rgba(153, 196, 77, 0.8); }
+        .cat-node { width: 160px; height: 160px; background: white; border: 6px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #463438; top: 50%; transform: translateY(-50%); z-index: 20; }
         #node-0 { left: 150px; } #node-1 { right: 150px; }
         .fish-wrapper { position: absolute; width: 80px; z-index: 30; pointer-events: none; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 75px; height: auto; }
-        .fish-label { background: #000000b6; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
-        .fixed-number { position: absolute; bottom: -5px; right: 65px; font-size: 24px; font-weight: 900; color: #000; pointer-events: none; z-index: 25; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #F8F3DC; border: 8px solid #000; border-radius: 40px; padding: 30px; text-align: center; width: 350px; }
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
+        .fixed-number { position: absolute; bottom: -5px; right: 65px; font-size: 24px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; }
         .line-guide { animation: line-glow 1.5s infinite ease-in-out; }
-        @keyframes line-glow { 0%, 100% { box-shadow: 0 0 5px #FFC822; background: #000000; } 50% { box-shadow: 0 0 20px #FFC822; background: #FFC822; transform: translate(-50%, -50%) scaleY(1.5); } }      
-        .guide-hand { position: absolute; top: 40%; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; display: flex; flex-direction: column; align-items: center; animation: tap-anim 1.5s infinite; }
+        @keyframes line-glow { 0%, 100% { box-shadow: 0 0 5px #99C44D; background: #463438; } 50% { box-shadow: 0 0 20px #99C44D; background: #99C44D; transform: translate(-50%, -50%) scaleY(1.5); } }
+        .guide-hand { position: absolute; top: 38%; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; display: flex; flex-direction: column; align-items: center; animation: tap-anim 1.5s infinite; }
         @keyframes tap-anim { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-15px); } }
         .guide-hidden { display: none !important; }
-        .game-btn:hover,
-        .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #000;}
-        .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #000;}
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div id="level-screen" class="flex flex-col items-center w-full max-w-4xl">
+    <div id="level-screen" class="flex flex-col items-center w-full max-w-4xl mt-10">
         <div class="flex justify-between w-full px-4 mb-4">
-            <div class="text-3xl font-black" style="color: #e0e0e0">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
-            <div class="text-3xl font-black" style="color: #fbe35b">LEVEL 1</div>
+            <div class="text-3xl font-black" style="color: #463438">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
+            <div class="text-3xl font-black" style="color: #7bc202">LEVEL 1</div>
         </div>
         <div class="game-canvas">
             <div id="main-line" class="connection-line line-guide" style="width: 300px;" onclick="swapFish()"></div>
-            <div id="guide-hand" class="guide-hand"><div class="bg-[#ffc822] text-black font-black px-3 py-1 rounded-full mb-5 shadow-lg">CLICK TO SWAP</div><span class="text-5xl">👆🏻</span></div>
+            <div id="guide-hand" class="guide-hand">
+                <div class="bg-[#99C44D] text-white font-black px-4 py-1 rounded-full mb-7" style="border: 3px solid #463438; box-shadow: 0 4px 0 #463438;">CLICK TO SWAP</div>
+                <span class="text-5xl">👆🏻</span>
+            </div>
             <div class="cat-node" id="node-0"><div class="fixed-number">0</div><img src="./image/Cat1.svg" class="w-32"></div>
             <div class="cat-node" id="node-1"><div class="fixed-number">1</div><img src="./image/Cat2.svg" class="w-32"></div>
             <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label">1</div><img id="fish-0" src="./image/Fish1.svg"></div>
@@ -48,7 +52,7 @@
     </div>
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
-            <h2 class="text-5xl font-black mb-4">MEOW!</h2><h2 class="text-5xl font-black mb-4">🐾</h2>
+            <h2 class="text-5xl font-black mb-4" style="color: #463438;">MEOW!<br>🐾</h2>
             <p id="victoryMsg" class="text-xl font-bold mb-6"></p>
             <button onclick="location.href='index.html'" class="game-btn btn-green w-full">KEEP GOING</button>
         </div>
