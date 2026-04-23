@@ -520,9 +520,9 @@
             line.id = `line-${Math.min(i,j)}-${Math.max(i,j)}`;
             line.style.cssText = `width:${len}px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
             if(dim===3){
-                line.style.height='8px'; line.style.background='transparent'; line.style.borderTop='3px dashed #000'; line.style.opacity='0.4';
+                line.style.height='8px'; line.style.background='transparent'; line.style.borderTop='3px dashed #463438'; line.style.opacity='0.4';
             } else {
-                line.style.height='3px'; line.style.background='#000';
+                line.style.height='3px'; line.style.background='#463438';
             }
             line.onmouseenter = () => {
                 hoverLine = { i, j, dim };
@@ -787,7 +787,7 @@
                         const dot = document.createElement('div'); dot.className = 'control-dot';
                         dot.style.top = (24 + ctrl.line * 40) + 'px';
                         dot.style.zIndex = '6';
-                        if (ctrl.type === 0) { dot.style.background = '#fff'; dot.style.border = '2px solid #000'; }
+                        if (ctrl.type === 0) { dot.style.background = '#fff'; dot.style.border = '2px solid #463438'; }
                         u.appendChild(dot);
                     });
                     const t = document.createElement('div'); t.className = 'circuit-target';
