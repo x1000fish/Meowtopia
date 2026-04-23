@@ -568,6 +568,18 @@
             recalculate();
             return false;
         }
+        function handleDrop(e, targetIndex) {
+            if (draggedIndex === null || draggedIndex === targetIndex) return;
+            e.stopPropagation();
+            const oldHistory = [...gateHistory];
+            const movedItem = gateHistory.splice(draggedIndex, 1)[0];
+            gateHistory.splice(targetIndex, 0, movedItem);
+            actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+            draggedIndex = null;
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            recalculate();
+            return false;
+        }
         function handleMotion(event) {
             const acc = event.accelerationIncludingGravity;
             if (!acc) return;
@@ -608,6 +620,7 @@
             originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
             dragGhost = el.cloneNode(true);
+            dragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
             dragGhost.style.position = 'fixed';
             dragGhost.style.zIndex = '9999';
             dragGhost.style.opacity = '1';
@@ -627,7 +640,6 @@
                 node.style.pointerEvents = 'none';
             });
             document.body.appendChild(dragGhost);
-            //el.style.visibility = 'hidden';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
