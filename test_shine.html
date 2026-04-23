@@ -100,7 +100,7 @@
             -webkit-user-select: none; 
             user-select: none;
             -webkit-touch-callout: none; 
-            touch-action: none; 
+            touch-action: manipulation;
         }
         /* 搖晃開關文字提示 (預設隱藏) */
         #shake-toast {
@@ -202,6 +202,7 @@
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
+        let originalDragEl = null;
         // 手機端與陀螺儀操控變數
         let isTouchDevice = false;
         let activeMobileLine = null;
@@ -420,21 +421,36 @@
         function startMobileDrag(touch, el, index) {
             mobileDragging = true;
             mDragIndex = index;
+            originalDragEl = el;
             if (navigator.vibrate) navigator.vibrate(50);
             dragGhost = el.cloneNode(true);
             dragGhost.style.position = 'fixed';
             dragGhost.style.zIndex = '9999';
-            dragGhost.style.opacity = '0.7';
+            dragGhost.style.opacity = '1';
             dragGhost.style.pointerEvents = 'none';
             dragGhost.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
             dragGhost.style.top = (touch.clientY - el.offsetHeight / 2) + 'px';
+            dragGhost.style.margin = '0';
+            dragGhost.style.transition = 'none';
+            dragGhost.style.animation = 'none';
+            dragGhost.style.transform = 'translateZ(0)';
+            dragGhost.style.willChange = 'left, top';
+            dragGhost.style.boxShadow = 'none';
+            dragGhost.style.background = 'transparent';
+            dragGhost.querySelectorAll('*').forEach(node => {
+                node.style.transition = 'none';
+                node.style.animation = 'none';
+                node.style.pointerEvents = 'none';
+            });
             document.body.appendChild(dragGhost);
-            el.style.opacity = '0.3';
+            el.style.visibility = 'hidden';
         }
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
-            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth / 2) + 'px';
-            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight / 2) + 'px';
+            const x = touch.clientX - dragGhost.offsetWidth / 2;
+            const y = touch.clientY - dragGhost.offsetHeight / 2;
+            dragGhost.style.left = x + 'px';
+            dragGhost.style.top = y + 'px';
         }
         function endMobileDrag(touch) {
             const units = [...document.querySelectorAll('.circuit-unit')];
@@ -450,8 +466,13 @@
                 dragGhost.remove();
                 dragGhost = null;
             }
+            if (originalDragEl) {
+                originalDragEl.style.visibility = 'visible';
+                originalDragEl = null;
+            }
             document.querySelectorAll('.circuit-unit').forEach(el => {
                 el.style.opacity = '1';
+                el.style.visibility = 'visible';
             });
             if (targetIndex !== null && mDragIndex !== null && targetIndex !== mDragIndex) {
                 const oldHistory = [...gateHistory];
@@ -907,6 +928,15 @@
                     if (mobileDragging) {
                         if (e.cancelable) e.preventDefault();
                         endMobileDrag(e.changedTouches[0]);
+                    }
+                });
+                u.addEventListener('touchcancel', (e) => {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                    if (mobileDragging) {
+                        endMobileDrag(e.changedTouches[0] || e.touches[0]);
                     }
                 });
                 u.onclick = (e) => {
