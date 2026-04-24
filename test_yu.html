@@ -306,10 +306,7 @@
             });
             window.addEventListener('deviceorientation', (e) => {
                 if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
-                
-                // [MODIFIED] 當教學進行到 Step 5 時，限制傾斜變動，必須點擊確認
                 if (tutorialActive && tutorialStep === 5) return;
-
                 let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
                 let tilt = 0;
                 if (orientation === 0) tilt = e.gamma;
@@ -336,7 +333,6 @@
                 }
             });
             function checkGyroTutorial() {
-                // [MODIFIED] 手機板傾斜計數邏輯同步為 3 次
                 if (tutorialActive && (tutorialStep === 3 || tutorialStep === 4)) {
                     if (tutorialStep === 3) { tutorialStep = 4; scrollCount = 0; }
                     if (tutorialStep === 4) { scrollCount++; if (scrollCount >= 3) tutorialStep = 5; }
@@ -607,10 +603,42 @@
         }
         function clearHighlight() { document.querySelectorAll('.connection-line').forEach(line => line.classList.remove('line-highlight')); }
         function showIndicator() {
-            const pill = document.getElementById('ios-indicator'), frac = document.getElementById('ind-fraction'), opt = currentOptions[currentOptionIndex];
-            if (!opt) return; frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`; pill.classList.add('active');
-            clearHighlight(); highlightPairs(opt.highlightPairs);
-        }
+    const indicator = document.getElementById('ios-indicator');
+    const fraction = document.getElementById('ind-fraction');
+    if (!indicator || !fraction || !currentOptions.length) return;
+
+    fraction.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`;
+    indicator.classList.add('active');
+
+    // 移除舊的高亮
+    document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('line-highlight'));
+
+    // 取得當前操作的線條 (PC 的 hoverLine 或手機的 activeMobileLine)
+    const baseLine = isTouchDevice ? activeMobileLine : hoverLine;
+    if (!baseLine) return;
+
+    if (lineMode === 4) {
+        // Mode 4：根據目前選擇的 option，找出該組交換涉及的所有 4 條線並亮起
+        const opt = currentOptions[currentOptionIndex];
+        const affectedEdges = [];
+        
+        // 遍歷所有邊，找出兩端點都在 opt.swaps 中的線
+        edges.forEach((edge, idx) => {
+            const [u, v] = edge;
+            // 檢查這條邊是否屬於這次交換對象
+            const isMatch = opt.swaps.some(pair => 
+                (pair[0] === u && pair[1] === v) || (pair[0] === v && pair[1] === u)
+            );
+            if (isMatch) {
+                const lineEl = document.querySelector(`.connection-line[data-index="${idx}"]`);
+                if (lineEl) lineEl.classList.add('line-highlight');
+            }
+        });
+    } else {
+        // Mode 1 或 Mode 2：維持原本單條或特定高亮邏輯
+        baseLine.classList.add('line-highlight');
+    }
+}
         function hideIndicator() { document.getElementById('ios-indicator').classList.remove('active'); clearHighlight(); }
         function initGameLayout() {
             const nL = document.getElementById('nodes-layer'), fL = document.getElementById('fishes-layer');
@@ -694,7 +722,6 @@
             };
             document.getElementById('lines-layer').appendChild(line);
         }
-
         function swapNodes(idxA, idxB) {
             if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
             if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
