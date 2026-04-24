@@ -110,7 +110,7 @@
         #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
         @keyframes pulse-toast { 0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; } 50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; } }
         .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
-	.swap-active {
+	    .swap-active {
             background: #99C44D !important;
             box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important;
             height: 8px !important;
@@ -381,7 +381,7 @@
                         toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
                         toast.classList.add('show');
                         setTimeout(() => { 
-                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                            toast.classList.remove('show'); 
                         }, 4000);
                     }
                 }
