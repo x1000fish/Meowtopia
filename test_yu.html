@@ -114,26 +114,7 @@
         #canvas-bottom-btns { position: absolute; bottom: 20px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
         .pro-active #canvas-bottom-btns { display: none !important; }
-        /* #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); } */
-#shake-toast { 
-    position: fixed; 
-    left: 50%; 
-    transform: translate(-50%, 0); 
-    background: #463438; 
-    color: #99C44D; 
-    padding: 10px 30px; 
-    border-radius: 50px; 
-    font-weight: 900; 
-    font-size: 24px; /* 字體大一點 */
-    z-index: 200000; /* 極高層級 */
-    opacity: 0; 
-    transition: opacity 0.3s ease; 
-    pointer-events: none; 
-    border: 3px solid #99C44D;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    white-space: nowrap;
-    /* 初始不設定 top，由 JS 動態控制 */
-}
+        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 30px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4" id="body-root">
@@ -269,51 +250,6 @@
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
-        function updateToastPosition() {
-    const toast = document.getElementById('shake-toast');
-    if (!toast || toast.style.opacity === '0') return;
-
-    if (window.visualViewport) {
-        const vv = window.visualViewport;
-        // 計算目前視覺視窗的頂部位置
-        // vv.offsetTop 是目前捲動到的位置，vv.scale 是縮放倍率
-        const topOffset = vv.offsetTop + 10; // 距離螢幕頂端 10px
-        const currentScale = vv.scale;
-
-        toast.style.top = topOffset + 'px';
-        // 為了防止標籤在放大時變得太大或太小，我們可以根據縮放倍率調整 scale
-        // 如果你希望標籤大小維持固定，不隨網頁放大而變大：
-        toast.style.transform = `translateX(-50%) scale(${1 / currentScale})`;
-    }
-}
-
-// 監聽縮放與捲動事件
-if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', updateToastPosition);
-    window.visualViewport.addEventListener('scroll', updateToastPosition);
-}
-
-// 修改原本的 handleMotion 觸發邏輯
-function showShakeToast(text, isActive) {
-    const toast = document.getElementById('shake-toast');
-    if (!toast) return;
-
-    toast.innerText = text;
-    toast.style.color = isActive ? "#99C44D" : "#FFB7C5";
-    toast.style.borderColor = isActive ? "#99C44D" : "#FFB7C5";
-    toast.style.opacity = '1';
-
-    // 顯示時立即更新一次位置
-    updateToastPosition();
-
-    // 3秒後消失
-    setTimeout(() => {
-        toast.style.opacity = '0';
-    }, 3000);
-}
-
-// 在你的 handleMotion 判斷中調用
-// showShakeToast(isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF", isShakeCtrlActive);
         function handleMotion(event) {
             const acc = event.accelerationIncludingGravity;
             if (!acc) return;
