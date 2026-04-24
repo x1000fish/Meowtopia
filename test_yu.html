@@ -2,60 +2,44 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1200">
-    <title>Meowtopia - Level 4</title>
+    <meta name="viewport" content="width=1024">
+    <title>Meowtopia - Level 3</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
-        body, canvas, .game-canvas, .node, .gate-btn-v2, #circuit-content { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; }
+        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
         .hidden { display: none !important; }
         .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
         .game-canvas { position: relative; width: 850px; height: 500px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
-        #leaderboard-wrapper {position: fixed;left: -220px;top: 50px;transform: none; display: flex; z-index: 150;transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1), z-index 0.3s;}
-        #leaderboard-wrapper.expanded { left: 0;}
-        .side-leaderboard-content { width: 220px;background: white;border: 6px solid #463438;border-left: none;border-radius: 0 30px 30px 0;padding: 15px;display: flex;flex-direction: column; max-height: 80vh; position: relative; z-index: 2; }
-        .bookmark-tab {position: absolute;right: -45px;  top: 40px; width: 45px; height: 130px;background: #463438;border: 5px solid #463438; border-left: none; border-radius: 0 15px 15px 0; cursor: pointer; display: flex; align-items: center;justify-content: center;transition: background 0.2s, right 0.2s, width 0.2s; z-index: 1;}
-        .bookmark-tab:hover { background: #FFB7C5; width: 55px; right: -55px;}
-        .bookmark-text { writing-mode: vertical-lr;  color: white;font-weight: 900;font-size: 20px;text-shadow: 2px 2px 0 #463438;letter-spacing: 4px;user-select: none;}
-        #rankList::-webkit-scrollbar { width: 6px; }
-        #rankList::-webkit-scrollbar-thumb { background-color: #FFB7C5; border-radius: 10px; }
-        .rank-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 2px solid #fce4ec; font-weight: 900; font-size: 14px; color: #463438; }
-        .rank-tab { flex: 1; padding: 4px; font-size: 12px; font-weight: 900; border: 3px solid #463438; border-radius: 12px; cursor: pointer; transition: all 0.1s; text-align: center; background: #fff; color: #463438; }
-        .rank-tab.active { background: #463438; color: #fff; }
         .node { width: 140px; height: 140px; background: white; border: 6px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #463438; z-index: 20; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .node img { width: 110px; height: auto; pointer-events: none; }
+        .node img { width: 110px; height: auto; }
         .fixed-number { position: absolute; bottom: -5px; right: 50px; font-size: 22px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
-        .connection-line { position: absolute; background: #463438; cursor: pointer; z-index: 10; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
-        .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; z-index: 16 !important; }
-        .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; z-index: 15 !important; }
+        .connection-line { position: absolute; background: #463438; cursor: pointer; z-index: 10; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
+        .multi-toggle-btn.active-mode { background: #629eed; }
+        .multi-toggle-btn:hover, .game-btn:hover, .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438;}
+        .multi-toggle-btn:active, .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
+        .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; }
+        .connection-line:hover { background: #99C44D; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); }
         .line-h { height: 8px; width: 300px; }
         .line-v { width: 8px; height: 250px; }
         .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 70px; height: auto; }
         .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
-        .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #463438; box-shadow: 0 6px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
+        .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #463438; box-shadow: 0 4px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
         .game-btn:active { top: 6px; box-shadow: 0 2px 0 #463438; }
         .btn-red { background: #FFB7C5; }
         .btn-green { background: #99C44D; }
-        .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
-        .multi-toggle-btn.active-mode { background: #629eed; }
-        .multi-toggle-btn:hover,
-        .game-btn:hover,
-        .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438;}
-        .multi-toggle-btn:active,
-        .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
         .gate-btn-v2 { background: #ffffff; border: 2.5px solid #463438; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #463438; cursor: pointer; box-shadow: 0 3px 6px rgba(70,52,56,0.1); transition: all 0.1s; text-align: center; }
         .gate-btn-v2:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(70,52,56,0.2); }
-        .gate-not { background-color: #fce4ec !important; }
-        .gate-btn-v2:hover, .func-btn:hover, .gate-not:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; box-shadow: 0 3px 0 #463438 !important; transform: translateY(-2px); } 
+        .gate-btn-v2:hover, .func-btn:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; box-shadow: 0 3px 0 #463438 !important; transform: translateY(-2px); }
         .func-btn { width: 100%; margin-top: 5px; padding: 10px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); }
         .btn-reset { background: #FFF9F0; color: #463438; }
-        .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; }
+        .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 1; cursor: not-allowed; }
         .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; }
         .btn-undo.active:hover { background-color: #ff9fb2 !important; transform: translateY(-2px); box-shadow: 0 6px 0 #463438; animation: pulse-red-undo 1.2s infinite ease-in-out !important; }
+        .btn-undo.disabled { background: #FFB7C5 !important; border-color: #463438 !important; color: #ffffff !important; cursor: not-allowed; opacity: 1; }
         #pro-panel { width: 0; opacity: 0; height: 500px; overflow: hidden; background: #ffffff; border: 0px solid #463438; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .pro-active #pro-panel { width: 320px; opacity: 1; border: 8px solid #463438; padding: 12px 20px 20px 20px; box-shadow: 10px 10px 0px #99C44D; }
         .panel-section-title { font-weight: 900; font-size: 18px; margin-bottom: 6px; margin-top: 6px; color: #463438; text-align: center; white-space: nowrap; overflow: hidden; }
@@ -69,52 +53,51 @@
         #circuit-area { width: 900px; height: 0; opacity: 0; background: #ffffff; border: 0px solid #463438; border-radius: 30px; margin-top: 20px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; padding: 0 15px; overflow: hidden; }
         .pro-active #circuit-area { height: 170px; opacity: 1; border: 8px solid #463438; padding: 15px; box-shadow: 10px 10px 0px #FFB7C5; }
         .circuit-title { text-align: center; font-weight: 900; font-size: 1.25rem; margin-bottom: 8px; color: #463438; }
-        #circuit-content-wrapper { position: relative; height: 130px; overflow-x: auto !important; overflow-y: hidden; margin-left: 30px; padding-top: 4px;}
+        #circuit-content-wrapper { position: relative; height: 130px; overflow-x: auto !important; overflow-y: hidden; margin-left: 30px; padding-top: 4px; }
         #circuit-content { display: flex; height: 100%; padding: 0 7px; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 20px, 0 60px; }
         .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #463438; z-index: 5; }
-        .circuit-unit { min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: grab; transition: all 0.2s; touch-action: none; }
-        .circuit-unit:active { cursor: grabbing; }
+        .circuit-unit { min-width: 48px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
         .circuit-unit:hover { background: rgba(255, 183, 197, 0.3); border-radius: 12px; }
-        .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D !important; }
+        .circuit-unit.selected-gate { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D !important; }
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: #463438; z-index: 3; }
         .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
         .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background-color: #463438; }
         .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background-color: #463438; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1100; }
-        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; }
-        .no-fish-anim .fish-wrapper, .no-fish-anim .node { transition: none !important; }
         #pro-guide-mask { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 900; display: none; }
         #guide-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); z-index: 450; display: flex; }
-        #guide-hint-text { position: absolute !important; background: #99C44D; color: #fff; padding: 12px 20px; border-radius: 9999px; font-weight: 900; font-size: 16px; z-index: 10005 !important; display: none; transition: all 0.3s; min-width: 150px; max-width: 250px; word-wrap: break-word; white-space: normal; line-height: 1.4; box-shadow: 0 4px 0 #463438; border: 3px solid #463438; text-align: center; }
+        #guide-hint-text { position: fixed; background: #99C44D; color: #fff; padding: 10px 20px; border-radius: 9999px; font-weight: 900; font-size: 16px; z-index: 1000; display: none; transition: all 0.3s; min-width: 150px; box-shadow: 0 4px 0 #463438; border: 3px solid #463438; text-align: center; }
         .next-btn { margin-top: 8px; background: #463438; color: #fff; padding: 4px 12px; border-radius: 10px; font-size: 14px; cursor: pointer; border: none; font-weight: 900; }
         .lock-btn { opacity: 1; cursor: not-allowed !important; pointer-events: none !important; filter: grayscale(1); }
         .highlight-focus { position: relative !important; z-index: 950 !important; pointer-events: auto !important; animation: pulse-btn-border 1.5s infinite ease-in-out !important; }
         .highlight-static { position: relative !important; z-index: 950 !important; border-color: #99C44D !important; box-shadow: 0 0 25px #99C44D !important; pointer-events: auto !important; }
         .highlight-canvas-obj { position: absolute !important; z-index: 950 !important; box-shadow: 0 0 30px 10px #99C44D !important; pointer-events: auto !important; }
         .fish-top-layer { z-index: 951 !important; }
-        .gate-btn-v2.highlight-focus:hover, .func-btn.highlight-focus:hover, .highlight-focus:hover, .gate-not.highlight-focus:hover { animation-play-state: paused !important; border-color: #99C44D !important; border-width: 3px !important; background-color: #FFB7C5 !important; color: #fff !important; box-shadow: 0 4px 0 #463438, 0 0 20px #99C44D !important; transform: scale(1.05) !important; }
+        .gate-btn-v2.highlight-focus:hover, .func-btn.highlight-focus:hover { animation-play-state: paused !important; border-color: #99C44D !important; border-width: 3px !important; background-color: #FFB7C5 !important; color: #fff !important; box-shadow: 0 4px 0 #463438, 0 0 20px #99C44D !important; transform: scale(1.05) !important; }
         #circuit-area.tutorial-active { z-index: 910 !important; position: relative !important; background: #ffffff !important; transition: none !important; }
         .circuit-unit.highlight-focus { z-index: 1001 !important; pointer-events: auto !important; animation: pulse-circuit 1.5s infinite ease-in-out !important; border-radius: 12px; background: rgba(153, 196, 77, 0.2); }
         .highlight-focus:hover { animation-play-state: paused !important; border-color: #99C44D !important; transform: scale(1) !important; }
         .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: white; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; }
         .start-hint-banner { position: fixed; top: 100px; right: 15px; z-index: 600; pointer-events: none; display: flex; flex-direction: column; align-items: flex-end; animation: tap-anim 1.5s infinite; }
         .hint-pill { background: #99C44D; color: #fff; font-weight: 900; padding: 4px 12px; border-radius: 9999px; font-size: 16px; margin-top: 8px; border: 3px solid #463438; box-shadow: 0 4px 0 #463438; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1100; }
+        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; }
+        .no-fish-anim .fish-wrapper, .no-fish-anim .node { transition: none !important; }
         @keyframes yellow-pulse { 0%, 100% { box-shadow: 0 4px 0 #463438, 0 0 5px #99C44D; border-color: #463438; } 35% { box-shadow: 0 4px 0 #463438, 0 0 30px #99C44D; border-color: #99C44D; transform: scale(1.1); } }
         @keyframes tap-anim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
         @keyframes pulse-red-undo { 0%, 100% { transform: scale(1); box-shadow: 0 4px 0 #463438; } 50% { transform: scale(1.05); box-shadow: 0 0 20px #FFB7C5, 0 4px 0 #463438; } }
         @keyframes pulse-btn-border { 0%, 100% { border-color: #463438; transform: scale(1); } 50% { border-color: #99C44D; transform: scale(1.05); box-shadow: 0 0 15px #99C44D; } }
         @keyframes pulse-circuit { 0%, 100% { box-shadow: 0 0 5px #99C44D; } 50% { box-shadow: 0 0 15px #99C44D; } }
         .yellow-glow { animation: yellow-pulse 1.5s infinite ease-in-out; z-index: 501 !important; }
-        .highlight-fixed { z-index: 1001 !important; pointer-events: auto !important; }
-        .highlight-fixed .side-leaderboard-content,
-        .highlight-fixed .bookmark-tab { border-color: #99C44D !important; box-shadow: 0 0 25px rgba(153, 196, 77, 0.8) !important; }
         .gate-btn-circuit { padding: 0 !important; height: 76px; display: flex; align-items: center; justify-content: center; border-radius: 16px !important; position: relative; }
         .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
-        #canvas-bottom-btns { position: absolute; bottom: 20px; right: 30px; display: flex; flex-direction: column; gap: 10px; z-index: 100; }
-        #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px; padding: 8px 5px; text-transform: uppercase; border-width: 3px; }
-        .pro-active #canvas-bottom-btns { display: none !important; }
-        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 40px 80px; border-radius: 9999px; font-weight: 900; font-size: 50px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 6px solid #FFB7C5; }
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); background: #99C44D; color: #463438; padding: 15px 40px; border-radius: 50px; font-weight: 900; font-size: 40px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 4px solid #463438; box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
+        #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        @keyframes pulse-toast { 0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; } 50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; } }
+        .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
+        @keyframes phone-shake-anim { 0% { transform: rotate(0deg); } 25% { transform: rotate(-15deg); } 50% { transform: rotate(0deg); } 75% { transform: rotate(15deg); } 100% { transform: rotate(0deg); } }
+        .shake-icon { display: inline-block; font-size: 32px; animation: phone-shake-anim 1s infinite ease-in-out; transform-origin: center; margin-bottom: 5px; }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4" id="body-root">
@@ -124,67 +107,52 @@
         <div id="mode-toggle" class="mode-toggle-fixed yellow-glow" onclick="togglePro()">👁️</div>
         <div id="start-hint" class="start-hint-banner"><span class="text-5xl">👆🏻</span><div class="hint-pill">CLICK TO START PRO MODE</div></div>
     </div>
-    <div id="leaderboard-wrapper">
-        <div class="side-leaderboard-content">
-            <h2 class="text-xl font-black mb-3 text-center" style="color: #463438;">🏆 TOP CATS</h2>
-            <div class="flex gap-2 mb-3">
-                <button onclick="renderRank('steps')" id="tab-steps" class="rank-tab active">STEPS</button>
-                <button onclick="renderRank('time')" id="tab-time" class="rank-tab">TIME</button>
-            </div>
-            <div id="rankList" class="flex-grow overflow-y-auto space-y-1 pr-1">
-                <p class="text-center italic text-gray-400 mt-10 text-sm">Loading...</p>
-            </div>
-        </div>
-        <div class="bookmark-tab" onclick="toggleLeaderboard()">
-            <div class="bookmark-text">RANK</div>
-        </div>
-    </div>
     <div class="w-full max-w-4xl">
         <div class="flex justify-between w-full px-4 mb-4 items-center mt-6">
             <div class="text-3xl font-black" style="color: #463438;">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
             <div class="flex items-center gap-12 ml-auto">
                 <button id="mode-2-btn" class="multi-toggle-btn" onclick="toggleMode2()">Mode: 1</button>
-                <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 4</div>
+                <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 3</div>
             </div>
         </div>
         <div class="main-layout">
             <div id="pro-panel">
                 <div class="panel-section-title">Quantum Gate</div>
                 <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
-                    <button id="gate-x0" class="gate-btn-v2 gate-not gate-btn-circuit" onclick="applyGate('X0')" onmouseover="syncGateHighlight('X0', true)" onmouseout="syncGateHighlight('X0', false)">
+                    <button id="gate-x0" class="gate-btn-v2 gate-btn-circuit" style="background: #fce4ec;" onclick="applyGate('X0')" onmouseenter="syncGateButtonHighlight('X0', true)" onmouseleave="syncGateButtonHighlight('X0', false)">
                         <div class="wire-container">
                             <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
                         </div>
                     </button>
-                    <button id="gate-x1" class="gate-btn-v2 gate-not gate-btn-circuit" onclick="applyGate('X1')" onmouseover="syncGateHighlight('X1', true)" onmouseout="syncGateHighlight('X1', false)">
+                    <button id="gate-x1" class="gate-btn-v2 gate-btn-circuit" style="background: #fce4ec;" onclick="applyGate('X1')" onmouseenter="syncGateButtonHighlight('X1', true)" onmouseleave="syncGateButtonHighlight('X1', false)">
                         <div class="wire-container">
                             <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
                         </div>
                     </button>
-                    <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)">
+                    <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseenter="syncGateButtonHighlight('CX01', true)" onmouseleave="syncGateButtonHighlight('CX01', false)">
                         <div class="wire-container">
                             <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
                             <div class="control-dot" style="left: 50%; top: 25.5px; background: #463438; transform: translate(-50%, -50%);"></div>
                             <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
                         </div>
                     </button>
-                    <button id="gate-c0x01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X01')" onmouseover="syncGateHighlight('C0X01', true)" onmouseout="syncGateHighlight('C0X01', false)">
+                    <button id="gate-c0x01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X01')" onmouseenter="syncGateButtonHighlight('C0X01', true)" onmouseleave="syncGateButtonHighlight('C0X01', false)">
                         <div class="wire-container">
                             <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
-                            <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 24px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div>
+                            <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 25.5px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div>
                             <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
                         </div>
                     </button>
-                    <button id="gate-cx10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX10')" onmouseover="syncGateHighlight('CX10', true)" onmouseout="syncGateHighlight('CX10', false)">
+                    <button id="gate-cx10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX10')" onmouseenter="syncGateButtonHighlight('CX10', true)" onmouseleave="syncGateButtonHighlight('CX10', false)">
                         <div class="wire-container">
                             <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
                             <div class="control-dot" style="left: 50%; top: 53.5px; background: #463438; transform: translate(-50%, -50%);"></div>
                             <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
                         </div>
                     </button>
-                    <button id="gate-c0x10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X10')" onmouseover="syncGateHighlight('C0X10', true)" onmouseout="syncGateHighlight('C0X10', false)">
+                    <button id="gate-c0x10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X10')" onmouseenter="syncGateButtonHighlight('C0X10', true)" onmouseleave="syncGateButtonHighlight('C0X10', false)">
                         <div class="wire-container">
-                            <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
+                            <div class="connection-v-line" style="left: 50%; top:25.5px; height: 28px; transform: translateX(-50%);"></div>
                             <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 53.5px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div>
                             <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
                         </div>
@@ -195,14 +163,14 @@
                 <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Step</button>
             </div>
             <div class="game-canvas" id="main-canvas">
-                <div id="line-h-0" class="connection-line line-h" style="top: 95px; left: 280px;"
-                    onclick="handleLineClick('H')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
-                <div id="line-h-1" class="connection-line line-h" style="bottom: 90px; left: 280px;"
-                    onclick="handleLineClick('H')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
-                <div id="line-v-0" class="connection-line line-v" style="top: 150px; left: 221px;"
-                    onclick="handleLineClick('V')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
-                <div id="line-v-1" class="connection-line line-v" style="top: 150px; left: 571px;"
-                    onclick="handleLineClick('V')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
+                <div id="line-00-01" class="connection-line line-h" style="top: 95px; left: 280px;"
+                     onclick="handleLineClick('H', 'C0X01')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
+                <div id="line-10-11" class="connection-line line-h" style="bottom: 90px; left: 280px;"
+                     onclick="handleLineClick('H', 'CX01')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
+                <div id="line-00-10" class="connection-line line-v" style="top: 150px; left: 221px;"
+                     onclick="handleLineClick('V', 'C0X10')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
+                <div id="line-01-11" class="connection-line line-v" style="top: 150px; left: 571px;"
+                     onclick="handleLineClick('V', 'CX10')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
                 <div class="node" id="node-0" style="top: 25px; left: 155px;"><div class="fixed-number">00</div><img src="./image/Cat1.svg"></div>
                 <div class="node" id="node-1" style="top: 25px; left: 505px;"><div class="fixed-number">01</div><img src="./image/Cat2.svg"></div>
                 <div class="node" id="node-2" style="bottom: 25px; left: 155px;"><div class="fixed-number">10</div><img src="./image/Cat3.svg"></div>
@@ -211,21 +179,14 @@
                 <div id="fish-1" class="fish-wrapper"><div class="fish-label">01</div><img src="./image/Fish2.svg"></div>
                 <div id="fish-2" class="fish-wrapper"><div class="fish-label">10</div><img src="./image/Fish3.svg"></div>
                 <div id="fish-3" class="fish-wrapper"><div class="fish-label">11</div><img src="./image/Fish4.svg"></div>
-                <div id="canvas-bottom-btns">
-                    <button class="func-btn btn-reset" onclick="resetCircuit()">RESET</button>
-                    <button id="undo-btn-bottom" class="func-btn btn-undo" onclick="undo()">UNDO</button>
-                </div>
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
             <div class="circuit-title">Circuit Diagram</div>
-            <div class="qubit-label" style="top: 60px;">q0</div>
-            <div class="qubit-label" style="top: 100px;">q1</div>
+            <div class="qubit-label" style="top: 60px;">q0</div><div class="qubit-label" style="top: 100px;">q1</div>
             <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
         </div>
-        <div class="w-full text-center mt-6 mb-6">
-            <a href="index.html" class="game-btn btn-red px-16">GIVE UP</a>
-        </div>
+        <div class="w-full text-center mt-6 mb-6"><a id="back-btn" href="index.html" class="game-btn btn-red px-16">GIVE UP</a></div>
     </div>
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
@@ -233,20 +194,15 @@
             <h2 class="text-5xl font-black mb-4" style="color: #463438;">🐾</h2>
             <p id="victoryMsg" class="text-xl font-bold mb-6"></p>
             <button onclick="location.href='index.html'" class="game-btn btn-green w-full mb-4">KEEP GOING</button>
-            <button onclick="viewInLab().style.display='none'" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
+            <button onclick="viewCircuitResult()" class="game-btn btn-red w-full">VIEW CIRCUIT</button>
         </div>
     </div>
     <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
-        let steps = 0, time = 0, isPro = false, fishAtNode = [3, 2, 1, 0], gateHistory = [], timerInterval, isSolved = false;
-        let historyStack = [[]];
+        let steps = 0, time = 0, isPro = false, fishAtNode = [1, 0, 3, 2], gateHistory = [], tutorialPhase = 0, tutorialCompleted = false, timerInterval, isSolved = false;
+        let actionStack = [];
         let selectedIndices = [];
         let isMode2 = false;
-        let leaderboardData = [];
-        let draggedIndex = null;
-        let tutorialPhase = 1;
-        let tutorialCompleted = false;
-        let isShakeCtrlActive = false;
+        let isShakeCtrlActive = false; 
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
@@ -263,36 +219,39 @@
                     if (navigator.vibrate) navigator.vibrate([100]);
                     const toast = document.getElementById('shake-toast');
                     if (toast) {
-                        toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
-                        toast.style.opacity = '1';
-                        setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
+                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
+                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
+                        toast.classList.add('show');
+                        setTimeout(() => { 
+                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                        }, 5000);
+                    }
+                    if (tutorialPhase === 0.5 && isShakeCtrlActive) {
+                        setTimeout(() => {
+                            tutorialPhase = 1.1;
+                            updateTutorialUI();
+                        }, 800);
                     }
                 }
             }
         }
         function requestShakePermission() {
-            if (!shakePermissionRequested) {
-                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    DeviceMotionEvent.requestPermission()
-                        .then(state => {
-                            if (state === 'granted') {
-                                window.addEventListener('devicemotion', handleMotion);
-                            }
-                        })
-                        .catch(console.error);
-                } else {
-                    window.addEventListener('devicemotion', handleMotion);
-                }
-                shakePermissionRequested = true;
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(state => {
+                        if (state === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
             }
         }
         window.onload = () => {
-            window.addEventListener('click', requestShakePermission, { once: true });
-            window.addEventListener('touchstart', requestShakePermission, { once: true });
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
-            updateFishUI();
-            updateUndoStatus();
-            fetchLeaderboard();
+            updateFishUI(); updateUndoStatus();
             const cw = document.getElementById('circuit-content-wrapper');
             const requestGyroPermission = async () => {
                 if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -316,372 +275,318 @@
             window.addEventListener('touchstart', requestGyroPermission);
             const btnPro = document.getElementById('mode-toggle');
             if (btnPro) btnPro.addEventListener('click', requestGyroPermission);
+            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
+                e.preventDefault();
+                e.currentTarget.scrollLeft += e.deltaY;
+            });
             cw.addEventListener('wheel', (e) => { e.preventDefault(); cw.scrollLeft += e.deltaY; });
         };
-        function toggleLeaderboard() {
-            const wrapper = document.getElementById('leaderboard-wrapper');
-            wrapper.classList.toggle('expanded');
-        }
-        function clearAllHighlights() {
-            document.querySelectorAll('.highlight-focus, .highlight-static, .highlight-canvas-obj, .fish-top-layer, .line-highlight, .highlight-fixed').forEach(el => el.classList.remove('highlight-focus', 'highlight-static', 'highlight-canvas-obj', 'fish-top-layer', 'line-highlight', 'highlight-fixed'));
-            document.querySelectorAll('.gate-btn-v2, .func-btn').forEach(el => el.classList.remove('lock-btn'));
-            document.getElementById('circuit-area').classList.remove('tutorial-active');
-            document.getElementById('leaderboard-wrapper').style.zIndex = "150";
-        }
-        function positionHint(idOrEl, ox, oy) {
-            const h = document.getElementById('guide-hint-text');
-            const el = typeof idOrEl === 'string' ? document.getElementById(idOrEl) : idOrEl;
-            if (!el) return;
-            const r = el.getBoundingClientRect();
-            h.style.display = 'block';
-            h.style.left = (r.right + window.scrollX + ox) + 'px';
-            h.style.top = (r.top + window.scrollY + oy) + 'px';
-            setTimeout(() => {
-                h.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-            }, 50);
-        }
-        function updateTutorialUI() {
-            if (tutorialCompleted) return;
-            clearAllHighlights();
-            const h = document.getElementById('guide-hint-text');
-            const mask = document.getElementById('pro-guide-mask');
-            const gates = document.querySelectorAll('.gate-btn-v2, .func-btn');
-            if ([2, 3, 4, 5].includes(tutorialPhase)) {
-                mask.style.display = 'block';
-                document.getElementById('circuit-area').classList.add('tutorial-active');
-            }
-            if (tutorialPhase === 2) {
-                gates.forEach(g => g.classList.add('lock-btn'));
-                const targetBtn = document.getElementById('gate-cx01');
-                if (targetBtn) {
-                    targetBtn.classList.remove('lock-btn');
-                    targetBtn.classList.add('highlight-focus');
-                    h.innerHTML = `CLICK 1CNOT q0→q1`;
-                    positionHint(targetBtn, 60, 10);
-                }
-            }
-            else if (tutorialPhase === 3) {
-                gates.forEach(g => g.classList.add('lock-btn'));
-                const targetBtn = document.getElementById('gate-cx10');
-                if (targetBtn) {
-                    targetBtn.classList.remove('lock-btn');
-                    targetBtn.classList.add('highlight-focus');
-                    h.innerHTML = `CLICK 1CNOT q1→q0`;
-                    positionHint(targetBtn, 10, 10);
-                }
-            }
-            else if (tutorialPhase === 4) {
-                gates.forEach(g => g.classList.add('lock-btn'));
-                h.innerHTML = `DRAG THE 2ND GATE ONTO THE 1ST TO SWAP THEM`;
-                renderCircuit(); 
-                setTimeout(() => {
-                    const secondGate = document.querySelectorAll('.circuit-unit')[1];
-                    if (secondGate) {
-                        positionHint(secondGate, 20, -20);
-                    } else {
-                        positionHint('circuit-area', 0, 0);
-                    }
-                }, 100);
-            }
-            else if (tutorialPhase === 5) {
-                gates.forEach(g => g.classList.add('lock-btn'));
-                const board = document.getElementById('leaderboard-wrapper');
-                board.classList.add('highlight-fixed');
-                board.classList.add('expanded'); 
-                h.innerHTML = `CHECK OUT THE LEADERBOARD OVER HERE!<br><button onclick="endTutorial()" class="next-btn">GOT IT</button>`;
-                setTimeout(() => {
-                    positionHint(board, 30, 150);
-                }, 550);
-                renderCircuit();
-            }
-        }
-        function endTutorial() {
-            tutorialPhase = 6;
-            tutorialCompleted = true;
-            document.getElementById('pro-guide-mask').style.display = 'none';
-            document.getElementById('guide-hint-text').style.display = 'none';
-            document.getElementById('leaderboard-wrapper').classList.remove('expanded'); 
-            clearAllHighlights();
-            updateUndoStatus();
-        }
-        function handleDragStart(e, index) {
-            if (isSolved) return;
-            draggedIndex = index;
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', index.toString());
-            setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
-        }
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-        function handleDrop(e, targetIndex) {
-            e.preventDefault();
-            if (isSolved || draggedIndex === null || draggedIndex === targetIndex) return;
-            
-            if (tutorialPhase === 4) {
-                if (draggedIndex !== 1 || targetIndex !== 0) {
-                    draggedIndex = null;
-                    return;
-                }
-            }
-            pop.currentTime = 0; pop.play();
-            const movedGate = gateHistory.splice(draggedIndex, 1)[0];
-            gateHistory.splice(targetIndex, 0, movedGate);
-            pushHistory();
-            selectedIndices = [];
-            recalculatePositions();
-            finishMove();
-            draggedIndex = null;
-            if (tutorialPhase === 4) {
-                tutorialPhase = 5;
-                setTimeout(updateTutorialUI, 100);
-            }
-        }
-        async function fetchLeaderboard() {
-            const listArea = document.getElementById('rankList');
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=4`);
-                const data = await response.json();
-                if (data && Array.isArray(data) && data.length > 0) {
-                    leaderboardData = data;
-                    renderRank('steps');
-                } else {
-                    listArea.innerHTML = '<p class="text-center italic text-gray-400 mt-10 text-sm">No records yet</p>';
-                }
-            } catch (e) {
-                listArea.innerHTML = '<p class="text-center italic text-red-400 mt-10 text-sm">Load Error</p>';
-            }
-        }
-        function renderRank(type) {
-            const tabSteps = document.getElementById('tab-steps');
-            const tabTime = document.getElementById('tab-time');
-            const listArea = document.getElementById('rankList');
-            if (type === 'steps') {
-                tabSteps.className = 'rank-tab active';
-                tabTime.className = 'rank-tab bg-gray-100';
-            } else {
-                tabSteps.className = 'rank-tab bg-gray-100';
-                tabTime.className = 'rank-tab active';
-            }
-            if (!leaderboardData || leaderboardData.length === 0) return;
-            const sorted = [...leaderboardData].sort((a, b) => a[type] - b[type]);
-            let html = "";
-            sorted.slice(0, 10).forEach((item, index) => {
-                const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : (index + 1) + ".";
-                const displayName = item.username || item.name || 'Anonymous';
-                const displayValue = type === 'steps' ? item.steps + '🐾' : item.time + 's';
-                html += `<div class="rank-item"><span class="truncate" style="max-width: 90px;">${medal} ${displayName}</span><span class="text-blue-600">${displayValue}</span></div>`;
-            });
-            listArea.innerHTML = html;
-        }
         function toggleMode2() {
             pop.currentTime = 0;
             pop.play();
-            if (tutorialPhase > 0 && tutorialPhase < 6) return;
+            if (tutorialPhase > 0 && tutorialPhase < 100 && tutorialPhase !== 4.1) return;
             isMode2 = !isMode2;
             const btn = document.getElementById('mode-2-btn');
             btn.innerText = isMode2 ? "Mode: 2" : "Mode: 1";
             btn.classList.toggle('active-mode', isMode2);
-        }
-        const gateLineMap = {
-            X0: ['line-v-0', 'line-v-1'],
-            X1: ['line-h-0', 'line-h-1'],
-            C0X01: ['line-h-0'],
-            CX01: ['line-h-1'],
-            C0X10: ['line-v-0'],
-            CX10: ['line-v-1']
-        };
-        function toggleLineHighlight(lineIds, isOn) {
-            lineIds.forEach(id => document.getElementById(id)?.classList.toggle('line-highlight', isOn));
+            if (tutorialPhase === 4.1 && isMode2) { tutorialPhase = 4.2; updateTutorialUI(); }
         }
         function syncHighlight(dir, isOn) {
             if (!isMode2) return;
-            toggleLineHighlight(dir === 'H' ? gateLineMap.X1 : gateLineMap.X0, isOn);
+            const lines = dir === 'H' ? ['line-00-01', 'line-10-11'] : ['line-00-10', 'line-01-11'];
+            lines.forEach(id => {
+                const el = document.getElementById(id);
+                if (isOn) el.classList.add('line-highlight');
+                else el.classList.remove('line-highlight');
+            });
         }
-        function syncGateHighlight(gate, isOn) {
-            toggleLineHighlight(gateLineMap[gate] || [], isOn);
+        function syncGateButtonHighlight(gate, isOn) {
+            let lines = [];
+            if (gate === 'X0') lines = ['line-00-10', 'line-01-11'];
+            else if (gate === 'X1') lines = ['line-00-01', 'line-10-11'];
+            else if (gate === 'C0X01') lines = ['line-00-01'];
+            else if (gate === 'CX01') lines = ['line-10-11'];
+            else if (gate === 'C0X10') lines = ['line-00-10'];
+            else if (gate === 'CX10') lines = ['line-01-11'];
+            lines.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (isOn) el.classList.add('line-highlight');
+                else el.classList.remove('line-highlight');
+            });
         }
-        function handleLineClick(dir) {
+        function handleLineClick(dir, defaultGate) {
             if (isSolved) return;
-            if (tutorialPhase > 0 && tutorialPhase < 6) return;
-            if (isMode2) {
-                const gate = (dir === 'H') ? 'X1' : 'X0';
-                applyGate(gate);
-            } else {
-                const eventId = event.currentTarget.id;
-                if (eventId === 'line-h-0') applyGate('C0X01');
-                if (eventId === 'line-h-1') applyGate('CX01');
-                if (eventId === 'line-v-0') applyGate('C0X10');
-                if (eventId === 'line-v-1') applyGate('CX10');
+            if (tutorialPhase > 0 && tutorialPhase < 100) {
+                if (tutorialPhase === 4.2 && dir !== 'V') return;
+                if (tutorialPhase === 4.3 && dir !== 'H') return;
+                if (![4.2, 4.3].includes(tutorialPhase)) return;
             }
+            if (isMode2) { applyGate((dir === 'H') ? 'X1' : 'X0'); } else { applyGate(defaultGate); }
         }
         function togglePro() {
             pop.currentTime = 0;
             pop.play();
             isPro = !isPro; const b = document.getElementById('body-root');
-            const overlay = document.getElementById('guide-overlay');
-            if(overlay) overlay.style.display = 'none';
-            const startHint = document.getElementById('start-hint');
-            if(startHint) startHint.style.display = 'none';
+            document.getElementById('guide-overlay').style.display = 'none';
+            document.getElementById('start-hint').style.display = 'none';
             document.getElementById('mode-toggle').classList.remove('yellow-glow');
             b.classList.add('no-fish-anim'); b.classList.toggle('pro-active', isPro);
-            updateFishUI(); setTimeout(() => b.classList.remove('no-fish-anim'), 50);
+            updateFishUI();
+            if (isPro && !tutorialCompleted) { tutorialPhase = 0.1; document.getElementById('pro-guide-mask').style.display = 'block'; setTimeout(updateTutorialUI, 100); }
+            else { if(!tutorialCompleted) tutorialPhase = 0; document.getElementById('pro-guide-mask').style.display = 'none'; document.getElementById('guide-hint-text').style.display = 'none'; clearAllHighlights(); }
+            setTimeout(() => b.classList.remove('no-fish-anim'), 50);
             document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
-            if (tutorialPhase === 1 && isPro) {
-                tutorialPhase = 2;
-                setTimeout(updateTutorialUI, 100);
+            if (isPro && !shakePermissionRequested) {
+                requestShakePermission();
+                shakePermissionRequested = true;
             }
         }
-        function pushHistory() { historyStack.push([...gateHistory]); }
+        function clearAllHighlights() {
+            document.querySelectorAll('.highlight-focus, .highlight-static, .highlight-canvas-obj, .fish-top-layer, .line-highlight').forEach(el => el.classList.remove('highlight-focus', 'highlight-static', 'highlight-canvas-obj', 'fish-top-layer', 'line-highlight'));
+            document.querySelectorAll('.gate-btn-v2').forEach(el => el.classList.remove('lock-btn'));
+            document.getElementById('circuit-area').classList.remove('tutorial-active');
+            const h = document.getElementById('guide-hint-text');
+            if (h) {
+                h.style.transform = 'none';
+            }
+        }
+        function highlightAction(gate) {
+            let ns = [], ls = [];
+            if (gate === 'C0X01') { ns = [0, 1]; ls = ['line-00-01']; } else if (gate === 'CX01') { ns = [2, 3]; ls = ['line-10-11']; }
+            else if (gate === 'CX10') { ns = [1, 3]; ls = ['line-01-11']; } else if (gate === 'C0X10') { ns = [0, 2]; ls = ['line-00-10']; }
+            else if (gate === 'X0') { ns = [0, 1, 2, 3]; ls = ['line-00-10', 'line-01-11']; } else if (gate === 'X1') { ns = [0, 1, 2, 3]; ls = ['line-00-01', 'line-10-11']; }
+            ns.forEach(id => document.getElementById(`node-${id}`)?.classList.add('highlight-canvas-obj'));
+            ls.forEach(id => document.getElementById(id)?.classList.add('highlight-canvas-obj'));
+            fishAtNode.forEach((nid, fid) => { if(ns.includes(nid)) document.getElementById(`fish-${fid}`)?.classList.add('fish-top-layer'); });
+        }
+        function updateTutorialUI() {
+            clearAllHighlights(); const h = document.getElementById('guide-hint-text'), bs = document.querySelectorAll('.gate-btn-v2');
+            const toast = document.getElementById('shake-toast');
+            const circuitArea = document.getElementById('circuit-area');
+            if ([0.5, 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 3.3, 4.2, 4.3].includes(tutorialPhase)) {
+                circuitArea.classList.add('tutorial-active');
+            }
+            if (tutorialPhase === 0.1) { bs.forEach(b => b.id !== 'gate-x0' && b.classList.add('lock-btn')); document.getElementById('gate-x0').classList.add('highlight-focus'); h.innerHTML = `TRY X q0 (FLIP ROW)`; positionHint('gate-x0', -80, 87); }
+            else if (tutorialPhase === 0.2) { highlightAction('X0'); h.innerHTML = `q0 FLIPS : 0↔1<br><button class="next-btn" onclick="nextTutorial()">NEXT</button>`; positionHint('node-0', 290, 180); }
+            else if (tutorialPhase === 0.3) { bs.forEach(b => b.id !== 'gate-x1' && b.classList.add('lock-btn')); document.getElementById('gate-x1').classList.add('highlight-focus'); h.innerHTML = `TRY X q1 (FLIP COL)`; positionHint('gate-x1', 6, 5); }
+            else if (tutorialPhase === 0.4) { highlightAction('X1'); h.innerHTML = `q1 FLIPS : 0↔1<br><button class="next-btn" onclick="nextTutorial()">NEXT</button>`; positionHint('node-0', 290, 180); }
+            else if (tutorialPhase === 0.5) { bs.forEach(b => b.classList.add('lock-btn')); h.innerHTML = `<div class="shake-icon">📱</div><br>SHAKE YOUR PHONE TO<br>ACTIVATE "CTRL MODE"<br>`; h.style.display = 'block'; h.style.left = '50%'; h.style.top = '50%'; h.style.transform = 'translate(-50%, -50%)'; toast.innerText = "WAITING FOR SHAKE..."; toast.style.background = "#FFB7C5"; toast.style.color = "#463438"; toast.classList.add('show', 'toast-highlight'); }
+            else if (tutorialPhase === 1.1) { toast.classList.remove('toast-highlight'); bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `HOLD CTRL & CLICK THE 2ND GATE`; positionHint('circuit-gate-1', -180, -60); }           
+            else if (tutorialPhase === 1.2) { bs.forEach(b => b.id !== 'gate-c0x10' && b.classList.add('lock-btn')); document.getElementById('gate-c0x10').classList.add('highlight-focus'); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `REPLACE IT: CLICK 0CNOT q1→q0`; positionHint('gate-c0x10', 15, 10); }
+            else if (tutorialPhase === 2.1) { bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); h.innerHTML = `HOLD CTRL & CLICK THE 1ST GATE`; positionHint('circuit-gate-0', -180, -60); }
+            else if (tutorialPhase === 2.2) { bs.forEach(b => b.id !== 'gate-cx10' && b.classList.add('lock-btn')); document.getElementById('gate-cx10').classList.add('highlight-focus'); document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); h.innerHTML = `REPLACE TO FIX: CLICK 1CNOT q1→q0`; positionHint('gate-cx10', 15, 10); }
+            else if (tutorialPhase === 3.1) { bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `q0 IS ALWAYS TARGET, q1 CONTROLS ON 0 & 1.<br>IT SIMPLIFIES TO X q0!<br>HOLD CTRL & SELECT BOTH GATES`; positionHint('circuit-gate-1', 20, -13); }
+            else if (tutorialPhase === 3.2) { bs.forEach(b => b.id !== 'gate-x0' && b.classList.add('lock-btn')); document.getElementById('gate-x0').classList.add('highlight-focus'); document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); document.getElementById('circuit-gate-1')?.classList.add('highlight-focus'); h.innerHTML = `MERGE THEM: CLICK X q0`; positionHint('gate-x0', -170, 87); }
+            else if (tutorialPhase === 3.3) { document.getElementById('circuit-gate-0')?.classList.add('highlight-focus'); h.innerHTML = `SIMPLIFICATION SUCCESSFUL!<br><button class="next-btn" onclick="nextTutorial()">NEXT</button>`; positionHint('circuit-gate-0', 20, -13); }
+            else if (tutorialPhase === 4.1) { bs.forEach(b => b.classList.add('lock-btn')); document.getElementById('mode-2-btn').classList.add('highlight-focus'); h.innerHTML = `LET'S TRY THE FAST WAY!<br>CLICK "Mode: 1" BUTTON TO SWITCH MODE`; positionHint('mode-2-btn', -250, 70); }
+            else if (tutorialPhase === 4.2) { bs.forEach(b => b.classList.add('lock-btn')); highlightAction('X0'); document.getElementById('line-00-10').classList.add('highlight-focus'); h.innerHTML = `SWAP TWO AT ONCE (LIKE X q0)!<br>CLICK THE HIGHLIGHTED LINE`; positionHint('line-01-11', 20, 40); }
+            else if (tutorialPhase === 4.3) { bs.forEach(b => b.classList.add('lock-btn')); highlightAction('X1'); document.getElementById('line-00-01').classList.add('highlight-focus'); h.innerHTML = `SWAP TWO AT ONCE (LIKE X q1)!<br>CLICK THE HIGHLIGHTED LINE`; positionHint('line-01-11', 20, 40); }
+            else if (tutorialPhase === 100) { tutorialCompleted = true; document.getElementById('pro-guide-mask').style.display = 'none'; h.style.display = 'none'; clearAllHighlights(); }
+        }
+        function positionHint(id, ox, oy) {
+            const h = document.getElementById('guide-hint-text'), r = document.getElementById(id)?.getBoundingClientRect();
+            if(!r) return; h.style.display = 'block'; h.style.left = (r.right + ox) + "px"; h.style.top = (r.top + oy) + "px";
+        }
+        function nextTutorial() {
+            if (tutorialPhase === 0.2) tutorialPhase = 0.3;
+            else if (tutorialPhase === 0.4) {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (isMobile) {
+                    tutorialPhase = 0.5;
+                } else {
+                    tutorialPhase = 1.1;
+                }
+            }
+            else if (tutorialPhase === 3.3) tutorialPhase = 4.1;
+            updateTutorialUI();
+        }
         function applyGate(g) {
             if (isSolved) return;
-            if (tutorialPhase > 0 && tutorialPhase < 6) {
-                if (tutorialPhase === 2 && g !== 'CX01') return;
-                if (tutorialPhase === 3 && g !== 'CX10') return;
-                if (tutorialPhase === 4 || tutorialPhase === 5) return;
+            if (tutorialPhase > 0 && tutorialPhase < 100) {
+                const allowed = { 0.1: 'X0', 0.3: 'X1', 1.2: 'C0X10', 2.2: 'CX10', 3.2: 'X0', 4.2: 'X0', 4.3: 'X1' };
+                if (allowed[tutorialPhase] && g !== allowed[tutorialPhase]) return;
+                if (!allowed[tutorialPhase]) return;
             }
-            pop.currentTime = 0; pop.play();
+            if ([0.1, 0.3].includes(tutorialPhase)) {
+                const nextMap = { 0.1: 0.2, 0.3: 0.4 };
+                const oldPhase = tutorialPhase; tutorialPhase = nextMap[oldPhase]; updateTutorialUI();
+                setTimeout(() => { executeGateLogic(g); actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g }); renderCircuit(); }, 800);
+                return;
+            }
+            if ([4.2, 4.3].includes(tutorialPhase)) {
+                const nextMap = { 4.2: 4.3, 4.3: 100 };
+                const oldPhase = tutorialPhase; executeGateLogic(g); actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
+                document.getElementById('guide-hint-text').style.display = 'none';
+                setTimeout(() => { clearAllHighlights(); tutorialPhase = nextMap[oldPhase]; updateTutorialUI(); renderCircuit(); }, 800);
+                return;
+            }
+            let didReplace = false;
             if (selectedIndices.length > 0) {
-                let targetIdx = Math.min(...selectedIndices);
-                let newHistory = [];
-                for(let i=0; i<gateHistory.length; i++) {
-                    if (i === targetIdx) newHistory.push(g);
-                    else if (!selectedIndices.includes(i)) newHistory.push(gateHistory[i]);
-                }
-                gateHistory = newHistory;
-                selectedIndices = [];
-                pushHistory(); recalculatePositions(); finishMove();
-            } else { executeGateLogic(g); }
-            if (tutorialPhase === 2 && g === 'CX01') {
-                tutorialPhase = 3;
-                setTimeout(updateTutorialUI, 100);
-            } else if (tutorialPhase === 3 && g === 'CX10') {
-                tutorialPhase = 4;
-                setTimeout(updateTutorialUI, 100);
+                pop.currentTime = 0; pop.play();
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0], count = selectedIndices.length, oldGates = gateHistory.slice(start, start + count);
+                gateHistory.splice(start, count, g);
+                actionStack.push({ type: 'replace', index: start, oldGates: oldGates, newGate: g });
+                selectedIndices = []; didReplace = true;
+                recalculatePositions(); finishMove();
+            } else {
+                executeGateLogic(g); actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: g });
             }
-        }
-        function getPermutation(g) {
-            return [0, 1, 2, 3].map(pos => {
-                let q0 = Math.floor(pos / 2), q1 = pos % 2;
-                if (g === 'X0') q0 = 1 - q0;
-                else if (g === 'X1') q1 = 1 - q1;
-                else if (g === 'CX01' && q0 === 1) q1 = 1 - q1;
-                else if (g === 'C0X01' && q0 === 0) q1 = 1 - q1;
-                else if (g === 'CX10' && q1 === 1) q0 = 1 - q0;
-                else if (g === 'C0X10' && q1 === 0) q0 = 1 - q0;
-                return q0 * 2 + q1;
-            });
+            if (tutorialPhase === 1.2 && g === 'C0X10' && didReplace) { tutorialPhase = 2.1; }
+            else if (tutorialPhase === 2.2 && g === 'CX10' && didReplace) { tutorialPhase = 3.1; }
+            else if (tutorialPhase === 3.2 && g === 'X0' && didReplace) { tutorialPhase = 3.3; }
+            if (isPro && !tutorialCompleted) updateTutorialUI();
         }
         function executeGateLogic(g) {
-            const permutation = getPermutation(g);
-            fishAtNode = fishAtNode.map(pos => permutation[pos]);
-            gateHistory.push(g);
-            pushHistory();
-            steps = gateHistory.length;
-            finishMove();
+            pop.currentTime = 0; pop.play();
+            let pm = [0, 1, 2, 3].map(p => {
+                let q0 = Math.floor(p / 2), q1 = p % 2;
+                if (g === 'X0') q0 = 1 - q0; else if (g === 'X1') q1 = 1 - q1;
+                else if (g === 'CX01' && q0 === 1) q1 = 1 - q1; else if (g === 'C0X01' && q0 === 0) q1 = 1 - q1;
+                else if (g === 'CX10' && q1 === 1) q0 = 1 - q0; else if (g === 'C0X10' && q1 === 0) q0 = 1 - q0;
+                return q0 * 2 + q1;
+            });
+            fishAtNode = fishAtNode.map(cp => pm[cp]); gateHistory.push(g); steps = gateHistory.length; finishMove();
         }
         function recalculatePositions() {
-            fishAtNode = gateHistory.reduce((currentPositions, gate) => {
-                const permutation = getPermutation(gate);
-                return currentPositions.map(pos => permutation[pos]);
-            }, [3, 2, 1, 0]);
-            steps = gateHistory.length;
+            let cp = [1, 0, 3, 2];
+            gateHistory.forEach(g => {
+                let pm = [0, 1, 2, 3].map(p => {
+                    let q0 = Math.floor(p/2), q1 = p%2;
+                    if (g === 'X0') q0 = 1-q0; else if (g === 'X1') q1 = 1-q1;
+                    else if (g === 'CX01' && q0 === 1) q1 = 1-q1; else if (g === 'C0X01' && q0 === 0) q1 = 1-q1;
+                    else if (g === 'CX10' && q1 === 1) q0 = 1-q0; else if (g === 'C0X10' && q1 === 0) q0 = 1-q0;
+                    return q0 * 2 + q1;
+                });
+                cp = cp.map(p => pm[p]);
+            });
+            fishAtNode = cp; steps = gateHistory.length;
         }
         function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
         function updateFishUI() {
-            for(let i=0; i<4; i++) {
+            for (let i = 0; i < 4; i++) {
                 const f = document.getElementById(`fish-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`);
-                if(f && n) { f.style.top = (n.offsetTop + 90) + "px"; f.style.left = (n.offsetLeft + 30) + "px"; }
+                if (f && n) { f.style.top = (n.offsetTop + 90) + "px"; f.style.left = (n.offsetLeft + 30) + "px"; }
             }
         }
         function renderCircuit() {
             const c = document.getElementById('circuit-content'); c.innerHTML = '';
-            gateHistory.forEach((g, idx) => {
-                const u = document.createElement('div');
-                u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
-                u.draggable = !isSolved;
-                u.ondragstart = (e) => handleDragStart(e, idx);
-                u.ondragover = (e) => handleDragOver(e);
-                u.ondrop = (e) => handleDrop(e, idx);
-                u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIndex = null; };
-                u.onmouseover = () => syncGateHighlight(g, true);
-                u.onmouseout = () => syncGateHighlight(g, false);
-                if (tutorialPhase === 4 && idx === 1) {
-                    u.classList.add('highlight-focus');
-                }
+            gateHistory.forEach((g, i) => {
+                const u = document.createElement('div'); u.className = 'circuit-unit'; u.id = `circuit-gate-${i}`;
+                if (selectedIndices.includes(i)) u.classList.add('selected-gate');
+                u.onmouseenter = () => syncGateButtonHighlight(g, true);
+                u.onmouseleave = () => syncGateButtonHighlight(g, false);
+                const isTutorialHighlight = (
+                    (tutorialPhase === 3.1 && (i === 0 || i === 1)) ||
+                    (tutorialPhase === 3.2 && (i === 0 || i === 1)) ||
+                    (tutorialPhase === 1.1 && i === 1) ||
+                    (tutorialPhase === 1.2 && i === 1) ||
+                    (tutorialPhase === 2.1 && i === 0) ||
+                    (tutorialPhase === 2.2 && i === 0) ||
+                    (tutorialPhase === 3.3 && i === 0) ||
+                    (tutorialPhase === 4.2 && i === 1) ||
+                    (tutorialPhase === 4.3 && i === 2)
+                );
+                if (isTutorialHighlight) u.classList.add('highlight-focus');
                 u.onclick = (e) => {
                     if (isSolved) return;
-                    if (tutorialPhase > 0 && tutorialPhase < 6) return;
-                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
-                        if (selectedIndices.includes(idx)) selectedIndices = selectedIndices.filter(i => i !== idx);
-                        else selectedIndices.push(idx);
-                        renderCircuit();
-                    } else {
-                        syncGateHighlight(g, false);
-                        selectedIndices = [];
-                        deleteGate(idx);
+                    if (tutorialPhase > 0 && tutorialPhase < 100) {
+                        if ([0.5, 1.2, 2.2, 3.2, 4.2, 4.3].includes(tutorialPhase)) return; 
+                        if (tutorialPhase === 1.1) {
+                            if (!e.ctrlKey && !e.metaKey && !isShakeCtrlActive) return;
+                            if (i !== 1) return;
+                            selectedIndices = [1];
+                            tutorialPhase = 1.2;  
+                            renderCircuit();
+                            updateTutorialUI();
+                            return;
+                        }
+                        if (tutorialPhase === 2.1) {
+                            if (!e.ctrlKey && !e.metaKey && !isShakeCtrlActive) return;
+                            if (i !== 0) return;
+                            selectedIndices = [0];
+                            tutorialPhase = 2.2;
+                            renderCircuit();
+                            updateTutorialUI();
+                            return;
+                        }
+                        if (tutorialPhase === 3.1 && i !== 0 && i !== 1) return;
                     }
-                };
-                if(g.startsWith('X')) {
-                    const tQ = g==='X0'?0:1, tY = tQ===0?20:60, t = document.createElement('div');
-                    t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY+1.2)+'px'; u.appendChild(t);
+                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
+                        const sIdx = selectedIndices.indexOf(i);
+                        if (sIdx > -1) {
+                            if (tutorialPhase > 0 && tutorialPhase < 100) return;
+                            selectedIndices.splice(sIdx, 1);
+                        } else {
+                            selectedIndices.push(i);
+                        }
+                        renderCircuit();
+                        if (tutorialPhase === 3.1 && selectedIndices.includes(0) && selectedIndices.includes(1)) {
+                            tutorialPhase = 3.2;
+                            updateTutorialUI();
+                        }
+                    } else {
+                        pop.currentTime = 0; pop.play();
+                        const removed = gateHistory[i];
+                        highlightAction(removed);
+                        setTimeout(() => {
+                            clearAllHighlights();
+                            if (isPro && !tutorialCompleted) updateTutorialUI();
+                        }, 400);
+                        actionStack.push({ type: 'delete', index: i, oldGates: [removed] });
+                        gateHistory.splice(i, 1);
+                        selectedIndices = [];
+                        recalculatePositions();
+                        finishMove();
+                    }
+                };  
+                if (g.startsWith('X')) {
+                    const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (g === 'X0' ? 21.2 : 61.2) + 'px'; u.appendChild(t);
                 } else {
-                    const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01?20:60, tY = is01?60:20;
-                    const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY,tY)+'px'; v.style.height = '41px'; u.appendChild(v);
-                    const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY-7)+'px'; if(is0){d.style.background='white'; d.style.border='2.5px solid #463438';} u.appendChild(d);
-                    const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY+1.2)+'px'; u.appendChild(t);
+                   const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01 ? 20 : 60, tY = is01 ? 60 : 20;
+                   const v = document.createElement('div'); v.className = 'connection-v-line'; v.style.left = '23.5px'; v.style.top = Math.min(cY, tY) + 'px'; v.style.height = '41px'; u.appendChild(v);
+                   const d = document.createElement('div'); d.className = 'control-dot'; d.style.left = '18px'; d.style.top = (cY - 7) + 'px'; if (is0) { d.style.background = 'white'; d.style.border = '2.5px solid #463438'; }
+                   u.appendChild(d);
+                   const t = document.createElement('div'); t.className = 'circuit-target'; t.style.left = '25px'; t.style.top = (tY + 1.2) + 'px'; u.appendChild(t);
                 }
                 c.appendChild(u);
             });
-            updateUndoStatus(); const w = document.getElementById('circuit-content-wrapper');
-            setTimeout(() => { if(w) w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }); }, 100);
+            updateUndoStatus();
+            const w = document.getElementById('circuit-content-wrapper');
+            if (selectedIndices.length === 0) { setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100); }
         }
         function undo() {
-            if (isSolved || historyStack.length <= 1) return;
-            if (tutorialPhase > 0 && tutorialPhase < 6) return;
-            pop.currentTime = 0; pop.play();
-            historyStack.pop();
-            gateHistory = [...historyStack[historyStack.length - 1]];
-            selectedIndices = []; recalculatePositions(); finishMove();
+            if (isSolved || actionStack.length === 0) return;
+            if (tutorialPhase > 0 && tutorialPhase < 100) return;
+            pop.currentTime = 0; pop.play(); const action = actionStack.pop();
+            if (action.type === 'add') { gateHistory.splice(action.index, 1); }
+            else if (action.type === 'delete') { gateHistory.splice(action.index, 0, ...action.oldGates); }
+            else if (action.type === 'replace') { gateHistory.splice(action.index, 1, ...action.oldGates); }
+            recalculatePositions(); selectedIndices = []; finishMove();
+            if (isPro && !tutorialCompleted) updateTutorialUI();
         }
         function resetCircuit() {
             if (isSolved) return;
-            if (tutorialPhase > 0 && tutorialPhase < 6) return;
-            pop.currentTime=0; pop.play();
-            fishAtNode=[3,2,1,0]; gateHistory=[]; historyStack = [[]]; selectedIndices = []; steps=0; finishMove();
-        }
-        function deleteGate(idx) {
-            if (isSolved) return;
-            if (tutorialPhase > 0 && tutorialPhase < 6) return;
-            pop.currentTime=0; pop.play();
-            gateHistory.splice(idx,1); pushHistory(); recalculatePositions(); finishMove();
+            if (tutorialPhase > 0 && tutorialPhase < 100) return;
+            pop.currentTime = 0; pop.play(); fishAtNode = [1, 0, 3, 2]; gateHistory = []; actionStack = []; selectedIndices = []; steps = 0; finishMove(); if (isPro && !tutorialCompleted) updateTutorialUI();
         }
         function updateUndoStatus() {
-            const isActive = (historyStack.length > 1 && !isSolved && tutorialPhase === 6);
-            const ub = document.getElementById('undo-btn');
-            if(ub) {
-                if(isActive){ ub.classList.add('active'); ub.style.pointerEvents="auto"; }
-                else { ub.classList.remove('active'); ub.style.pointerEvents="none"; }
-            }
-            const bottomUndo = document.getElementById('undo-btn-bottom');
-            if(bottomUndo) {
-                if(isActive) { bottomUndo.classList.add('active'); bottomUndo.style.pointerEvents="auto"; }
-                else { bottomUndo.classList.remove('active'); bottomUndo.style.pointerEvents="none"; }
-            }
+            const ub = document.getElementById('undo-btn'); if (!ub) return;
+            if (actionStack.length > 0 && !isSolved && !(tutorialPhase > 0 && tutorialPhase < 100)) { ub.classList.add('active'); ub.classList.remove('disabled'); ub.style.pointerEvents = "auto"; }
+            else { ub.classList.remove('active'); ub.classList.add('disabled'); ub.style.pointerEvents = "none"; }
         }
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
                 isSolved = true;
                 updateUndoStatus();
                 if (timerInterval) clearInterval(timerInterval);
-                const ft = time;
+                const ft = parseInt(document.getElementById('timer').innerText);
                 const st = steps;
                 const u = sessionStorage.getItem('currentUser');
-                const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
-                if (savedLevel < 5) {
-                    sessionStorage.setItem('currentLevel', 5);
+                const currentLvInSession = parseInt(sessionStorage.getItem('currentLevel') || "1");
+                if (currentLvInSession <= 3) {
+                    sessionStorage.setItem('currentLevel', 4);
                 }
                 setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
@@ -689,31 +594,31 @@
                     document.getElementById('victoryModal').style.display = 'flex';
                 }, 800);
                 if (u) {
+                    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
                     fetch(SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             action: 'saveRecord',
                             username: u,
-                            level: 4,          
+                            level: 3,          
                             steps: st,
                             time: ft,
                             circuit: gateHistory.join(',')
                         })
-                    }).then(() => {
-                        setTimeout(fetchLeaderboard, 1200);
-                    });
+                    })
+                    .then(() => console.log("Level 3 data sent"))
+                    .catch(e => console.error("Save Error:", e));
                 }
             }
         }
-        function viewInLab() {
-            if (gateHistory.length === 0) {
-                alert("Current circuit is empty!");
-                return;
+        function viewCircuitResult() {
+            document.getElementById('victoryModal').style.display = 'none';
+            const backBtn = document.getElementById('back-btn');
+            if (backBtn) {
+                backBtn.innerText = "GO BACK";
             }
-            const circuitData = gateHistory.join(',');
-            const labUrl = `lab2.html?circuit=${encodeURIComponent(circuitData)}`;
-            window.location.href = labUrl;
         }
     </script>
 </body>
