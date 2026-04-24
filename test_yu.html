@@ -652,11 +652,11 @@
                 if(lineMode === 1) { swapNodes(i, j); return; }
                 if (isTouchDevice) {
                     const lineId = line.id;
-                    // 找到 line.onclick 內部的 isTouchDevice 判定區塊
+                    // ... 找到 line.onclick 內部處理 isTouchDevice 的區塊
                     if (isTouchDevice) {
                         const lineId = line.id;
                         if (activeMobileLine !== lineId) {
-                            // 第一下點擊：選取並顯示預覽
+                            // 第一下點擊：選取線條並顯示預覽
                             activeMobileLine = lineId;
                             hoverLine = {i, j, index};
                             currentOptions = buildGateOptions3Bit(i, j);
@@ -667,20 +667,20 @@
                             indicator.style.left = (e.clientX - canvasRect.left) + 'px';
                             indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
                             
-                            showIndicator();
+                            showIndicator(); // 這裡會根據 currentOptions 亮起所有相關線條
                             
                             if (tutorialActive && tutorialStep === 2 && index === 0) {
                                 tutorialStep = 3;
                                 updateWheelTutorial();
                             }
                         } else {
+                            // 第二下點擊：確認執行交換
                             if(currentOptions[currentOptionIndex]) {
                                 const opt = currentOptions[currentOptionIndex];
                                 
-                                // 1. 在交換開始前，確保這組閘所影響的所有線條都維持亮起
+                                // 1. 在交換開始時，強制維持所有相關線條的 highlight
                                 highlightPairs(opt.highlightPairs); 
                                 
-                                // 2. 執行邏輯
                                 applyGate(opt.gateType);
                                 
                                 if (tutorialActive && tutorialStep === 5) {
@@ -689,15 +689,14 @@
                                 }
                             }
                             
-                            // 3. 延遲重設選取狀態與清除發光，直到魚兒位移動畫結束 (500ms)
-                            const lastIndicator = document.getElementById('ios-indicator');
-                            lastIndicator.classList.remove('active'); // 泡泡先消失
-                            
+                            // 2. 核心修正：將清除邏輯放入 setTimeout，對應魚兒移動動畫時間 (500ms)
+                            // 這樣可以確保「交換完（魚停下來後）」才全部暗掉
                             setTimeout(() => {
-                                activeMobileLine = null; // 清除目前選取的線條ID
-                                clearHighlight();        // 確保所有線條在此時暗掉
+                                activeMobileLine = null; // 重設選取狀態
+                                hideIndicator();        // 內部會呼叫 clearHighlight() 清除所有發光
                             }, 500); 
                         }
+                    }
                     } else {
                         if(currentOptions[currentOptionIndex]) {
                             applyGate(currentOptions[currentOptionIndex].gateType);
