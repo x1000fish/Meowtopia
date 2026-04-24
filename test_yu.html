@@ -645,51 +645,66 @@
                 hideIndicator(); 
             };
             line.onclick = (e) => {
-    e.stopPropagation();
-    if(isSolved) return;
-    if (tutorialActive && (tutorialStep === 5 || tutorialStep === 2) && index !== 0) return;
-    
-    if(lineMode === 1) { swapNodes(i, j); return; }
-    
-    if (isTouchDevice) {
-        const lineId = line.id;
-        if (activeMobileLine !== lineId) {
-            // 第一次點擊：選取線條並顯示所有相關 Highlight
-            activeMobileLine = lineId;
-            hoverLine = {i, j, index};
-            currentOptions = buildGateOptions3Bit(i, j);
-            if (!tutorialActive || (tutorialStep !== 4 && tutorialStep !== 5)) currentOptionIndex = 0;
-            
-            const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
-            const indicator = document.getElementById('ios-indicator');
-            indicator.style.left = (e.clientX - canvasRect.left) + 'px';
-            indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
-            
-            showIndicator(); // 這裡會呼叫 highlightPairs
-            
-            if (tutorialActive && tutorialStep === 2 && index === 0) {
-                tutorialStep = 3;
-                updateWheelTutorial();
-            }
-        } else {
-            // 第二次點擊：執行交換
-            if(currentOptions[currentOptionIndex]) {
-                const opt = currentOptions[currentOptionIndex];
-                // 強制在執行期間維持這幾條線的 Highlight
-                highlightPairs(opt.highlightPairs); 
-                
-                applyGate(opt.gateType);
-                
-                if (tutorialActive && tutorialStep === 5) {
-                    tutorialStep = 0;
-                    setTimeout(finishWheelTutorial, 500);
-                }
-            }
-            activeMobileLine = null;
-            // 注意：這裡移除了原本立即呼叫的 hideIndicator()
-            // 讓 applyGate 裡面的 setTimeout 來決定何時關閉視覺效果
-            document.getElementById('ios-indicator').classList.remove('active');
-        }
+                e.stopPropagation();
+                if(isSolved) return;
+                if (tutorialActive && tutorialStep === 5 && index !== 0) return; 
+                if (tutorialActive && tutorialStep === 2 && index !== 0) return;
+                if(lineMode === 1) { swapNodes(i, j); return; }
+                if (isTouchDevice) {
+                    const lineId = line.id;
+                    // 找到 line.onclick 內部的 isTouchDevice 判定區塊
+                    if (isTouchDevice) {
+                        const lineId = line.id;
+                        if (activeMobileLine !== lineId) {
+                            // 第一下點擊：選取並顯示預覽
+                            activeMobileLine = lineId;
+                            hoverLine = {i, j, index};
+                            currentOptions = buildGateOptions3Bit(i, j);
+                            if (!tutorialActive || (tutorialStep !== 4 && tutorialStep !== 5)) currentOptionIndex = 0;
+                            
+                            const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                            const indicator = document.getElementById('ios-indicator');
+                            indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+                            indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+                            
+                            showIndicator();
+                            
+                            if (tutorialActive && tutorialStep === 2 && index === 0) {
+                                tutorialStep = 3;
+                                updateWheelTutorial();
+                            }
+                        } else {
+                            // 第二下點擊：執行確認交換
+                            if(currentOptions[currentOptionIndex]) {
+                                const opt = currentOptions[currentOptionIndex];
+                                // 重點：在交換前強制維持 highlight 狀態
+                                highlightPairs(opt.highlightPairs); 
+                                
+                                applyGate(opt.gateType);
+
+                                if (tutorialActive && tutorialStep === 5) {
+                                    tutorialStep = 0;
+                                    setTimeout(finishWheelTutorial, 500);
+                                }
+                            }
+                            
+                            // 延遲重設手機選取狀態，讓 highlight 能維持到動畫播放
+                            setTimeout(() => {
+                                activeMobileLine = null;
+                                hideIndicator();
+                            }, 500); // 500ms 對應魚兒位移的 transition 時間
+                        }
+                    } else {
+                        if(currentOptions[currentOptionIndex]) {
+                            applyGate(currentOptions[currentOptionIndex].gateType);
+                            if (tutorialActive && tutorialStep === 5) {
+                                tutorialStep = 0;
+                                setTimeout(finishWheelTutorial, 500);
+                            }
+                        }
+                        activeMobileLine = null;
+                        hideIndicator();
+                    }
                 } else {
                     if(currentOptions[currentOptionIndex]) {
                         applyGate(currentOptions[currentOptionIndex].gateType);
@@ -741,36 +756,28 @@
             selectedIndices.forEach(idx => { if (idx < gateHistory.length) gateHistory[idx] = newType; });
             selectedIndices = []; historyStack.push([...gateHistory]); recalculate();
         }
-        // 請找到 applyGate 函式，並修改為如下：
-function applyGate(type) {
+        function applyGate(type) {
     if (isSolved) return;
     pop.currentTime = 0; pop.play();
     
-    // 如果有選中現有閘進行替換
     if (selectedIndices.length > 0) {
         replaceLogic(type);
     } else {
-        // --- 修正重點：在執行邏輯前，確保 highlight 保持住 ---
+        // 如果是從手機點擊線條進入的，currentOptions 會有值
+        // 我們確保在執行邏輯時，視覺上的 highlight 依然存在
         if (isTouchDevice && currentOptions[currentOptionIndex]) {
             highlightPairs(currentOptions[currentOptionIndex].highlightPairs);
         }
-        
+
         executeLogic(type);
         gateHistory.push(type);
         historyStack.push([...gateHistory]);
         steps = gateHistory.length;
+        finishMove();
         
-        // 延遲清除 highlight，讓使用者看清楚哪些線在動作
-        const currentMode = lineMode;
-        finishMove(); 
-        
+        // 額外保險：如果是在手機模式下，確保 500ms 內不要被外部邏輯暗掉
         if (isTouchDevice) {
-            // 保持亮起 500ms (對應 node/fish 的 transition 時間)
-            setTimeout(() => {
-                if (!activeMobileLine) { // 如果使用者還沒點擊下一條線
-                    clearHighlight();
-                }
-            }, 500);
+            setTimeout(clearHighlight, 500);
         }
     }
 }
