@@ -242,9 +242,15 @@
                     lastShakeTime = now;
                     if (navigator.vibrate) navigator.vibrate([100]); 
                     const toast = document.getElementById('shake-toast');
-                    toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
-                    toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+                    if (toast) {
+                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
+                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
+                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
+                        toast.classList.add('show');
+                        setTimeout(() => { 
+                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                        }, 4000);
+                    }
                 }
             }
         }
