@@ -590,14 +590,15 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     if (navigator.vibrate) navigator.vibrate([100]);
+                    const toast = document.getElementById('shake-toast');
                     if (toast) {
                         toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
                         toast.style.color = isShakeCtrlActive ? "white" : "#463438";
                         toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
-                        toast.classList.add('show');
-                        setTimeout(() => { 
-                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
-                        }, 4000);
+                        toast.style.opacity = "1";
+                        setTimeout(() => {
+                            toast.style.opacity = "0";
+                        }, 1200);
                     }
                 }
             }
