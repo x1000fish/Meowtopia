@@ -645,39 +645,51 @@
                 hideIndicator(); 
             };
             line.onclick = (e) => {
-                e.stopPropagation();
-                if(isSolved) return;
-                if (tutorialActive && tutorialStep === 5 && index !== 0) return; 
-                if (tutorialActive && tutorialStep === 2 && index !== 0) return;
-                if(lineMode === 1) { swapNodes(i, j); return; }
-                if (isTouchDevice) {
-                    const lineId = line.id;
-                    if (activeMobileLine !== lineId) {
-                        activeMobileLine = lineId;
-                        hoverLine = {i, j, index};
-                        currentOptions = buildGateOptions3Bit(i, j);
-                        if (!tutorialActive || (tutorialStep !== 4 && tutorialStep !== 5)) currentOptionIndex = 0;
-                        const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
-                        const indicator = document.getElementById('ios-indicator');
-                        indicator.style.left = (e.clientX - canvasRect.left) + 'px';
-                        indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
-                        showIndicator();
-                        if (tutorialActive && tutorialStep === 2 && index === 0) {
-                            tutorialStep = 3;
-                            updateWheelTutorial();
-                        }
-                        return;
-                    } else {
-                        if(currentOptions[currentOptionIndex]) {
-                            applyGate(currentOptions[currentOptionIndex].gateType);
-                            if (tutorialActive && tutorialStep === 5) {
-                                tutorialStep = 0;
-                                setTimeout(finishWheelTutorial, 500);
-                            }
-                        }
-                        activeMobileLine = null;
-                        hideIndicator();
-                    }
+    e.stopPropagation();
+    if(isSolved) return;
+    if (tutorialActive && (tutorialStep === 5 || tutorialStep === 2) && index !== 0) return;
+    
+    if(lineMode === 1) { swapNodes(i, j); return; }
+    
+    if (isTouchDevice) {
+        const lineId = line.id;
+        if (activeMobileLine !== lineId) {
+            // 第一次點擊：選取線條並顯示所有相關 Highlight
+            activeMobileLine = lineId;
+            hoverLine = {i, j, index};
+            currentOptions = buildGateOptions3Bit(i, j);
+            if (!tutorialActive || (tutorialStep !== 4 && tutorialStep !== 5)) currentOptionIndex = 0;
+            
+            const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+            const indicator = document.getElementById('ios-indicator');
+            indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+            indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+            
+            showIndicator(); // 這裡會呼叫 highlightPairs
+            
+            if (tutorialActive && tutorialStep === 2 && index === 0) {
+                tutorialStep = 3;
+                updateWheelTutorial();
+            }
+        } else {
+            // 第二次點擊：執行交換
+            if(currentOptions[currentOptionIndex]) {
+                const opt = currentOptions[currentOptionIndex];
+                // 強制在執行期間維持這幾條線的 Highlight
+                highlightPairs(opt.highlightPairs); 
+                
+                applyGate(opt.gateType);
+                
+                if (tutorialActive && tutorialStep === 5) {
+                    tutorialStep = 0;
+                    setTimeout(finishWheelTutorial, 500);
+                }
+            }
+            activeMobileLine = null;
+            // 注意：這裡移除了原本立即呼叫的 hideIndicator()
+            // 讓 applyGate 裡面的 setTimeout 來決定何時關閉視覺效果
+            document.getElementById('ios-indicator').classList.remove('active');
+        }
                 } else {
                     if(currentOptions[currentOptionIndex]) {
                         applyGate(currentOptions[currentOptionIndex].gateType);
