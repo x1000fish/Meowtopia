@@ -27,24 +27,8 @@
         .node img { width: 100px; height: auto; pointer-events: none; }
         .fixed-number { position: absolute; bottom: -4px; right: 41px; font-size: 20px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
         .connection-line { position: absolute; background: #463438; z-index: 10; cursor: pointer; transition: all 0.2s ease; opacity: 1; }
-       /* 替換原本的 .connection-line:hover */
-        @media (hover: hover) {
-            .connection-line:hover { 
-                background: #99C44D !important; 
-                box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); 
-                height: 10px !important; 
-                z-index: 16; 
-            }
-        }
-
-        /* 新增：交換特效專屬類別 */
-        .swap-active {
-            background: #99C44D !important;
-            box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important;
-            height: 8px !important;
-            z-index: 15 !important;
-            opacity: 1 !important;
-        }
+        @media (hover: hover) { .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); height: 10px !important; z-index: 16; } }
+        .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; }
         .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15; }
         .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 70px; height: auto; }
@@ -109,7 +93,7 @@
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px;padding: 8px 5px; text-transform: uppercase; border-width: 3px;}
         .pro-active #canvas-bottom-btns {display: none !important;}
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
-        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); background: #99C44D; color: #463438; padding: 15px 40px; border-radius: 50px; font-weight: 900; font-size: 40px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 4px solid #463438; box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
+        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); background: #99C44D; color: #463438; padding: 15px 40px; border-radius: 50px; font-weight: 900; font-size: 24px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 4px solid #463438; box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
         #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
         @keyframes pulse-toast { 0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; } 50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; } }
         .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
@@ -250,7 +234,7 @@
                         toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
                         toast.classList.add('show');
                         setTimeout(() => { 
-                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                            toast.classList.remove('show'); 
                         }, 4000);
                     }
                 }
@@ -1147,5 +1131,3 @@
     </script>
 </body>
 </html>
-
-
