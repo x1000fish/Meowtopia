@@ -114,7 +114,6 @@
     <div id="tutorial-mask"></div>
     <div id="tutorial-hint"></div>
     <div id="tutorial-pointer">👆🏻</div>
-    
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
@@ -307,6 +306,10 @@
             });
             window.addEventListener('deviceorientation', (e) => {
                 if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
+                
+                // [MODIFIED] 當教學進行到 Step 5 時，限制傾斜變動，必須點擊確認
+                if (tutorialActive && tutorialStep === 5) return;
+
                 let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
                 let tilt = 0;
                 if (orientation === 0) tilt = e.gamma;
@@ -333,9 +336,10 @@
                 }
             });
             function checkGyroTutorial() {
+                // [MODIFIED] 手機板傾斜計數邏輯同步為 3 次
                 if (tutorialActive && (tutorialStep === 3 || tutorialStep === 4)) {
                     if (tutorialStep === 3) { tutorialStep = 4; scrollCount = 0; }
-                    if (tutorialStep === 4) { scrollCount++; if (scrollCount >= 2) tutorialStep = 5; }
+                    if (tutorialStep === 4) { scrollCount++; if (scrollCount >= 3) tutorialStep = 5; }
                     updateWheelTutorial();
                 }
             }
@@ -490,7 +494,7 @@
                 if (tutorialStep === 3) {
                     showTutorialHint(`THERE ARE TWO OPTIONS<br>${msg}`);
                 } else {
-                    showTutorialHint(isTouchDevice ? 'AND TILT...' : 'AND SCROLL...');
+                    showTutorialHint(isTouchDevice ? `AND TILT... (${scrollCount}/3)` : `AND SCROLL... (${scrollCount}/3)`);
                 }
                 if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
             } else if (tutorialStep === 5) {
