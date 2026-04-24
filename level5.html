@@ -306,6 +306,7 @@
             });
             window.addEventListener('deviceorientation', (e) => {
                 if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
+                if (tutorialActive && tutorialStep === 5) return;
                 let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
                 let tilt = 0;
                 if (orientation === 0) tilt = e.gamma;
@@ -334,7 +335,7 @@
             function checkGyroTutorial() {
                 if (tutorialActive && (tutorialStep === 3 || tutorialStep === 4)) {
                     if (tutorialStep === 3) { tutorialStep = 4; scrollCount = 0; }
-                    if (tutorialStep === 4) { scrollCount++; if (scrollCount >= 2) tutorialStep = 5; }
+                    if (tutorialStep === 4) { scrollCount++; if (scrollCount >= 3) tutorialStep = 5; }
                     updateWheelTutorial();
                 }
             }
@@ -489,7 +490,7 @@
                 if (tutorialStep === 3) {
                     showTutorialHint(`THERE ARE TWO OPTIONS<br>${msg}`);
                 } else {
-                    showTutorialHint(isTouchDevice ? 'AND TILT...' : 'AND SCROLL...');
+                    showTutorialHint(isTouchDevice ? `AND TILT... (${scrollCount}/3)` : `AND SCROLL... (${scrollCount}/3)`);
                 }
                 if (currentOpt) highlightTutorialPairs(currentOpt.highlightPairs);
             } else if (tutorialStep === 5) {
@@ -689,7 +690,6 @@
             };
             document.getElementById('lines-layer').appendChild(line);
         }
-
         function swapNodes(idxA, idxB) {
             if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
             if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
@@ -895,6 +895,5 @@
             window.location.href = `lab3.html?circuit=${encodeURIComponent(circuitData)}`;
         }
     </script>
-    
 </body>
 </html>
