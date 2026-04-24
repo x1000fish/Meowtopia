@@ -106,32 +106,10 @@
         .nav-fab { position: fixed; top: 25px; right: 25px; width: 70px; height: 70px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
         .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #463438; }
-        canvas, .game-canvas, .node {
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            touch-action: manipulation;
-        }
-        .circuit-unit {
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            touch-action: none;
-            transition: background 0.2s, box-shadow 0.2s;
-        }
-        .gate-btn-v2, .multi-toggle-btn, .func-btn, .game-btn, .btn-share {
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-            touch-action: manipulation;
-        }
-        #shake-toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
-            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+        canvas, .game-canvas, .node { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        .circuit-unit { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; transition: background 0.2s, box-shadow 0.2s; }
+        .gate-btn-v2, .multi-toggle-btn, .func-btn, .game-btn, .btn-share { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
     </style>
 </head>
 <body id="body-root">
@@ -220,7 +198,6 @@
         let lineMode = 1, hoverLine = null;
         let currentOptionIndex = 0, currentOptions = [], draggedIndex = null;
         let desktopDragGhost = null;
-        // 搖晃與拖移變數
         let isShakeCtrlActive = false;
         let lastShakeTime = 0;
         let shakePermissionRequested = false;
@@ -228,12 +205,12 @@
         let mDragIndex = null;
         let dragGhost = null;
         let originalDragEl = null;
-        // 手機端與陀螺儀操控變數
         let isTouchDevice = false;
         let activeMobileLine = null;
         let touchStartY = 0;
         let lastSwipeTime = 0;
         let lastTiltDirection = 0;
+        let isAnimatingGateHighlight = false;
         const TILT_THRESHOLD = 15;
         const RETURN_THRESHOLD = 10;
         let gyroPermissionGranted = false;
@@ -263,10 +240,10 @@
                         const permission = await DeviceOrientationEvent.requestPermission();
                         if (permission === 'granted') {
                             gyroPermissionGranted = true;
-                            console.log("陀螺儀權限已順利取得");
+                            console.log("Gyroscope access granted.");
                         }
                     } catch (error) {
-                        console.log("陀螺儀權限請求被拒絕:", error);
+                        console.log("Gyroscope access request denied:", error);
                     }
                 } else {
                     gyroPermissionGranted = true;
@@ -289,7 +266,6 @@
                     shakePermissionRequested = true;
                 }
             }, { once: true });
-
             const btnMode = document.getElementById('mode-btn');
             if (btnMode) {
                 btnMode.addEventListener('click', requestGyroPermission);
@@ -548,19 +524,15 @@
             e.dataTransfer.effectAllowed = 'move';
             const dragEl = e.currentTarget;
             dragEl.style.opacity = '0.5';
-            // 清掉舊的 ghost
             if (desktopDragGhost) {
                 desktopDragGhost.remove();
                 desktopDragGhost = null;
             }
-            // 複製一份給桌機原生拖曳預覽圖用
             desktopDragGhost = dragEl.cloneNode(true);
-            // 移除 q0~q3 背景橫線，只保留 gate 本身
             desktopDragGhost.querySelectorAll('.circuit-wire-bg').forEach(w => w.remove());
             desktopDragGhost.style.background = 'rgba(255, 183, 197, 0.3)';
             desktopDragGhost.style.borderRadius = '12px';
             desktopDragGhost.classList.remove('selected-gate', 'trace-active'); 
-            // 避免影響畫面，但又要存在 DOM 才能給 setDragImage 用
             desktopDragGhost.style.position = 'fixed';
             desktopDragGhost.style.top = '-9999px';
             desktopDragGhost.style.left = '-9999px';
@@ -571,7 +543,6 @@
                 node.style.animation = 'none';
             });
             document.body.appendChild(desktopDragGhost);
-            // 用自訂 ghost 取代瀏覽器預設拖曳圖
             if (e.dataTransfer.setDragImage) {
                 e.dataTransfer.setDragImage(
                     desktopDragGhost,
@@ -612,13 +583,15 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     if (navigator.vibrate) navigator.vibrate([100]);
-                    const toast = document.getElementById('shake-toast');
                     if (toast) {
-                        toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
-                        toast.style.opacity = '1';
-                        setTimeout(() => { toast.style.opacity = '0'; }, 1200);
+                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
+                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
+                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
+                        toast.classList.add('show');
+                        setTimeout(() => { 
+                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                        }, 4000);
                     }
-                    console.log("Ctrl Mode:", isShakeCtrlActive);
                 }
             }
         }
@@ -656,7 +629,7 @@
             dragGhost.style.transform = 'translateZ(0)';
             dragGhost.style.willChange = 'left, top';
             dragGhost.style.boxShadow = 'none';
-            el.style.opacity = '0.2';
+            el.style.opacity = '0.35';
             dragGhost.querySelectorAll('*').forEach(node => {
                 node.style.transition = 'none';
                 node.style.animation = 'none';
@@ -749,6 +722,54 @@
                 pairs.push([parseInt(p[1]), parseInt(p[2])]);
             }
             highlightPairs(pairs);
+        }
+        function getPairsForGate(type) {
+            let pairs = [];
+            if (type.startsWith('X')) {
+                pairs = getAllPairs(3 - parseInt(type.substring(1)));
+            } else if (type.startsWith('CX')) {
+                let ctrlVal = parseInt(type[2]);
+                let c = parseInt(type[3]);
+                let t = parseInt(type[4]);
+                let bit = 1 << (3 - t);
+                let cBit = 1 << (3 - c);
+                for (let k = 0; k < 16; k++) {
+                    if ((k & bit) === 0 && ((k & cBit) >> (3 - c)) === ctrlVal) {
+                        pairs.push([k, k ^ bit]);
+                    }
+                }
+            } else if (type.startsWith('TOF')) {
+                let cv1 = parseInt(type[3]);
+                let cv2 = parseInt(type[4]);
+                let c1 = parseInt(type[5]);
+                let c2 = parseInt(type[6]);
+                let t = parseInt(type[7]);
+                let bit = 1 << (3 - t);
+                let b1 = 1 << (3 - c1);
+                let b2 = 1 << (3 - c2);
+                for (let k = 0; k < 16; k++) {
+                    if (
+                        (k & bit) === 0 &&
+                        ((k & b1) >> (3 - c1)) === cv1 &&
+                        ((k & b2) >> (3 - c2)) === cv2
+                    ) {
+                        pairs.push([k, k ^ bit]);
+                    }
+                }
+            } else if (type.startsWith('SWAP_')) {
+                let p = type.split('_');
+                pairs.push([parseInt(p[1]), parseInt(p[2])]);
+            }
+            return pairs;
+        }
+        function animateGateHighlight(type) {
+            isAnimatingGateHighlight = true;
+            highlightPairs(getPairsForGate(type));
+
+            setTimeout(() => {
+                isAnimatingGateHighlight = false;
+                clearHighlight();
+            }, 600);
         }
         function initGates() {
             const grid = document.getElementById('gate-grid');
@@ -914,7 +935,10 @@
             clearHighlight();
             highlightPairs(opt.highlightPairs);
         }
-        function hideIndicator() { document.getElementById('ios-indicator').classList.remove('active'); clearHighlight(); }
+        function hideIndicator() {
+            document.getElementById('ios-indicator').classList.remove('active');
+            if (!isAnimatingGateHighlight) clearHighlight();
+        }
         function buildGateOptions(i, j, dim) {
             const targetQ = 3 - dim;
             const ctrlPool = [0,1,2,3].filter(q=>q!==targetQ);
@@ -969,6 +993,7 @@
                 actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: type });
                 gateCount = gateHistory.length;
                 if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                animateGateHighlight(type);
                 finishMove();
             }
         }
@@ -1118,7 +1143,6 @@
                     } else if (touchTimer) {
                         const dx = e.touches[0].clientX - startX;
                         const dy = e.touches[0].clientY - startY;
-
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
                             clearTimeout(touchTimer);
                             touchTimer = null;
