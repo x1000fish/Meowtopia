@@ -14,7 +14,7 @@
         .node img { width: 100px; height: auto; pointer-events: none; }
         .fixed-number { position: absolute; bottom: -4px; right: 41px; font-size: 20px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
         .connection-line { position: absolute; background: #463438; z-index: 10; cursor: pointer; transition: all 0.2s ease; opacity: 1; }
-        .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); height: 10px !important; z-index: 16; }
+        @media (hover: hover) {.connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); height: 10px !important; z-index: 16; }}
         .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15; }
         .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 70px; height: auto; }
@@ -97,6 +97,14 @@
             user-select: none;
             -webkit-touch-callout: none;
             touch-action: none;
+        }
+        .swap-active {
+            background: #99C44D !important;
+            box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important;
+            height: 8px !important;
+            z-index: 15 !important;
+            border-top: none !important;
+            opacity: 1 !important;
         }
         #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
     </style>
@@ -220,19 +228,19 @@
             const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
             if (delta > threshold) {
                 const now = Date.now();
-                if (now - lastShakeTime > 1000) { 
+                if (now - lastShakeTime > 1000) {
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
-                    if (navigator.vibrate) navigator.vibrate([100]); 
+                    if (navigator.vibrate) navigator.vibrate([100]);
                     const toast = document.getElementById('shake-toast');
                     if (toast) {
                         toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
                         toast.style.color = isShakeCtrlActive ? "white" : "#463438";
                         toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
-                        toast.classList.add('show');
-                        setTimeout(() => { 
-                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
-                        }, 4000);
+                        toast.style.opacity = "1";
+                        setTimeout(() => {
+                            toast.style.opacity = "0";
+                        }, 1200);
                     }
                 }
             }
@@ -464,7 +472,7 @@
                 gView.classList.add('hidden-el');
                 tView.classList.remove('hidden-el');
                 tCtrl.classList.remove('hidden-el', 'opacity-50', 'pointer-events-none');
-                renderTruthTable();
+                updateTruthTable();
             } else {
                 btn.innerText = 'Trace: OFF';
                 btn.classList.remove('mode-3');
@@ -608,6 +616,38 @@
                 nL.innerHTML += `<div class="node" id="node-${i}" style="top:${n.t}px; left:${n.l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${i + 1}.svg"></div>`;
                 fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper" style="top:${n.t + 78}px; left:${n.l + 22}px;"><div class="fish-label">${bin}</div><img src="./image/Fish${i + 1}.svg"></div>`;
             }
+        }
+        function flashGateLines(type) {
+            let pairs = [];
+            if (type.startsWith('X')) {
+                pairs = getAllPairs(3 - parseInt(type.substring(1)));
+            } else if (type.startsWith('CX')) {
+                let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
+                let bit = 1 << (3 - t), cBit = 1 << (3 - c);
+                for (let k = 0; k < 16; k++) {
+                    if ((k & bit) === 0 && ((k & cBit) >> (3 - c)) === ctrlVal) pairs.push([k, k ^ bit]);
+                }
+            } else if (type.startsWith('TOF')) {
+                let cv1 = parseInt(type[3]), cv2 = parseInt(type[4]), c1 = parseInt(type[5]), c2 = parseInt(type[6]), t = parseInt(type[7]);
+                let bit = 1 << (3 - t), b1 = 1 << (3 - c1), b2 = 1 << (3 - c2);
+                for (let k = 0; k < 16; k++) {
+                    if ((k & bit) === 0 && ((k & b1) >> (3 - c1)) === cv1 && ((k & b2) >> (3 - c2)) === cv2) pairs.push([k, k ^ bit]);
+                }
+            } else if (type.startsWith('SWAP_')) {
+                let p = type.split('_');
+                pairs.push([parseInt(p[1]), parseInt(p[2])]);
+            }
+            pairs.forEach(([a, b]) => {
+                const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`);
+                if (el) el.classList.add('swap-active');
+            });
+            setTimeout(() => {
+                pairs.forEach(([a, b]) => {
+                    const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`);
+                    if (el) el.classList.remove('swap-active');
+                });
+                clearHighlight();
+            }, 500);
         }
         function highlightByGate(type) {
             clearHighlight();
@@ -835,24 +875,44 @@
             document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('line-highlight'));
         }
         function applyGate(type) {
-            const gateStr = type.includes('_') ? convertToLevel8Format(type) : type;
+            hideIndicator();
+            clearHighlight();
+            activeMobileLine = null;
+            hoverLine = null;
             if (selectedIndices.length > 0) {
-                selectedIndices.sort((a, b) => b - a);
-                const replaceIdx = selectedIndices.pop();
-                const oldHistory = [...gateHistory];
-                selectedIndices.forEach(idx => gateHistory.splice(idx, 1));
-                gateHistory[replaceIdx] = gateStr;
-                actionStack.push({ type: 'replace', index: replaceIdx, oldGates: oldHistory, newGate: gateStr });
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0];
+                const count = selectedIndices.length;
+                const oldOnes = gateHistory.slice(start, start + count);
+                gateHistory.splice(start, count, type);
+                actionStack.push({
+                    type: 'replace',
+                    index: start,
+                    oldGates: oldOnes,
+                    newGate: type
+                });
                 selectedIndices = [];
+                if (typeof pop !== 'undefined' && pop.play) {
+                    pop.currentTime = 0;
+                    pop.play().catch(e => {});
+                }
+                recalculate();
             } else {
-                gateHistory.push(gateStr);
-                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: gateStr });
+                flashGateLines(type);
+                executeLogic(type);
+                gateHistory.push(type);
+                actionStack.push({
+                    type: 'add',
+                    index: gateHistory.length - 1,
+                    newGate: type
+                });
+                gateCount = gateHistory.length;
+                if (typeof pop !== 'undefined' && pop.play) {
+                    pop.currentTime = 0;
+                    pop.play().catch(e => {});
+                }
+                finishMove();
             }
-            if (typeof pop !== 'undefined' && pop.play) {
-                pop.currentTime = 0;
-                pop.play().catch(e => {});
-            }
-            recalculate();
         }
         function convertToLevel8Format(g) {
             const p = g.split('_');
