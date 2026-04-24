@@ -239,7 +239,7 @@
                         const permission = await DeviceOrientationEvent.requestPermission();
                         if (permission === 'granted') {
                             gyroPermissionGranted = true;
-                            console.log("陀螺儀權限已順利取得");
+                            console.log("Gyroscope access granted.");
                         }
                     } catch (error) {
                         console.log("Gyroscope access request denied:", error);
@@ -582,13 +582,15 @@
                     isShakeCtrlActive = !isShakeCtrlActive;
                     lastShakeTime = now;
                     if (navigator.vibrate) navigator.vibrate([100]);
-                    const toast = document.getElementById('shake-toast');
                     if (toast) {
-                        toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
-                        toast.style.opacity = '1';
-                        setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
+                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
+                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
+                        toast.classList.add('show');
+                        setTimeout(() => { 
+                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
+                        }, 4000);
                     }
-                    console.log("Ctrl Mode:", isShakeCtrlActive);
                 }
             }
         }
