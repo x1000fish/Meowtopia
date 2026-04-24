@@ -109,7 +109,10 @@
         canvas, .game-canvas, .node { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
         .circuit-unit { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none; transition: background 0.2s, box-shadow 0.2s; }
         .gate-btn-v2, .multi-toggle-btn, .func-btn, .game-btn, .btn-share { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
-        #shake-toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(70,52,56,0.9); color: white; padding: 12px 24px; border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2);}
+        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); background: #99C44D; color: #463438; padding: 15px 40px; border-radius: 50px; font-weight: 900; font-size: 24px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 4px solid #463438; box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
+        #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
+        @keyframes pulse-toast { 0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; } 50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; } }
+        .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
         .swap-active {
             background: #99C44D !important;
             box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important;
@@ -598,7 +601,7 @@
                         toast.style.opacity = "1";
                         setTimeout(() => {
                             toast.style.opacity = "0";
-                        }, 5000);
+                        }, 4000);
                     }
                 }
             }
@@ -1117,7 +1120,7 @@
                     if (idx === currentTraceStep - 1) {
                         u.classList.add('trace-active');
                     } else if (idx >= currentTraceStep) {
-                        u.style.opacity = '0.2';
+                        u.style.opacity = '0.35';
                     }
                 }
                 drawWires(u, idx + 1);
