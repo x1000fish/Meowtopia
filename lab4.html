@@ -401,7 +401,7 @@
                 gView.classList.add('hidden-el');
                 tView.classList.remove('hidden-el');
                 tCtrl.classList.remove('hidden-el', 'opacity-50', 'pointer-events-none');
-                renderTruthTable();
+                updateTruthTable();
             } else {
                 btn.innerText = "Trace: OFF";
                 btn.classList.remove('mode-5');
@@ -966,25 +966,42 @@
         }
         function clearHighlight(){ document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight')); }
         function applyGate(type) {
-            if (isSolved) return;
             hideIndicator();
             clearHighlight();
             activeMobileLine = null;
             hoverLine = null;
             if (selectedIndices.length > 0) {
                 selectedIndices.sort((a, b) => a - b);
-                const start = selectedIndices[0], count = selectedIndices.length;
+                const start = selectedIndices[0];
+                const count = selectedIndices.length;
                 const oldOnes = gateHistory.slice(start, start + count);
                 gateHistory.splice(start, count, type);
-                actionStack.push({ type: 'replace', index: start, oldGates: oldOnes, newGate: type });
+                actionStack.push({
+                    type: 'replace',
+                    index: start,
+                    oldGates: oldOnes,
+                    newGate: type
+                });
                 selectedIndices = [];
+                if (typeof pop !== 'undefined' && pop.play) {
+                    pop.currentTime = 0;
+                    pop.play().catch(e => {});
+                }
                 recalculate();
             } else {
                 flashGateLines(type);
                 executeLogic(type);
                 gateHistory.push(type);
-                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: type });
-                steps = gateHistory.length;
+                actionStack.push({
+                    type: 'add',
+                    index: gateHistory.length - 1,
+                    newGate: type
+                });
+                gateCount = gateHistory.length;
+                if (typeof pop !== 'undefined' && pop.play) {
+                    pop.currentTime = 0;
+                    pop.play().catch(e => {});
+                }
                 finishMove();
             }
         }
