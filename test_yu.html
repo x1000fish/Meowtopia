@@ -674,25 +674,29 @@
                                 updateWheelTutorial();
                             }
                         } else {
-                            // 第二下點擊：執行確認交換
                             if(currentOptions[currentOptionIndex]) {
                                 const opt = currentOptions[currentOptionIndex];
-                                // 重點：在交換前強制維持 highlight 狀態
+                                
+                                // 1. 在交換開始前，確保這組閘所影響的所有線條都維持亮起
                                 highlightPairs(opt.highlightPairs); 
                                 
+                                // 2. 執行邏輯
                                 applyGate(opt.gateType);
-
+                                
                                 if (tutorialActive && tutorialStep === 5) {
                                     tutorialStep = 0;
                                     setTimeout(finishWheelTutorial, 500);
                                 }
                             }
                             
-                            // 延遲重設手機選取狀態，讓 highlight 能維持到動畫播放
+                            // 3. 延遲重設選取狀態與清除發光，直到魚兒位移動畫結束 (500ms)
+                            const lastIndicator = document.getElementById('ios-indicator');
+                            lastIndicator.classList.remove('active'); // 泡泡先消失
+                            
                             setTimeout(() => {
-                                activeMobileLine = null;
-                                hideIndicator();
-                            }, 500); // 500ms 對應魚兒位移的 transition 時間
+                                activeMobileLine = null; // 清除目前選取的線條ID
+                                clearHighlight();        // 確保所有線條在此時暗掉
+                            }, 500); 
                         }
                     } else {
                         if(currentOptions[currentOptionIndex]) {
@@ -757,30 +761,29 @@
             selectedIndices = []; historyStack.push([...gateHistory]); recalculate();
         }
         function applyGate(type) {
-    if (isSolved) return;
-    pop.currentTime = 0; pop.play();
-    
-    if (selectedIndices.length > 0) {
-        replaceLogic(type);
-    } else {
-        // 如果是從手機點擊線條進入的，currentOptions 會有值
-        // 我們確保在執行邏輯時，視覺上的 highlight 依然存在
-        if (isTouchDevice && currentOptions[currentOptionIndex]) {
-            highlightPairs(currentOptions[currentOptionIndex].highlightPairs);
-        }
+            if (isSolved) return;
+            pop.currentTime = 0; pop.play();
+            
+            if (selectedIndices.length > 0) {
+                replaceLogic(type);
+            } else {
+                // 如果是手機版且目前有預覽中的選項，強制再次畫出這組 highlight
+                if (isTouchDevice && currentOptions[currentOptionIndex]) {
+                    highlightPairs(currentOptions[currentOptionIndex].highlightPairs);
+                }
 
-        executeLogic(type);
-        gateHistory.push(type);
-        historyStack.push([...gateHistory]);
-        steps = gateHistory.length;
-        finishMove();
-        
-        // 額外保險：如果是在手機模式下，確保 500ms 內不要被外部邏輯暗掉
-        if (isTouchDevice) {
-            setTimeout(clearHighlight, 500);
+                executeLogic(type);
+                gateHistory.push(type);
+                historyStack.push([...gateHistory]);
+                steps = gateHistory.length;
+                finishMove();
+                
+                // 確保在動畫完成後清除亮線
+                if (isTouchDevice) {
+                    setTimeout(clearHighlight, 500);
+                }
+            }
         }
-    }
-}
         function previewGate(type) {
             if (isSolved) return;
             const pairs = [];
