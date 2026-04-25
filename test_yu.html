@@ -294,7 +294,19 @@
 
         function handleOrientation(event) {
             if (!lockedLineId || lineMode === 1 || lineMode === 8) return;
+            
             let tilt = event.gamma; 
+            const orientation = (screen.orientation || {}).type || window.orientation;
+            
+            // Support landscape tilt tracking
+            if (orientation === 90 || orientation === "landscape-primary") {
+                tilt = event.beta;
+            } else if (orientation === -90 || orientation === "landscape-secondary") {
+                tilt = -event.beta;
+            } else if (orientation === 180 || orientation === "portrait-secondary") {
+                tilt = -event.gamma;
+            }
+
             const now = Date.now();
             if (now - lastSwipeTime < 400) return;
 
@@ -362,11 +374,15 @@
                 const btn = document.getElementById(`gate-btn-${type}`);
                 if(btn) {
                     btn.classList.add('btn-highlight');
-                    const container = document.getElementById('gate-scroll-area');
-                    const btnRect = btn.getBoundingClientRect();
-                    const containerRect = container.getBoundingClientRect();
-                    if (btnRect.top < containerRect.top || btnRect.bottom > containerRect.bottom) {
-                        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    // 手機版不自動滾動，避免畫面跳動
+                    if (!isTouchDevice) {
+                        const container = document.getElementById('gate-scroll-area');
+                        const btnRect = btn.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        if (btnRect.top < containerRect.top || btnRect.bottom > containerRect.bottom) {
+                            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }
                     }
                 }
             }
