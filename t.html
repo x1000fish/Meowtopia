@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1200">
-    <title>Meowtopia - Level 8</title>
+    <title>Meowtopia - Level 7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
@@ -27,11 +27,14 @@
         .node img { width: 100px; height: auto; pointer-events: none; }
         .fixed-number { position: absolute; bottom: -4px; right: 41px; font-size: 20px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
         .connection-line { position: absolute; background: #463438; z-index: 10; cursor: pointer; transition: all 0.2s ease; opacity: 1; }
-        .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); height: 10px !important; z-index: 16; }
-        .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15; }
-        .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .fish-wrapper img { width: 70px; height: auto; }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -45px; z-index: 5; position: relative; top: -8px; }
+        @media (hover: hover) { .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); height: 10px !important; z-index: 16; opacity: 1 !important; border-top: none !important; } }
+        .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15; border-top: none !important; opacity: 1 !important; }
+        
+        .fish-wrapper { position: absolute; width: 80px; height: 80px; pointer-events: none; z-index: 30; display: flex; justify-content: center; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-wrapper img.fish-img { width: 70px; height: auto; position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .fish-wrapper img.fish-bg-shape { width: 70px; height: auto; position: absolute; z-index: 1; filter: brightness(0) invert(1); opacity: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; z-index: 5; position: absolute; top: 28px; }
+        
         #pro-panel { width: 0; opacity: 0; height: 628px; overflow: hidden; background: #fff; border: 0px solid #463438; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .pro-active #pro-panel { width: 650px; opacity: 1; border: 8px solid #463438; padding: 20px; box-shadow: 10px 10px 0px #99C44D;}
         .panel-section-title { font-weight: 900; font-size: 18px; margin: 10px 0 1px; color: #463438; text-align: center; white-space: nowrap; }
@@ -42,78 +45,83 @@
         .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
         .multi-toggle-btn.mode-2 { background: #629eed; }
         .multi-toggle-btn.mode-4 { background: #b583e5; }
-        .multi-toggle-btn:hover,
-        .game-btn:hover,
-        .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438;}
-        .multi-toggle-btn:active,
-        .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
-        .gate-btn-v2 { position: relative; height: 60px; width: 45px; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 15px, center 30px, center 45px; padding: 0; border: 2px solid #463438; cursor: pointer; transition: all 0.2s; border-radius: 8px; margin: auto; background-color: #ffffff; color: #463438; box-shadow: 0 3px 6px rgba(70,52,56,0.1); }
-        .gate-not { background-color: #fce4ec !important; }
-        .gate-tof { background-color: #f0fdf4 !important; }
-        .gate-btn-v2:hover, .func-btn:hover, .gate-not:hover, .gate-tof:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; box-shadow: 0 3px 0 #463438 !important; transform: scale(1.05); z-index: 10; }
-        .gate-btn-v2:active { transform: translateY(2px) scale(1.05); box-shadow: 0 1px 2px rgba(70,52,56,0.2); }
-        .gate-v-line { position: absolute; width: 1.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 1; }
-        .gate-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
-        .gate-dot.fill { background: #463438; }
-        .gate-dot.empty { background: #fff; }
-        .gate-target-circle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #463438; background: #fff; left: 50%; transform: translate(-50%, -50%); z-index: 3; }
-        .gate-target-circle::before { content: ''; position: absolute; width: 100%; height: 1.5px; top: 50%; left: 0; transform: translateY(-50%); background: #463438; }
-        .gate-target-circle::after { content: ''; position: absolute; height: 100%; width: 1.5px; left: 50%; top: 0; transform: translateX(-50%); background: #463438; }
+        .multi-toggle-btn:hover, .game-btn:hover, .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438;}
+        .multi-toggle-btn:active, .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
         .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); color: #463438; background: #fff;}
         .btn-reset { background: #FFF9F0; color: #463438; }
         .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; }
         .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; }
         .btn-undo.active:hover { background-color: #ff9fb2 !important; transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
+        .func-btn:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; transform: translateY(-2px); box-shadow: 0 3px 0 #463438; }
+        
         #circuit-area { width: 1024px; height: 0; opacity: 0; background: #fff; border: 0px solid #463438; border-radius: 30px; margin-top: 20px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; }
         .pro-active #circuit-area { height: 210px; opacity: 1; border: 8px solid #463438; padding: 15px; box-shadow: 10px 10px 0px #FFB7C5;}
         #circuit-content-wrapper { position: relative; height: 150px; overflow-x: auto; margin-left: 45px; -ms-overflow-style: none; scrollbar-width: none; }
         #circuit-content-wrapper::-webkit-scrollbar { display: none; }
         #circuit-content { display: flex; height: 100%; padding: 0 10px; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 30px, 0 70px, 0 110px; }
-        .qubit-label { position: absolute; left: 18px; font-weight: 900; font-size: 16px; color: #463438; }
-        .circuit-unit { min-width: 55px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; }
-        .circuit-unit:hover { background: rgba(255, 183, 197, 0.3); border-radius: 12px; }
-        .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D !important; }
+        .mini-mode #circuit-content { background-image: none !important; }
+
+        .qubit-label { position: absolute; left: 18px; font-weight: 900; font-size: 16px; color: #463438; transition: all 0.3s; }
+        
+        /* 動態支援 iOS 防跳與完美方塊滿版顯示 */
+        .circuit-unit { width: 55px; min-width: 55px; flex-shrink: 0; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; background-color: transparent !important; }
+        .mini-mode .circuit-unit { width: 140px; min-width: 140px; }
+        
+        .circuit-unit:hover, .circuit-unit.selected-gate { background-color: var(--bg-hover) !important; border-radius: 12px; }
+        
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
         .connection-v-line { position: absolute; width: 2.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 3; }
         .circuit-target { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 15; }
         .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background: #463438; left: 50%; transform: translateX(-50%); }
         .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background: #463438; top: 50%; transform: translateY(-50%); }
         .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: #fff; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438;}
-        #gate-scroll-area { margin-top: 5px; max-height: 350px; overflow-y: auto; width: 100%; padding: 10px; -ms-overflow-style: none; scrollbar-width: none; }
+        
+        #gate-scroll-area { position: relative; margin-top: 5px; flex: 1; min-height: 0; overflow-y: auto; width: 100%; padding: 10px; -ms-overflow-style: none; scrollbar-width: none; scroll-behavior: smooth;}
         #gate-scroll-area::-webkit-scrollbar { display: none; }
+        
         :root { --cube-offset-x: 175px; }
         .pro-active { --cube-offset-x: 42px; }
+        
+        .modal-overlay { fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438;}
+        
         #ios-indicator { position: absolute; top: 0; left: 0; transform: translate(-50%, -120%) scale(0.8); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(15px); border-radius: 50px; padding: 6px 18px; display: flex; align-items: center; box-shadow: 0 8px 24px rgba(70,52,56,0.12); opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; pointer-events: none; border: 1px solid rgba(70,52,56,0.35); }
         #ios-indicator.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
-        .ind-fraction { color: #463438; font-size: 18px; font-weight: 900; }
+        .ind-fraction { color: #463438; font-size: 16px; font-weight: 900; }
+        .ind-label { display: none !important; }
+        
+        /* Gate Button Styles (Enlarged) */
+        .gate-btn-v2 { position: relative; height: 75px; width: 60px; display: flex; align-items: center; justify-content: center; padding: 0; border: 2px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 18px, center 36.5px, center 55px; margin: auto;}
+        .gate-btn-v2:hover { background-color: #FFB7C5 !important; filter: brightness(1.05); transform: scale(1.05); z-index: 10; }
+        .btn-highlight { transform: scale(1.15); box-shadow: 0 0 10px rgba(0,0,0,0.3); border: 4px solid #99C44D !important; z-index: 10; filter: brightness(1.1); background-color: #FFB7C5 !important; }
+        
+        /* Hypercube SVG Styles */
+        .hyper-line { stroke: #463438; stroke-width: 0.6; opacity: 0.3; }
+        .hyper-line-hi { stroke: #FFB7C5; stroke-width: 2.5; opacity: 1; transition: stroke 0.2s; }
+        .gate-btn-v2 .hyper-line-hi { stroke: #f78790; }
+        .gate-btn-v2:hover .hyper-line-hi { stroke: #ffffff !important; }
+        .btn-highlight .hyper-line-hi { stroke: #ffffff !important; }
+        .circuit-unit:hover .hyper-line-hi, .circuit-unit.selected-gate .hyper-line-hi { stroke: #99C44D !important; }
+        
+        .gate-v-line { position: absolute; width: 1.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 1; }
+        .gate-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
+        .gate-dot.fill { background: #463438; }
+        .gate-dot.empty { background: #fff; }
+        .gate-target-circle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #463438; background: #fff; left: 50%; transform: translate(-50%, -50%); z-index: 3; }
+        .gate-target-circle::before { content: ''; position: absolute; width: 100%; height: 1.5px; top: 50%; left: 0; transform: translateY(-50%); background: #463438; }
+        .gate-target-circle::after { content: ''; position: absolute; height: 100%; width: 1.5px; left: 50%; top: 0; transform: translateX(-50%); background: #463438; }
+        
         #canvas-bottom-btns {position: absolute;bottom: 20px;right: 30px; display: flex;flex-direction: column; gap: 10px;z-index: 100;}
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px;padding: 8px 5px; text-transform: uppercase; border-width: 3px;}
         .pro-active #canvas-bottom-btns {display: none !important;}
-        
-        /* 防護手機長按與文字選取 */
-        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { 
-            -webkit-user-select: none; 
-            user-select: none;
-            -webkit-touch-callout: none; 
-            touch-action: manipulation; 
-        }
-
-        /* 搖晃開關文字提示 (預設隱藏) */
-        #shake-toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(70,52,56,0.9); color: white; padding: 12px 24px;
-            border-radius: 30px; font-weight: 900; font-size: 18px; z-index: 9999;
-            opacity: 0; transition: opacity 0.3s ease; pointer-events: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
+        .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; border-top: none !important;}
     </style>
 </head>
-<body id="body-root">
-    <div id="shake-toast">Ctrl Mode: ON</div>
-
+<body id="body-root" class="mini-mode">
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
+    <div id="quantum-toggle" class="mode-toggle-fixed hidden" onclick="toggleQuantumMode()" style="top: 100px; font-size: 26px;">🔮</div>
+    
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
             <h2 class="text-xl font-black mb-3 text-center" style="color: #463438;">🏆 TOP CATS</h2>
@@ -129,19 +137,20 @@
             <div class="bookmark-text">RANK</div>
         </div>
     </div>
-    <div class="w-full max-w-5xl">
+    
+    <div class="w-full max-w-6xl">
         <div class="flex justify-between w-full px-4 mb-4 items-center mt-6">
             <div class="text-3xl font-black" style="color: #463438;">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
             <div class="flex items-center gap-12 ml-auto">
                 <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-            <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 8</div>
+                <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 7</div>
             </div>
         </div>
         <div class="main-layout">
             <div id="pro-panel">
-                <div class="panel-section-title">Quantum Gates</div>
+                <div id="panel-gate-title" class="panel-section-title">Transformations</div>
                 <div id="gate-scroll-area">
-                    <div class="grid grid-cols-4 gap-3 w-full justify-items-center" id="gate-grid"></div>
+                    <div class="flex flex-col gap-4 w-full" id="gate-grid"></div>
                 </div>
                 <div class="panel-section-title mt-2">Control</div>
                 <button class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
@@ -150,6 +159,7 @@
             <div class="game-canvas" id="main-canvas">
                 <div id="ios-indicator">
                     <span class="ind-fraction" id="ind-fraction">1 / 2</span>
+                    <span class="ind-label" id="ind-label"></span>
                 </div>
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
@@ -162,16 +172,17 @@
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
-            <div class="circuit-title font-black text-xl text-center">Circuit Diagram</div>
-            <div class="qubit-label" style="top: 60px;">q0</div>
-            <div class="qubit-label" style="top: 100px;">q1</div>
-            <div class="qubit-label" style="top: 140px;">q2</div>
+            <div id="circuit-diagram-title" class="circuit-title font-black text-xl text-center" style="color: #463438;">Hypercube Paths</div>
+            <div id="q0-label" class="qubit-label" style="top: 60px;">d0</div>
+            <div id="q1-label" class="qubit-label" style="top: 100px;">d1</div>
+            <div id="q2-label" class="qubit-label" style="top: 140px;">d2</div>
             <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
         </div>
         <div class="w-full text-center mt-6 mb-6">
             <a href="index.html" class="game-btn btn-red px-16">GIVE UP</a>
         </div>
     </div>
+    
     <div id="victoryModal" class="modal-overlay">
         <div class="modal-content">
             <h2 class="text-5xl font-black mb-4" style="color: #463438;">MEOW!</h2>
@@ -183,92 +194,53 @@
     </div>
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
-        let steps = 0,
-            time = 0,
-            isPro = false,
-            timerInterval,
-            gateHistory = [],
-            historyStack = [[]],
-            selectedIndices = [],
-            fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4],
-            isSolved = false,
-            lineMode = 1,
-            hoverLine = null,
-            currentOptionIndex = 0,
-            currentOptions = [],
-            draggedIdx = null;
-        let leaderboardData; 
+        let steps = 0, time = 0, isPro = false, isQuantumMode = false, timerInterval, gateHistory = [], isSolved = false;
+        let selectedIndices = [];
+        let actionStack = [];
         
-        // 搖晃與拖移變數
-        let isShakeCtrlActive = false; 
-        let lastShakeTime = 0;
-        let shakePermissionRequested = false;
+        // Level 7 專屬 3-bit 初始狀態
+        let fishAtNode = [0, 1, 2, 4, 3, 5, 6, 7];    
+        
+        let lineMode = 1;
+        let hoverLine = null;
+        let currentOptionIndex = -1;
+        let currentOptions = [];
+        let draggedIndex = null;
+        let leaderboardData;
         let mobileDragging = false;
-        let mDragIndex = null;
-        let dragGhost = null;
-        // --- 手機端與陀螺儀操控變數 ---
-        let isTouchDevice = false;       // 判斷是否為手機觸控裝置
-        let activeMobileLine = null;     // 記錄手機端目前「選取中」的線段
-        let touchStartY = 0;             // 滑動起始 Y 座標
-        let lastSwipeTime = 0;           // 紀錄上次滑動時間
-        let lastTiltDirection = 0;       // 記錄目前傾斜狀態：0=平放, 1=右傾, -1=左傾
-        const TILT_THRESHOLD = 15;       // 陀螺儀觸發角度
-        const RETURN_THRESHOLD = 10;     // 陀螺儀回正角度
-        let gyroPermissionGranted = false; // 記錄 Apple 設備的陀螺儀權限
-
-        const pop = new Audio('pop.m4a'),
-            meow = new Audio('meow.m4a'),
-            getDynamicOffset = () => parseInt(getComputedStyle(document.body).getPropertyValue('--cube-offset-x')) || 0;
-        const nodePositions = [
-            { t: 150, get l() { return 135 + getDynamicOffset() } },
-            { t: 150, get l() { return 350 + getDynamicOffset() } },
-            { t: 330, get l() { return 135 + getDynamicOffset() } },
-            { t: 330, get l() { return 350 + getDynamicOffset() } },
-            { t: 20,  get l() { return -10 + getDynamicOffset() } },
-            { t: 20,  get l() { return 510 + getDynamicOffset() } },
-            { t: 460, get l() { return -10 + getDynamicOffset() } },
-            { t: 460, get l() { return 510 + getDynamicOffset() } }
-        ];
-        const edges = [[0, 1], [1, 3], [3, 2], [2, 0], [4, 5], [5, 7], [7, 6], [6, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
         
-        // 搖晃偵測邏輯
-        function handleMotion(event) {
-            const acc = event.accelerationIncludingGravity;
-            if (!acc) return;
+        let isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        let lockedLineId = null;
+        let hasScrolled = false;
+        
+        // Tilt Control Variables
+        let lastTiltDirection = 0;
+        const TILT_THRESHOLD = 15;
+        const RETURN_THRESHOLD = 10;
+        let gyroPermissionGranted = false;
+        let lastSwipeTime = 0;
+        
+        // Auto-Scroll Variables for Drag & Drop
+        let autoScrollRAF = null;
+        let scrollSpeed = 0;
 
-            const threshold = 20; // 搖晃門檻
-            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
-
-            if (delta > threshold) {
-                const now = Date.now();
-                if (now - lastShakeTime > 1000) { 
-                    isShakeCtrlActive = !isShakeCtrlActive;
-                    lastShakeTime = now;
-                    
-                    if (navigator.vibrate) navigator.vibrate([100]); // 小震動
-                    
-                    // 文字提示
-                    const toast = document.getElementById('shake-toast');
-                    toast.innerText = isShakeCtrlActive ? "Ctrl Mode: ON" : "Ctrl Mode: OFF";
-                    toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 8000);
-                }
-            }
-        }
-
-        // 請求 iOS 搖晃權限 (綁定在打開專業模式時)
-        function requestShakePermission() {
-            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission()
-                    .then(state => {
-                        if (state === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion);
-                        }
-                    }).catch(console.error);
-            } else {
-                window.addEventListener('devicemotion', handleMotion);
-            }
-        }
+        const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
+        const getDynamicOffset = () => parseInt(getComputedStyle(document.body).getPropertyValue('--cube-offset-x')) || 0;
+        
+        const nodePositions = Array.from({ length: 8 }, (_, i) => {
+            let t, l_rel;
+            if (i === 0) { t = 150; l_rel = 135; }
+            else if (i === 1) { t = 150; l_rel = 350; }
+            else if (i === 2) { t = 330; l_rel = 135; }
+            else if (i === 3) { t = 330; l_rel = 350; }
+            else if (i === 4) { t = 20;  l_rel = -10; }
+            else if (i === 5) { t = 20;  l_rel = 510; }
+            else if (i === 6) { t = 460; l_rel = -10; }
+            else if (i === 7) { t = 460; l_rel = 510; }
+            const pos = { t: t, relX: l_rel };
+            Object.defineProperty(pos, 'l', { get: () => pos.relX + getDynamicOffset() });
+            return pos;
+        });
 
         window.onload = () => {
             initGameLayout();
@@ -277,838 +249,752 @@
             updateFishUI();
             updateUndoStatus();
             fetchLeaderboard();
-            timerInterval = setInterval(() => {
-                time++;
-                document.getElementById('timer').innerText = time;
-            }, 1000);
-
-            // --- 1. 定義權限請求函式 ---
-            const requestGyroPermission = async () => {
-                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    try {
-                        const permission = await DeviceOrientationEvent.requestPermission();
-                        if (permission === 'granted') {
-                            gyroPermissionGranted = true;
-                        }
-                    } catch (error) {
-                        console.log("Gyroscope access granted", error);
-                    }
-                } else {
-                    gyroPermissionGranted = true;
-                }
-                window.removeEventListener('click', requestGyroPermission);
-                window.removeEventListener('touchstart', requestGyroPermission);
-            };
-
-            // --- 2. 多重綁定觸發點 ---
-            window.addEventListener('click', requestGyroPermission);
-            window.addEventListener('touchstart', requestGyroPermission);
+            timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             
-            const btnPro = document.getElementById('mode-toggle'); 
-            const btnMode = document.getElementById('mode-btn');   
-            if (btnPro) btnPro.addEventListener('click', requestGyroPermission);
-            if (btnMode) btnMode.addEventListener('click', requestGyroPermission);
-
-            // --- 3. 電腦版：滾輪支援 (電路區橫向滾動) ---
-            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
-                e.preventDefault();
-                e.currentTarget.scrollLeft += e.deltaY;
-            });
-
-            // --- 4. 電腦版：滾輪支援 (切換 Mode 選項) ---
-            document.addEventListener('wheel', (e) => {
-                if (!hoverLine || lineMode === 1) return;
-                e.preventDefault();
-                if (e.deltaY > 0) {
-                    currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                } else {
-                    currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+            const circuitWrapper = document.getElementById('circuit-content-wrapper');
+            
+            // Scroll normally inside wrapper
+            circuitWrapper.addEventListener('wheel', (e) => {
+                if (Math.abs(e.deltaY) > 0) {
+                    e.preventDefault();
+                    circuitWrapper.scrollLeft += e.deltaY;
                 }
-                showIndicator();
             }, { passive: false });
 
-            // --- 5. 觸控設備偵測 ---
-            window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
+            // Smooth Auto-scroll logic for drag-and-drop & edges
+            function scrollLoop() {
+                if (scrollSpeed !== 0) {
+                    circuitWrapper.scrollLeft += scrollSpeed;
+                    autoScrollRAF = requestAnimationFrame(scrollLoop);
+                } else {
+                    autoScrollRAF = null;
+                }
+            }
+
+            circuitWrapper.addEventListener('mousemove', (e) => {
+                const rect = circuitWrapper.getBoundingClientRect();
+                const edgeThreshold = 80;
+                if (e.clientX - rect.left < edgeThreshold) {
+                    scrollSpeed = -8; 
+                    if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                } else if (rect.right - e.clientX < edgeThreshold) {
+                    scrollSpeed = 8; 
+                    if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                } else {
+                    scrollSpeed = 0;
+                }
+            });
+
+            circuitWrapper.addEventListener('mouseleave', () => { scrollSpeed = 0; });
+
+            circuitWrapper.addEventListener('dragover', (e) => {
+                if (draggedIndex !== null) {
+                    e.preventDefault();
+                    const rect = circuitWrapper.getBoundingClientRect();
+                    const edgeThreshold = 80;
+                    if (e.clientX - rect.left < edgeThreshold) {
+                        scrollSpeed = -8; 
+                        if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                    } else if (rect.right - e.clientX < edgeThreshold) {
+                        scrollSpeed = 8; 
+                        if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                    } else {
+                        scrollSpeed = 0;
+                    }
+                }
+            });
+
+            circuitWrapper.addEventListener('drop', () => { scrollSpeed = 0; });
+
+            // PC Scroll (for locked Line)
+            document.addEventListener('wheel', (e) => {
+                if (!lockedLineId || lineMode === 1 || lineMode === 4 || isTouchDevice) return;
+                const target = e.target;
+                if (!target.closest('#gate-scroll-area') && !target.closest('#circuit-content-wrapper')) {
+                    e.preventDefault();
+                    if (e.deltaY > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                    else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                    hasScrolled = true;
+                    showIndicatorScrolled();
+                }
+            }, { passive: false });
 
             const canvas = document.getElementById('main-canvas');
+            const indicator = document.getElementById('ios-indicator');
             
-            // --- 6. 手機版：取消選取邏輯 ---
-            canvas.addEventListener('touchstart', (e) => {
-                if (!e.target.classList.contains('connection-line')) {
-                    activeMobileLine = null;
-                    hoverLine = null;
-                    hideIndicator();
+            // PC: Left click outside connection-line cancels the lock
+            canvas.addEventListener('mousedown', (e) => {
+                if (lockedLineId && !isTouchDevice) {
+                    if (e.button === 0 && !e.target.classList.contains('connection-line')) { 
+                        cancelLock(); 
+                    }
+                }
+            });
+            
+            // PC: Right click confirms inside canvas
+            canvas.addEventListener('contextmenu', (e) => {
+                if (lockedLineId && !isTouchDevice) {
+                    e.preventDefault(); 
+                    if (lineMode === 4 && hoverLine) applyGate(`X${2 - hoverLine.dim}`);
+                    else if (lineMode === 1 && hoverLine) applyGate(`SWAP_${hoverLine.i}_${hoverLine.j}`);
+                    else if (currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
                 }
             });
 
-            // --- 7. 手機版：單指上下滑動切換 ---
-            canvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1 && activeMobileLine) {
-                    touchStartY = e.touches[0].clientY;
-                }
-            }, { passive: true });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && activeMobileLine) {
-                    if (lineMode === 1) return; 
-                    if (e.cancelable) e.preventDefault(); 
-                    
-                    let currentY = e.touches[0].clientY;
-                    let diff = currentY - touchStartY;
-                    let now = Date.now();
-                    
-                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
-                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                        
-                        touchStartY = currentY; 
-                        lastSwipeTime = now;
-                    }
+            // Mobile logic: dual-finger tap to confirm
+            window.addEventListener('touchstart', (e) => {
+                if (lockedLineId && e.touches.length >= 2) {
+                    e.preventDefault();
+                    if (lineMode === 4 && hoverLine) applyGate(`X${2 - hoverLine.dim}`);
+                    else if (lineMode === 1 && hoverLine) applyGate(`SWAP_${hoverLine.i}_${hoverLine.j}`);
+                    else if (hasScrolled && currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
                 }
             }, { passive: false });
 
-            canvas.addEventListener('touchend', () => { touchStartY = 0; });
+            // Mobile logic: single-finger tap outside cancels lock
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1 && lockedLineId) {
+                    if (!e.target.classList.contains('connection-line')) { cancelLock(); }
+                }
+            });
 
-            // --- 8. 電腦版：滑鼠指標跟隨 UI ---
-            const indicator = document.getElementById('ios-indicator');
             canvas.addEventListener('mousemove', (e) => {
                 if (indicator.classList.contains('active') && !isTouchDevice) {
                     const rect = canvas.getBoundingClientRect();
                     indicator.style.left = (e.clientX - rect.left) + 'px';
-                    indicator.style.top = (e.clientY - rect.top - 12) + 'px';
-                }
-            });
-
-            // --- 9. 手機/平板版：陀螺儀左右傾斜 (修正方向與靈敏度) ---
-            window.addEventListener('deviceorientation', (e) => {
-                if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
-
-                let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
-                let tilt = 0;
-
-                if (orientation === 0) {
-                    tilt = e.gamma;
-                } else if (orientation === 90) {
-                    tilt = e.beta; 
-                } else if (orientation === -90 || orientation === 270) {
-                    tilt = -e.beta;
-                } else if (orientation === 180) {
-                    tilt = -e.gamma;
-                }
-
-                if (tilt === null) return; 
-
-                if (lastTiltDirection === 0) {
-                    if (tilt > TILT_THRESHOLD) {
-                        lastTiltDirection = 1;
-                        currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                    } else if (tilt < -TILT_THRESHOLD) {
-                        lastTiltDirection = -1;
-                        currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                    }
-                } else {
-                    if (Math.abs(tilt) < RETURN_THRESHOLD) {
-                        lastTiltDirection = 0;
-                    }
+                    indicator.style.top = (e.clientY - rect.top - 25) + 'px';
                 }
             });
         };
 
-        // ----------------- 手機版拖曳邏輯 -----------------
-        function startMobileDrag(touch, el, index) {
-            // 確保沒有舊殘影卡在畫面上
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+        function handleOrientation(event) {
+            if (!lockedLineId || lineMode === 1 || lineMode === 4) return;
             
-            mobileDragging = true;
-            mDragIndex = index;
-            if (navigator.vibrate) navigator.vibrate(50); // 長按小震動
+            let tilt = event.gamma; 
+            const orientation = (screen.orientation || {}).type || window.orientation;
             
-            dragGhost = el.cloneNode(true);
-            dragGhost.style.position = 'fixed';
-            dragGhost.style.zIndex = '999999';
-            dragGhost.style.opacity = '0.8';
-            dragGhost.style.pointerEvents = 'none'; // 讓滑鼠/手指事件穿透
-            dragGhost.style.transition = 'none';    // 移除 CSS 動畫延遲，確保跟手
-            dragGhost.classList.remove('selected'); // 拖移時不要帶著選取的綠框
-            
-            const rect = el.getBoundingClientRect();
-            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
-            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
-            document.body.appendChild(dragGhost);
-            
-            el.style.opacity = '0.2'; // 原本的位子變淡
-        }
-        function moveMobileDrag(touch) {
-            if (!dragGhost) return;
-            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
-            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
-        }
-        function endMobileDrag(touch) {
-            mobileDragging = false;
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
-            
-            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
+            // Support landscape tilt tracking
+            if (orientation === 90 || orientation === "landscape-primary") {
+                tilt = event.beta;
+            } else if (orientation === -90 || orientation === "landscape-secondary") {
+                tilt = -event.beta;
+            } else if (orientation === 180 || orientation === "portrait-secondary") {
+                tilt = -event.gamma;
+            }
 
-            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-            let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
-            
-            if (dropUnit) {
-                let children = Array.from(document.getElementById('circuit-content').children);
-                let targetIndex = children.indexOf(dropUnit);
-                if (targetIndex > -1 && targetIndex !== mDragIndex) {
-                    pop.currentTime = 0; pop.play(); // 放開時也有音效回饋
-                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
-                    gateHistory.splice(targetIndex, 0, movedItem);
-                    historyStack.push([...gateHistory]);
-                    selectedIndices = [];
-                    recalculate();
+            const now = Date.now();
+            if (now - lastSwipeTime < 400) return;
+
+            if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
+                // 向右傾斜 (+)：前進 (不論直橫幅)
+                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                lastTiltDirection = 1;
+                lastSwipeTime = now;
+                hasScrolled = true;
+                showIndicatorScrolled();
+                if ('vibrate' in navigator) navigator.vibrate(20);
+            } else if (tilt < -TILT_THRESHOLD && lastTiltDirection >= 0) {
+                // 向左傾斜 (-)：後退
+                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                lastTiltDirection = -1;
+                lastSwipeTime = now;
+                hasScrolled = true;
+                showIndicatorScrolled();
+                if ('vibrate' in navigator) navigator.vibrate(20);
+            } else if (Math.abs(tilt) < RETURN_THRESHOLD) {
+                lastTiltDirection = 0;
+            }
+        }
+
+        function getRgba(hex, alpha) {
+            hex = hex.replace('#', '');
+            const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        function getHighlightPairsForGate(type) {
+            let pairs = [];
+            if (type.startsWith('X')) {
+                pairs = getAllPairs(2 - parseInt(type[1]));
+            } else if (type.startsWith('CX')) {
+                let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
+                let bit = 1 << (2 - t), cBit = 1 << (2 - c);
+                for (let k = 0; k < 8; k++) {
+                    if ((k & bit) === 0 && ((k & cBit) >> (2 - c)) === ctrlVal) pairs.push([k, k ^ bit]);
+                }
+            } else if (type.startsWith('SWAP_')) {
+                let p = type.split('_');
+                pairs.push([parseInt(p[1]), parseInt(p[2])]);
+            }
+            return pairs;
+        }
+
+        window.clearHighlight = function() { 
+            document.querySelectorAll('.connection-line').forEach(l=>l.classList.remove('line-highlight')); 
+            document.querySelectorAll('.gate-btn-v2').forEach(b=>b.classList.remove('btn-highlight'));
+        }
+
+        window.highlightByGate = function(type) {
+            highlightPairs(getHighlightPairsForGate(type));
+            highlightGateButton(type);
+        }
+
+        function highlightGateButton(type) {
+            document.querySelectorAll('.gate-btn-v2').forEach(btn => btn.classList.remove('btn-highlight'));
+            if(type) {
+                const btn = document.getElementById(`gate-btn-${type}`);
+                if(btn) {
+                    btn.classList.add('btn-highlight');
+                    
+                    if (!isTouchDevice) {
+                        const container = document.getElementById('gate-scroll-area');
+                        const btnRect = btn.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        
+                        // 利用 offsetTop 搭配 container 計算安全捲動，不再使用 scrollIntoView 防止網頁跳動
+                        if (btnRect.top < containerRect.top) {
+                            container.scrollTop -= (containerRect.top - btnRect.top + 10);
+                        } else if (btnRect.bottom > containerRect.bottom) {
+                            container.scrollTop += (btnRect.bottom - containerRect.bottom + 10);
+                        }
+                    }
                 }
             }
-            mDragIndex = null;
         }
 
-        function toggleLeaderboard() {
-            const wrapper = document.getElementById('leaderboard-wrapper');
-            wrapper.classList.toggle('expanded');
+        function getGateColorMap(type) {
+            if (type.startsWith('SWAP')) return '#e2de6e'; // Mode 1
+            if (type.startsWith('CX')) return '#629eed';   // Mode 2
+            if (type.startsWith('X')) return '#b583e5';    // Mode 4
+            return '#fff';
         }
+
+        function getMiniHypercubeSVG(type) {
+            let pairs = getHighlightPairsForGate(type);
+            const miniNodes = nodePositions.map(n => ({ 
+                x: (n.relX + 10) / 520 * 40 + 5, 
+                y: (n.t - 20) / 440 * 40 + 5 
+            }));
+            let svg = `<svg viewBox="0 0 50 50" style="width:100%; height:100%; pointer-events:none;" preserveAspectRatio="xMidYMid meet">`;
+            for(let i=0; i<8; i++) {
+                for(let b=0; b<3; b++) {
+                    let j = i ^ (1<<b);
+                    if(j > i) {
+                        let n1 = miniNodes[i], n2 = miniNodes[j];
+                        let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
+                        let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
+                        svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" stroke-linecap="round"/>`;
+                    }
+                }
+            }
+            for(let i=0; i<8; i++) {
+                let n = miniNodes[i];
+                svg += `<circle cx="${n.x}" cy="${n.y}" r="1.5" fill="#463438"/>`;
+            }
+            svg += `</svg>`;
+            return svg;
+        }
+
+        function getGateContent(type) {
+            if (isQuantumMode) {
+                let controls = [], target = -1;
+                if (type.startsWith('X')) { target = parseInt(type[1]); } 
+                else if (type.startsWith('CX')) { controls.push({ q: parseInt(type[3]), type: parseInt(type[2]) }); target = parseInt(type[4]); } 
+                else if (type.startsWith('SWAP_')) {
+                    let p = type.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]);
+                    target = 2 - Math.round(Math.log2(iA ^ iB));
+                    let binary = Math.min(iA, iB).toString(2).padStart(3, '0').split('').map(Number);
+                    for (let q = 0; q < 3; q++) if (q !== target) controls.push({ q: q, type: binary[q] });
+                }
+                let content = '';
+                const getY = (q) => 18 + q * 18.5;
+                if (controls.length > 0) {
+                    const allQs = [target, ...controls.map(c => c.q)];
+                    const minQ = Math.min(...allQs), maxQ = Math.max(...allQs);
+                    content += `<div class="gate-v-line" style="top:${getY(minQ)}px; height:${(maxQ-minQ)*18.5}px;"></div>`;
+                }
+                controls.forEach(ctrl => { content += `<div class="gate-dot ${ctrl.type === 1 ? 'fill' : 'empty'}" style="top:${getY(ctrl.q)}px;"></div>`; });
+                content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
+                return content;
+            } else {
+                return getMiniHypercubeSVG(type);
+            }
+        }
+
+        function toggleQuantumMode() {
+            pop.currentTime = 0; pop.play();
+            isQuantumMode = !isQuantumMode;
+            document.getElementById('quantum-toggle').innerText = isQuantumMode ? "⚛️" : "🔮";
+            document.getElementById('body-root').classList.toggle('mini-mode', !isQuantumMode);
+            
+            document.getElementById('circuit-diagram-title').innerText = isQuantumMode ? "Circuit Diagram" : "Hypercube Paths";
+            document.getElementById('panel-gate-title').innerText = isQuantumMode ? "Quantum Gates" : "Transformations";
+            for(let i=0; i<3; i++) {
+                document.getElementById(`q${i}-label`).innerText = isQuantumMode ? `q${i}` : `d${i}`;
+            }
+
+            initGates();
+            renderCircuit();
+        }
+
+        function togglePro() {
+            pop.currentTime = 0; pop.play();
+            isPro = !isPro;
+            document.getElementById('body-root').classList.toggle('pro-active', isPro);
+            document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
+            const qToggle = document.getElementById('quantum-toggle');
+            if (isPro) qToggle.classList.remove('hidden'); else qToggle.classList.add('hidden');
+            let startTime = Date.now();
+            const animateMove = () => {
+                for (let i = 0; i < 8; i++) {
+                    const n = document.getElementById(`node-${i}`);
+                    if (n) { n.style.left = nodePositions[i].l + "px"; n.style.top = nodePositions[i].t + "px"; }
+                }
+                drawStaticLines();
+                updateFishUI();
+                if (Date.now() - startTime < 600) requestAnimationFrame(animateMove);
+            };
+            requestAnimationFrame(animateMove);
+        }
+
         function initGates() {
             const grid = document.getElementById('gate-grid');
             let html = '';
-            const getGateIcon = (type) => {
-                let ctrl = [], target = -1, zero = [];
-                if (type.startsWith('X')) target = parseInt(type[1]);
-                else if (type.startsWith('CX')) {
-                    ctrl = [parseInt(type[2])]; target = parseInt(type[3]);
-                } else if (type.startsWith('C0X')) {
-                    ctrl = [parseInt(type[3])]; target = parseInt(type[4]); zero = [parseInt(type[3])];
-                } else if (type.startsWith('TOF')) {
-                    let s = type.split('_')[0].replace('TOF', ''), parts = [];
-                    for (let i = 0; i < s.length; i++) {
-                        if (s[i + 1] === 'p') {
-                            parts.push({ v: parseInt(s[i]), p: true }); i++;
-                        } else parts.push({ v: parseInt(s[i]), p: false });
-                    }
-                    target = parts.pop().v;
-                    parts.forEach(p => { ctrl.push(p.v); if (p.p) zero.push(p.v); });
-                }
-                let content = '';
-                const getY = (q) => 15 + q * 15;
-                if (ctrl.length > 0) {
-                    const allQs = [target, ...ctrl];
-                    const minQ = Math.min(...allQs), maxQ = Math.max(...allQs);
-                    content += `<div class="gate-v-line" style="top:${getY(minQ)}px; height:${(maxQ-minQ)*15}px;"></div>`;
-                }
-                ctrl.forEach(q => {
-                    const isZero = zero.includes(q);
-                    content += `<div class="gate-dot ${isZero ? 'empty' : 'fill'}" style="top:${getY(q)}px;"></div>`;
-                });
-                if (target !== -1) {
-                    content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
-                }
-                return content;
-            };
-            const wrapBtn = (type, extraClass = "") => {
-                if (type.startsWith('X')) extraClass += " gate-not";
-                if (type.startsWith('TOF')) extraClass += " gate-tof";
-                return `<button class="gate-btn-v2 ${extraClass}"
-                    onmouseenter="previewGate('${type}')"
-                    onmouseleave="hideIndicator()"
-                    onclick="applyGate('${type}')">${getGateIcon(type)}</button>`;
-            };
-            for(let i=0; i<3; i++) html += wrapBtn(`X${i}`, "");
-            html += `<div style="width: 45px"></div>`;
-            for(let i=0; i<3; i++) {
-                for(let j=0; j<3; j++) {
-                    if(i !== j) {
-                        html += wrapBtn(`CX${i}${j}`, "");
-                        html += wrapBtn(`C0X${i}${j}`, "");
-                    }
+            
+            let gateOrderX = [];
+            let gateOrderCX = [];
+            let gateOrderSWAP = [];
+            let added = new Set();
+
+            let edges = [];
+            for (let dim=0; dim<3; dim++) {
+                for (let i=0; i<8; i++) {
+                    let j = i ^ (1<<dim);
+                    if (i < j) edges.push({i, j, dim});
                 }
             }
-            const tofs = [ [0,1,2], [0,2,1], [1,2,0] ];
-            tofs.forEach(([c1,c2,t]) => {
-                html += wrapBtn(`TOF${c1}${c2}${t}`, "");
-                html += wrapBtn(`TOF${c1}p${c2}p${t}`, "");
-                html += wrapBtn(`TOF${c1}p${c2}${t}`, "");
-                html += wrapBtn(`TOF${c1}${c2}p${t}`, "");
+
+            // 3-bit: Mode 4 (X)
+            for(let dim=0; dim<3; dim++) {
+                let g = `X${2-dim}`;
+                if(!added.has(g)) { gateOrderX.push(g); added.add(g); }
+            }
+            
+            // 3-bit: Mode 2 (CX)
+            edges.forEach(edge => {
+                const targetQ = 2 - edge.dim; 
+                const ctrlPool = [0,1,2].filter(q=>q!==targetQ); 
+                ctrlPool.forEach(c => { 
+                    const val = (edge.i >> (2-c)) & 1; 
+                    let g = `CX${val}${c}${targetQ}`;
+                    if(!added.has(g)) { gateOrderCX.push(g); added.add(g); }
+                });
             });
+            
+            // 3-bit: Mode 1 (SWAP / CCX)
+            edges.forEach(edge => { 
+                let g = `SWAP_${edge.i}_${edge.j}`;
+                if(!added.has(g)) { gateOrderSWAP.push(g); added.add(g); }
+            });
+
+            const wrapBtn = (type) => {
+                const hex = getGateColorMap(type);
+                const rgbaLight = getRgba(hex, 0.35); 
+                const bgImage = isQuantumMode ? `linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438)` : `none`;
+                return `<button id="gate-btn-${type}" class="gate-btn-v2" style="background-color: ${rgbaLight}; background-image: ${bgImage};"
+                    onmouseenter="highlightByGate('${type}')"
+                    onmouseleave="clearHighlight()"
+                    onclick="applyGate('${type}')">${getGateContent(type)}</button>`;
+            };
+            
+            html += `<div class="flex flex-wrap justify-center gap-2 w-full">`;
+            gateOrderX.forEach(g => { html += wrapBtn(g); });
+            html += `</div>`;
+
+            html += `<div class="flex flex-wrap justify-center gap-2 w-full">`;
+            gateOrderCX.forEach(g => { html += wrapBtn(g); });
+            html += `</div>`;
+
+            html += `<div class="flex flex-wrap justify-center gap-2 w-full">`;
+            gateOrderSWAP.forEach(g => { html += wrapBtn(g); });
+            html += `</div>`;
+            
             grid.innerHTML = html;
         }
-        async function fetchLeaderboard() {
-            const listArea = document.getElementById('rankList');
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=8`);
-                const data = await response.json();
-                if (data && Array.isArray(data) && data.length > 0) {
-                    leaderboardData = data;
-                    renderRank('steps');
-                } else {
-                    listArea.innerHTML = '<p class="text-center italic text-gray-400 mt-10 text-sm">No records yet</p>';
-                }
-            } catch (e) {
-                console.error("Leaderboard Error:", e);
-                listArea.innerHTML = '<p class="text-center italic text-red-400 mt-10 text-sm">Load Error</p>';
-            }
-        }
-        function renderRank(type) {
-            const tabSteps = document.getElementById('tab-steps');
-            const tabTime = document.getElementById('tab-time');
-            const listArea = document.getElementById('rankList');
-            if (type === 'steps') {
-                tabSteps.className = 'rank-tab active';
-                tabTime.className = 'rank-tab bg-gray-100';
-            } else {
-                tabSteps.className = 'rank-tab bg-gray-100';
-                tabTime.className = 'rank-tab active';
-            }
-            if (!leaderboardData || leaderboardData.length === 0) return;
-            const sorted = [...leaderboardData].sort((a, b) => a[type] - b[type]);
-            let html = "";
-            sorted.slice(0, 10).forEach((item, index) => {
-                const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : (index + 1) + ".";
-                const displayName = item.username || item.name || 'Anonymous';
-                const displayValue = type === 'steps' ? item.steps + '🐾' : item.time + 's';
-                html += `
-                    <div class="rank-item">
-                        <span class="truncate" style="max-width: 90px;">${medal} ${displayName}</span>
-                        <span class="text-blue-600">${displayValue}</span>
-                    </div>`;
-            });
-            listArea.innerHTML = html;
-        }
-        function cycleLineMode() {
-            pop.currentTime = 0;
-            pop.play();
-            if (lineMode === 1) lineMode = 2;
-            else if (lineMode === 2) lineMode = 4;
-            else lineMode = 1;
-            const btn = document.getElementById('mode-btn');
-            btn.innerText = `Mode: ${lineMode}`;
-            btn.classList.remove('mode-2', 'mode-4');
-            if (lineMode === 2) btn.classList.add('mode-2');
-            else if (lineMode === 4) btn.classList.add('mode-4');
-            hideIndicator();
-        }
-        function highlightPairs(pairs) {
-            clearHighlight();
+
+        function flashGateLines(type) {
+            let pairs = getHighlightPairsForGate(type);
             pairs.forEach(([a, b]) => {
-                const key = Math.min(a, b) + '-' + Math.max(a, b);
-                edges.forEach((edge, index) => {
-                    const edgeKey = Math.min(edge[0], edge[1]) + '-' + Math.max(edge[0], edge[1]);
-                    if (edgeKey === key) {
-                        const lineEl = document.getElementById(`line-edge-${index}`);
-                        if (lineEl) lineEl.classList.add('line-highlight');
-                    }
-                });
+                const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`);
+                if (el) el.classList.add('swap-active');
             });
-        }
-        function buildGateOptions3Bit(idxA, idxB) {
-            const diff = idxA ^ idxB;
-            const targetBit = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
-            const otherBits = [0, 1, 2].filter(b => b !== targetBit);
-            const options = [];
-            if (lineMode === 4) {
-                options.push({
-                    gateType: `X${targetBit}`,
-                    highlightPairs: edges.filter(([u, v]) => (u ^ v) === diff).map(([u, v]) => [u, v])
+            setTimeout(() => {
+                pairs.forEach(([a, b]) => {
+                    const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`);
+                    if (el) el.classList.remove('swap-active');
                 });
-            } else if (lineMode === 2) {
-                const ctrlBit = otherBits[0];
-                const ctrlMask = 1 << (2 - ctrlBit);
-                const ctrlVal = ((idxA & ctrlMask) !== 0) ? 1 : 0;
-                const gateA = ctrlVal ? `CX${ctrlBit}${targetBit}` : `C0X${ctrlBit}${targetBit}`;
-                const pairsA = edges.filter(([u, v]) => {
-                    if ((u ^ v) !== diff) return false;
-                    return (u & ctrlMask) === (idxA & ctrlMask);
-                }).map(([u, v]) => [u, v]);
-                const otherCtrlBit = otherBits[1];
-                const otherCtrlMask = 1 << (2 - otherCtrlBit);
-                const otherCtrlVal = ((idxA & otherCtrlMask) !== 0) ? 1 : 0;
-                const gateB = otherCtrlVal ? `CX${otherCtrlBit}${targetBit}` : `C0X${otherCtrlBit}${targetBit}`;
-                const pairsB = edges.filter(([u, v]) => {
-                    if ((u ^ v) !== diff) return false;
-                    return (u & otherCtrlMask) === (idxA & otherCtrlMask);
-                }).map(([u, v]) => [u, v]);
-                options.push(
-                    { gateType: gateA, highlightPairs: pairsA },
-                    { gateType: gateB, highlightPairs: pairsB }
-                );
-            }
-            return options;
+                clearHighlight();
+            }, 500);
         }
-        function clearHighlight() {
-            document.querySelectorAll('.connection-line').forEach(line => {
-                line.classList.remove('line-highlight');
-            });
-        }
-        function showIndicator() {
-            const pill = document.getElementById('ios-indicator');
-            const frac = document.getElementById('ind-fraction');
-            const opt = currentOptions[currentOptionIndex];
-            if (!opt) return;
-            frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`;
-            pill.classList.add('active');
-            clearHighlight();
-            highlightPairs(opt.highlightPairs);
-        }
-        function hideIndicator() {
-            document.getElementById('ios-indicator').classList.remove('active');
-            clearHighlight();
-        }
-        function previewGate(gateType) {
-            if (isSolved) return;
-            let targetBit = -1, ctrlBit = -1, ctrlVal = -1, tofBits = [];
-            if (gateType.startsWith('X')) {
-                targetBit = parseInt(gateType[1]);
-            } else if (gateType.startsWith('CX')) {
-                ctrlBit = parseInt(gateType[2]);
-                targetBit = parseInt(gateType[3]);
-                ctrlVal = 1;
-            } else if (gateType.startsWith('C0X')) {
-                ctrlBit = parseInt(gateType[3]);
-                targetBit = parseInt(gateType[4]);
-                ctrlVal = 0;
-            } else if (gateType.startsWith('TOF')) {
-                let s = gateType.replace('TOF', '');
-                let parts = [];
-                for (let i = 0; i < s.length; i++) {
-                    if (s[i + 1] === 'p') {
-                        parts.push({ v: parseInt(s[i]), p: true });
-                        i++;
-                    } else parts.push({ v: parseInt(s[i]), p: false });
-                }
-                let targetPart = parts.pop();
-                targetBit = targetPart.v;
-                tofBits = parts;
-            }
-            const diff = (targetBit === 0) ? 4 : (targetBit === 1) ? 2 : 1;
-            const pairs = edges.filter(([u, v]) => {
-                if ((u ^ v) !== diff) return false;
-                if (ctrlBit !== -1) {
-                    const mask = 1 << (2 - ctrlBit);
-                    const val = (u & mask) ? 1 : 0;
-                    return val === ctrlVal;
-                }
-                if (tofBits.length > 0) {
-                    return tofBits.every(ctrl => {
-                        const mask = 1 << (2 - ctrl.v);
-                        const val = (u & mask) ? 1 : 0;
-                        return ctrl.p ? val === 0 : val === 1;
-                    });
-                }
-                return true;
-            }).map(([u, v]) => [u, v]);
-            highlightPairs(pairs);
-        }
-        function initGameLayout() {
-            const nL = document.getElementById('nodes-layer'),
-                fL = document.getElementById('fishes-layer');
-            for (let i = 0; i < 8; i++) {
-                let bin = i.toString(2).padStart(3, '0');
-                nL.innerHTML += `<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px; left:${nodePositions[i].l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${i+1}.svg"></div>`;
-                fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper"><div class="fish-label">${bin}</div><img src="./image/Fish${i+1}.svg"></div>`;
-            }
-        }
+
         function drawStaticLines() {
             const layer = document.getElementById('lines-layer');
             layer.innerHTML = '';
-            edges.forEach((e, index) => createLine(e[0], e[1], index));
+            for (let i = 0; i < 8; i++) {
+                for (let b = 0; b < 3; b++) {
+                    let j = i ^ (1 << b);
+                    if (j > i) createLine(i, j, b);
+                }
+            }
         }
-        function createLine(i, j, index) {
-            const n1 = nodePositions[i],
-                n2 = nodePositions[j],
-                x1 = n1.l + 60,
-                y1 = n1.t + 60,
-                x2 = n2.l + 60,
-                y2 = n2.t + 60;
-            const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2),
-                ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+        function createLine(i, j, dim) {
+            const n1 = nodePositions[i], n2 = nodePositions[j];
+            const x1 = n1.l + 65, y1 = n1.t + 65, x2 = n2.l + 65, y2 = n2.t + 65;
+            const len = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+            const ang = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
             const line = document.createElement('div');
             line.className = 'connection-line';
-            line.id = `line-edge-${index}`;
-            line.style.cssText = `width:${len}px; height:4px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
+            line.id = `line-${Math.min(i,j)}-${Math.max(i,j)}`;
+            line.style.cssText = `width:${len}px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
+            
+            line.style.height='3px'; line.style.background='#463438';
             
             line.onmouseenter = () => {
-                if (isTouchDevice || isSolved) return;
-                hoverLine = { i, j };
-                if (lineMode === 1) return;
-                currentOptions = buildGateOptions3Bit(i, j);
-                currentOptionIndex = 0;
-                showIndicator();
-            };
-            line.onmouseleave = () => {
-                if (isTouchDevice) return;
-                hoverLine = null;
-                hideIndicator();
-            };
-            
-            line.onclick = (e) => {
-                e.stopPropagation();
-                if(isSolved) return;
-                if(lineMode === 1) { swapNodes(i, j); return; }
-
-                if (isTouchDevice) {
-                    const lineId = line.id;
-                    if (activeMobileLine !== lineId) {
-                        activeMobileLine = lineId;
-                        hoverLine = {i, j};
-                        currentOptions = buildGateOptions3Bit(i, j);
-                        currentOptionIndex = 0;
-
-                        const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
-                        const indicator = document.getElementById('ios-indicator');
-                        indicator.style.left = (e.clientX - canvasRect.left) + 'px';
-                        indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
-
-                        showIndicator();
-                        return;
-                    } else {
-                        if(currentOptions[currentOptionIndex]) {
-                            applyGate(currentOptions[currentOptionIndex].gateType);
-                        }
-                        activeMobileLine = null;
-                        hideIndicator();
-                    }
-                } else {
-                    if(currentOptions[currentOptionIndex]) {
-                        applyGate(currentOptions[currentOptionIndex].gateType);
-                    }
+                if (isTouchDevice || lockedLineId) return;
+                hoverLine = { i, j, dim };
+                if (lineMode === 4) { 
+                    highlightPairs(getAllPairs(dim)); highlightGateButton(`X${2 - dim}`);
+                } else if (lineMode === 1) {
+                    highlightPairs([[i, j]]); highlightGateButton(`SWAP_${i}_${j}`);
+                } else { 
+                    highlightPairs([[i, j]]); 
                 }
             };
-            
+            line.onmouseleave = () => { 
+                if (isTouchDevice || lockedLineId) return; 
+                hoverLine = null; clearHighlight(); 
+            };
+            line.onclick = (e) => {
+                e.stopPropagation();
+                if (isSolved) return;
+                
+                if (isTouchDevice && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    if (!gyroPermissionGranted) {
+                        DeviceOrientationEvent.requestPermission().then(state => {
+                            if (state === 'granted') {
+                                gyroPermissionGranted = true;
+                                window.addEventListener('deviceorientation', handleOrientation);
+                            }
+                        }).catch(console.error);
+                    }
+                } else if (isTouchDevice && !gyroPermissionGranted) {
+                    gyroPermissionGranted = true;
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+
+                if (lineMode === 1) { applyGate(`SWAP_${i}_${j}`); return; }
+                if (lineMode === 4) { applyGate(`X${2 - dim}`); return; }
+
+                if (lockedLineId === line.id) {
+                    cancelLock();
+                    return;
+                }
+
+                lockedLineId = line.id;
+                hoverLine = { i, j, dim };
+                currentOptions = buildGateOptions(i, j, dim);
+                currentOptionIndex = 0;
+                hasScrolled = false;
+
+                const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                const indicator = document.getElementById('ios-indicator');
+                indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+                indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+
+                showIndicatorLockedPrompt();
+            };
             document.getElementById('lines-layer').appendChild(line);
         }
 
-        function swapNodes(idxA, idxB) {
-            if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
-            if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
-            const diff = idxA ^ idxB; 
-            let target = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
-            let ctrl = [0, 1, 2].filter(c => c !== target);
-            let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
-            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}`;
-            if(typeof selectedIndices !== 'undefined' && selectedIndices.length > 0) {
-                replaceLogic(gateStr);
-            } else {
-                executeLogic(gateStr);
-                gateHistory.push(gateStr);
-                historyStack.push([...gateHistory]);
-                steps = gateHistory.length;
-                finishMove(); 
-            }
+        function cancelLock() {
+            lockedLineId = null;
+            hoverLine = null;
+            hasScrolled = false;
+            hideIndicator();
+            clearHighlight();
         }
-        function togglePro() {
-            pop.currentTime = 0;
-            pop.play();
-            isPro = !isPro; document.getElementById('body-root').classList.toggle('pro-active', isPro);
-            document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
-            
-            if (isPro && !shakePermissionRequested) {
-                requestShakePermission();
-                shakePermissionRequested = true;
-            }
 
-            let start = Date.now(), loop = () => { updateNodePositionsUI(); drawStaticLines(); updateFishUI(); if (Date.now() - start < 600) requestAnimationFrame(loop); };
-            requestAnimationFrame(loop);
+        function cycleLineMode(){ 
+            pop.currentTime = 0; pop.play(); 
+            const modes = [1, 2, 4]; 
+            lineMode = modes[(modes.indexOf(lineMode) + 1) % modes.length]; 
+            const btn = document.getElementById('mode-btn'); 
+            btn.innerText = `Mode: ${lineMode}`; btn.className = `multi-toggle-btn mode-${lineMode}`; 
+            cancelLock();
         }
-        function updateNodePositionsUI() {
-            for (let i = 0; i < 8; i++) {
-                let n = document.getElementById(`node-${i}`);
-                if (n) {
-                    n.style.top = nodePositions[i].t + "px";
-                    n.style.left = nodePositions[i].l + "px";
-                }
+
+        function showIndicatorLockedPrompt() {
+            const pill = document.getElementById('ios-indicator');
+            const frac = document.getElementById('ind-fraction');
+            frac.innerText = isTouchDevice ? `↔ TILT` : `↕ SCROLL & R-CLICK`;
+            pill.classList.add('active');
+            clearHighlight();
+            highlightPairs([[hoverLine.i, hoverLine.j]]);
+        }
+
+        function showIndicatorScrolled() { 
+            const pill = document.getElementById('ios-indicator'); 
+            const frac = document.getElementById('ind-fraction'); 
+            const opt = currentOptions[currentOptionIndex]; 
+            if (!opt) return; 
+            frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`; 
+            pill.classList.add('active'); 
+            highlightPairs(opt.highlightPairs); 
+            highlightGateButton(opt.gateType);
+        }
+
+        function hideIndicator() { document.getElementById('ios-indicator').classList.remove('active'); clearHighlight(); }
+
+        function buildGateOptions(i, j, dim) {
+            const targetQ = 2 - dim; const ctrlPool = [0,1,2].filter(q=>q!==targetQ); const bit = 1 << dim; const options = [];
+            if(lineMode === 2) {
+                ctrlPool.forEach(c => { 
+                    const val = (i >> (2-c)) & 1; 
+                    const cBit = 1 << (2-c), cVal = i & cBit; 
+                    let pairs = []; 
+                    for(let k=0;k<8;k++) if((k&bit)===0 && (k&cBit)===cVal) pairs.push([k, k^bit]); 
+                    options.push({ gateType: `CX${val}${c}${targetQ}`, label: `CNOT: q${c} → q${targetQ}`, highlightPairs: pairs }); 
+                });
             }
+            return options;
         }
-        function replaceLogic(newGate) {
-            let targetIdx = Math.min(...selectedIndices);
-            let newHistory = [];
-            for(let i=0; i<gateHistory.length; i++) {
-                if (i === targetIdx) {
-                    newHistory.push(newGate);
-                } else if (!selectedIndices.includes(i)) {
-                    newHistory.push(gateHistory[i]);
-                }
-            }
-            gateHistory = newHistory;
-            selectedIndices = [];
-            historyStack.push([...gateHistory]);
-            recalculate();
+
+        function getAllPairs(dim){ const bit=1<<dim, pairs=[]; for(let k=0;k<8;k++) if((k&bit)===0) pairs.push([k,k^bit]); return pairs; }
+
+        function highlightPairs(pairs){ 
+            clearHighlight(); 
+            pairs.forEach(([a,b])=>{ const el=document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`); if(el) el.classList.add('line-highlight'); }); 
         }
+        
         function applyGate(type) {
             if (isSolved) return;
-            pop.currentTime = 0; pop.play();
+            cancelLock();
             if (selectedIndices.length > 0) {
-                replaceLogic(type);
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0], count = selectedIndices.length;
+                const oldOnes = gateHistory.slice(start, start + count);
+                gateHistory.splice(start, count, type);
+                actionStack.push({ type: 'replace', index: start, oldGates: oldOnes, newGate: type });
+                selectedIndices = [];
+                recalculate();
             } else {
+                flashGateLines(type);
                 executeLogic(type);
                 gateHistory.push(type);
-                historyStack.push([...gateHistory]);
+                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: type });
                 steps = gateHistory.length;
                 finishMove();
             }
         }
+
         function executeLogic(type) {
-            if (type.includes('_SWAP_')) {
-                let p = type.split('_'), iA = parseInt(p[2]), iB = parseInt(p[3]);
-                let temp = fishAtNode[iA];
-                fishAtNode[iA] = fishAtNode[iB];
-                fishAtNode[iB] = temp;
-                return;
-            }
+            pop.currentTime = 0; pop.play();
+            if (type.startsWith('SWAP_')) { let p = type.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]); [fishAtNode[iA], fishAtNode[iB]] = [fishAtNode[iB], fishAtNode[iA]]; return; }
             let pm = Array.from({ length: 8 }, (_, p) => {
                 let b = p.toString(2).padStart(3, '0').split('').map(Number);
-                if (type === 'X0') b[0] ^= 1;
-                else if (type === 'X1') b[1] ^= 1;
-                else if (type === 'X2') b[2] ^= 1;
-                else if (type === 'CX01' && b[0]) b[1] ^= 1;
-                else if (type === 'CX10' && b[1]) b[0] ^= 1;
-                else if (type === 'CX02' && b[0]) b[2] ^= 1;
-                else if (type === 'CX20' && b[2]) b[0] ^= 1;
-                else if (type === 'CX12' && b[1]) b[2] ^= 1;
-                else if (type === 'CX21' && b[2]) b[1] ^= 1;
-                else if (type === 'C0X01' && !b[0]) b[1] ^= 1;
-                else if (type === 'C0X10' && !b[1]) b[0] ^= 1;
-                else if (type === 'C0X02' && !b[0]) b[2] ^= 1;
-                else if (type === 'C0X20' && !b[2]) b[0] ^= 1;
-                else if (type === 'C0X12' && !b[1]) b[2] ^= 1;
-                else if (type === 'C0X21' && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF012' && b[0] && b[1]) b[2] ^= 1;
-                else if (type === 'TOF0p1p2' && !b[0] && !b[1]) b[2] ^= 1;
-                else if (type === 'TOF0p12' && !b[0] && b[1]) b[2] ^= 1;
-                else if (type === 'TOF01p2' && b[0] && !b[1]) b[2] ^= 1;
-                else if (type === 'TOF021' && b[0] && b[2]) b[1] ^= 1;
-                else if (type === 'TOF0p2p1' && !b[0] && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF0p21' && !b[0] && b[2]) b[1] ^= 1;
-                else if (type === 'TOF02p1' && b[0] && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF120' && b[1] && b[2]) b[0] ^= 1;
-                else if (type === 'TOF1p2p0' && !b[1] && !b[2]) b[0] ^= 1;
-                else if (type === 'TOF1p20' && !b[1] && b[2]) b[0] ^= 1;
-                else if (type === 'TOF12p0' && b[1] && !b[2]) b[0] ^= 1;
+                if (type.startsWith('X')) { b[parseInt(type.substring(1))] ^= 1; }
+                else if (type.startsWith('CX')) { let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]); if (b[c] === ctrlVal) b[t] ^= 1; }
+                else if (type.startsWith('TOF')) { let cv1 = parseInt(type[3]), cv2 = parseInt(type[4]), c1 = parseInt(type[5]), c2 = parseInt(type[6]), t = parseInt(type[7]); if (b[c1] === cv1 && b[c2] === cv2) b[t] ^= 1; }
                 return parseInt(b.join(''), 2);
             });
-            let newFishAtNode = new Array(8);
-            for (let oldIdx = 0; oldIdx < 8; oldIdx++) {
-                let newIdx = pm[oldIdx];
-                newFishAtNode[newIdx] = fishAtNode[oldIdx];
-            }
-            fishAtNode = newFishAtNode;
+            let newFish = new Array(8);
+            for (let i = 0; i < 8; i++) newFish[pm[i]] = fishAtNode[i];
+            fishAtNode = newFish;
         }
-        function recalculate() {
-            fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4];
-            let h = [...gateHistory];
-            gateHistory = [];
-            h.forEach(g => {
-                executeLogic(g);
-                gateHistory.push(g);
-            });
-            steps = gateHistory.length;
-            finishMove();
+
+        function recalculate() { fishAtNode = [0, 1, 2, 4, 3, 5, 6, 7]; let h = [...gateHistory]; gateHistory = []; h.forEach(g => { executeLogic(g); gateHistory.push(g); }); steps = gateHistory.length; finishMove(); }
+        function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
+        
+        function updateFishUI() { 
+            for (let nI = 0; nI < 8; nI++) { 
+                const f = document.getElementById(`fish-${fishAtNode[nI]}`);
+                const n = nodePositions[nI]; 
+                if (f && n) { 
+                    f.style.top = (n.t + 42) + "px"; 
+                    f.style.left = (n.l + 25) + "px"; 
+                } 
+            } 
         }
-        function finishMove() {
-            document.getElementById('step-count').innerText = steps;
-            updateFishUI();
-            renderCircuit();
-            checkWin();
-        }
-        function updateFishUI() {
-            for (let nI = 0; nI < 8; nI++) {
-                const fI = fishAtNode[nI],
-                    f = document.getElementById(`fish-${fI}`),
-                    n = nodePositions[nI];
-                if (f && n) {
-                    f.style.top = (n.t + 78) + "px";
-                    f.style.left = (n.l + 22) + "px";
-                }
-            }
-        }
+        
         function renderCircuit() {
             const c = document.getElementById('circuit-content');
+            const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
-                u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                u.className = 'circuit-unit';
                 
-                // 預設為 true 給電腦滑鼠使用
+                const hex = getGateColorMap(g);
+                u.style.setProperty('--bg-hover', getRgba(hex, 0.35));
+
+                if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
+                
                 u.draggable = true;
+                u.addEventListener('dragstart', (e) => {
+                    if (isSolved || mobileDragging) return;
+                    draggedIndex = idx;
+                    u.classList.add('opacity-50');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', idx);
+                });
+                
+                u.addEventListener('dragover', (e) => { 
+                    e.preventDefault(); 
+                    if (draggedIndex !== null && draggedIndex !== idx) {
+                        const rect = u.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        u.style.borderLeft = isAfter ? '' : '4px solid #FFB7C5';
+                        u.style.borderRight = isAfter ? '4px solid #FFB7C5' : '';
+                    }
+                    
+                    const rectWrap = wrapper.getBoundingClientRect();
+                    const edgeThreshold = 80;
+                    if (e.clientX - rectWrap.left < edgeThreshold) {
+                        scrollSpeed = -8; 
+                        if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                    } else if (rectWrap.right - e.clientX < edgeThreshold) {
+                        scrollSpeed = 8; 
+                        if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                    } else {
+                        scrollSpeed = 0;
+                    }
+                });
+                
+                u.addEventListener('dragleave', () => { 
+                    u.style.borderLeft = ''; 
+                    u.style.borderRight = '';
+                });
+                
+                u.addEventListener('drop', (e) => {
+                    e.preventDefault(); 
+                    u.style.borderLeft = ''; 
+                    u.style.borderRight = '';
+                    scrollSpeed = 0;
+                    
+                    if (draggedIndex !== null && draggedIndex !== idx) {
+                        const rect = u.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        
+                        let targetIdx = idx;
+                        if (isAfter) targetIdx++;
+                        
+                        if (draggedIndex < targetIdx) targetIdx--;
+                        
+                        pop.currentTime = 0; pop.play();
+                        const movedGate = gateHistory.splice(draggedIndex, 1)[0];
+                        gateHistory.splice(targetIdx, 0, movedGate);
+                        actionStack.push({ type: 'replace', index: 0, oldGates: [], newGate: null });
+                        selectedIndices = []; recalculate();
+                    }
+                });
+                u.addEventListener('dragend', () => { 
+                    u.classList.remove('opacity-50'); 
+                    draggedIndex = null; 
+                    scrollSpeed = 0;
+                    renderCircuit(); 
+                });
 
-                // 阻擋原生右鍵/長按選單，避免安卓跳出系統 UI
-                u.oncontextmenu = (e) => { e.preventDefault(); return false; };
-
-                u.ondragstart = (e) => { draggedIdx = idx; e.dataTransfer.effectAllowed = 'move'; e.target.style.opacity = '0.5'; };
-                u.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; };
-                u.ondrop = (e) => {
-                    if (isSolved || draggedIdx === null || draggedIdx === idx) return;
+                u.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (isSolved || mobileDragging || isTouchDevice) return; 
                     pop.currentTime = 0; pop.play();
-                    const movedGate = gateHistory.splice(draggedIdx, 1)[0];
-                    gateHistory.splice(idx, 0, movedGate);
-                    historyStack.push([...gateHistory]); selectedIndices = []; recalculate(); draggedIdx = null;
-                };
-                u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIdx = null; };
+                    const removed = gateHistory[idx];
+                    actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
+                    gateHistory.splice(idx, 1); 
+                    selectedIndices = []; 
+                    recalculate();
+                });
 
-                // 手機版觸控監聽
+                u.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (isSolved || mobileDragging) return;
+                    const sIdx = selectedIndices.indexOf(idx);
+                    if (sIdx > -1) selectedIndices.splice(sIdx, 1); else selectedIndices.push(idx);
+                    renderCircuit();
+                });
+                
+                u.onmouseenter = () => highlightByGate(g);
+                u.onmouseleave = () => clearHighlight();
+                
                 let touchTimer = null;
                 let startX, startY;
                 u.addEventListener('touchstart', (e) => {
-                    if(isSolved || e.touches.length > 1) return;
-                    
-                    // 【核心關鍵】一旦手指點到，立刻把 native draggable 關閉，徹底消滅安卓殘影！
-                    u.draggable = false; 
-
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                    
-                    // 縮短一點時間 (300ms) 讓觸發更流暢
-                    touchTimer = setTimeout(() => {
-                        touchTimer = null;
-                        startMobileDrag(e.touches[0], u, idx);
-                    }, 300); 
-                }, {passive: true});
-
+                    if (isSolved || e.touches.length > 1) return;
+                    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                    touchTimer = setTimeout(() => { touchTimer = null; }, 400);
+                }, { passive: true });
+                
                 u.addEventListener('touchmove', (e) => {
                     if (mobileDragging) {
-                        if (e.cancelable) e.preventDefault(); // 防止拖移時畫面跟著滾動
-                        moveMobileDrag(e.touches[0]);
-                    } else if (touchTimer) {
-                        let dx = e.touches[0].clientX - startX;
-                        let dy = e.touches[0].clientY - startY;
-                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                            clearTimeout(touchTimer);
-                            touchTimer = null;
+                    } else if (touchTimer !== null || startY !== undefined) {
+                        const dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) { if(touchTimer) { clearTimeout(touchTimer); touchTimer = null; } }
+                        if (Math.abs(dy) > 30 && Math.abs(dy) > Math.abs(dx)) {
+                            if (e.cancelable) e.preventDefault();
+                            if (dy > 30) {
+                                const sIdx = selectedIndices.indexOf(idx);
+                                if (sIdx > -1) selectedIndices.splice(sIdx, 1); else selectedIndices.push(idx);
+                                renderCircuit(); startY = undefined; 
+                            } else if (dy < -30) {
+                                pop.currentTime = 0; pop.play();
+                                const removed = gateHistory[idx];
+                                actionStack.push({ type: 'delete', index: idx, oldGates: [removed] });
+                                gateHistory.splice(idx, 1);
+                                selectedIndices = []; recalculate(); startY = undefined;
+                            }
                         }
                     }
-                }, {passive: false});
+                }, { passive: false });
+                
+                u.addEventListener('touchend', () => { if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; } });
 
-                u.addEventListener('touchend', (e) => {
-                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-                    if (mobileDragging) {
-                        if (e.cancelable) e.preventDefault();
-                        endMobileDrag(e.changedTouches[0]);
-                    }
-                    // 釋放手指後，恢復可拖曳屬性 (給支援觸控+滑鼠的設備)
-                    setTimeout(() => { u.draggable = true; }, 100);
-                });
-
-                // 蘋果 Safari 有時會觸發 touchcancel，確保不會卡在空中
-                u.addEventListener('touchcancel', (e) => {
-                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-                    if (mobileDragging) endMobileDrag(e.changedTouches[0]);
-                    setTimeout(() => { u.draggable = true; }, 100);
-                });
-
-                u.onmouseenter = () => previewGate(g);
-                u.onmouseleave = () => hideIndicator();
-                u.onclick = (e) => {
-                    if (isSolved || mobileDragging) return;
-                    pop.currentTime = 0; pop.play();
+                if (!isQuantumMode) {
+                    u.innerHTML = getMiniHypercubeSVG(g);
+                } else {
+                    let controls = [], target = -1;
+                    if (g.startsWith('SWAP_')) {
+                        let p = g.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]); target = 2 - Math.round(Math.log2(iA ^ iB));
+                        let binary = Math.min(iA, iB).toString(2).padStart(3, '0').split('').map(Number);
+                        for (let q = 0; q < 3; q++) if (q !== target) controls.push({ line: q, type: binary[q] });
+                    } else if (g.startsWith('X')) { target = parseInt(g.substring(1)); }
+                    else if (g.startsWith('CX')) { controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) }); target = parseInt(g[4]); }
                     
-                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
-                        if (selectedIndices.includes(idx)) {
-                            selectedIndices = selectedIndices.filter(i => i !== idx);
-                        } else {
-                            selectedIndices.push(idx);
-                        }
-                        renderCircuit();
-                    } else {
-                        selectedIndices = [];
-                        gateHistory.splice(idx, 1);
-                        historyStack.push([...gateHistory]);
-                        recalculate();
-                        hideIndicator();
+                    if (target !== -1) {
+                        let lines = [target, ...controls.map(ctrl => ctrl.line)]; let minQ = Math.min(...lines), maxQ = Math.max(...lines);
+                        const vLine = document.createElement('div'); vLine.className = 'connection-v-line'; vLine.style.cssText = `top:${30 + minQ * 40}px; height:${(maxQ - minQ) * 40}px;`; u.appendChild(vLine);
+                        controls.forEach(ctrl => {
+                            const dot = document.createElement('div'); dot.className = 'control-dot'; dot.style.top = (24 + ctrl.line * 40) + 'px';
+                            if (ctrl.type === 0) { dot.style.background = '#fff'; dot.style.border = '2px solid #463438'; } u.appendChild(dot);
+                        });
+                        const t = document.createElement('div'); t.className = 'circuit-target'; t.style.top = (30 + target * 40) + 'px'; u.appendChild(t);
                     }
-                };
-
-                let ctrl = [], target = -1, zero = [];
-                if (g.startsWith('X')) target = parseInt(g[1]);
-                else if (g.startsWith('CX')) {
-                    ctrl = [parseInt(g[2])]; target = parseInt(g[3]);
-                } else if (g.startsWith('C0X')) {
-                    ctrl = [parseInt(g[3])]; target = parseInt(g[4]); zero = [parseInt(g[3])];
-                } else if (g.startsWith('TOF')) {
-                    let s = g.split('_')[0].replace('TOF', ''), parts = [];
-                    for (let i = 0; i < s.length; i++) {
-                        if (s[i + 1] === 'p') {
-                            parts.push({ v: parseInt(s[i]), p: true }); i++;
-                        } else parts.push({ v: parseInt(s[i]), p: false });
-                    }
-                    target = parts.pop().v;
-                    parts.forEach(p => {
-                        ctrl.push(p.v);
-                        if (p.p) zero.push(p.v);
-                    });
                 }
-                if (ctrl.length > 0) {
-                    let min = Math.min(...ctrl, target), max = Math.max(...ctrl, target);
-                    const v = document.createElement('div');
-                    v.className = 'connection-v-line';
-                    v.style.cssText = `top:${30+min*40}px; height:${(max-min)*40}px;`;
-                    u.appendChild(v);
-                    ctrl.forEach(cl => {
-                        const d = document.createElement('div');
-                        d.className = 'control-dot';
-                        d.style.top = (24 + cl * 40) + 'px';
-                        if (zero.includes(cl)) {
-                            d.style.background = '#fff'; d.style.border = '2.5px solid #463438';
-                        }
-                        u.appendChild(d);
-                    });
-                }
-                const t = document.createElement('div');
-                t.className = 'circuit-target';
-                t.style.top = (31 + target * 40) + 'px';
-                u.appendChild(t);
                 c.appendChild(u);
             });
             updateUndoStatus();
-            const w = document.getElementById('circuit-content-wrapper');
-            if (draggedIdx === null) {
-                setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
-            }
+            if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null) { setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50); }
         }
-        function undo() {
-            if (isSolved || historyStack.length <= 1) return;
-            pop.currentTime = 0; pop.play();
-            historyStack.pop();
-            gateHistory = [...historyStack[historyStack.length - 1]];
-            selectedIndices = [];
-            recalculate();
-        }
-        function resetCircuit() {
-            if (isSolved) return;
-            pop.currentTime = 0; pop.play();
-            gateHistory = [];
-            historyStack = [[]];
-            selectedIndices = [];
-            recalculate();
-        }
-        function updateUndoStatus() {
-            const isActive = historyStack.length > 1 && !isSolved;
-            const topUndo = document.getElementById('undo-btn');
-            if(topUndo) {
-                if(isActive) { topUndo.classList.add('active'); topUndo.style.pointerEvents="auto"; }
-                else { topUndo.classList.remove('active'); topUndo.style.pointerEvents="none"; }
-            }
-            const bottomUndo = document.getElementById('undo-btn-bottom');
-            if(bottomUndo) {
-                if(isActive) { bottomUndo.classList.add('active'); bottomUndo.style.pointerEvents="auto"; }
-                else { bottomUndo.classList.remove('active'); bottomUndo.style.pointerEvents="none"; }
-            }
-        }
+        
+        function undo() { if (isSolved || actionStack.length === 0) return; pop.currentTime = 0; pop.play(); const action = actionStack.pop(); if (action.type === 'add') { gateHistory.splice(action.index, 1); } else if (action.type === 'delete') { gateHistory.splice(action.index, 0, ...action.oldGates); } else if (action.type === 'replace') { if (action.newGate === null) gateHistory = [...action.oldGates]; else gateHistory.splice(action.index, 1, ...action.oldGates); } selectedIndices = []; recalculate(); }
+        function resetCircuit() { if (isSolved) return; pop.currentTime = 0; pop.play(); gateHistory = []; actionStack = []; selectedIndices = []; recalculate(); }
+        function updateUndoStatus() { const isActive = actionStack.length > 0 && !isSolved; const topUndo = document.getElementById('undo-btn'); if(topUndo) topUndo.classList.toggle('active', isActive); const bottomUndo = document.getElementById('undo-btn-bottom'); if(bottomUndo) bottomUndo.classList.toggle('active', isActive); }
+        
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
-                isSolved = true;
-                updateUndoStatus();
-                if (timerInterval) clearInterval(timerInterval);
-                const ft = time, st = steps, u = sessionStorage.getItem('currentUser');
-                const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
-                if (savedLevel < 9) sessionStorage.setItem('currentLevel', 9);
+                isSolved = true; updateUndoStatus(); if (timerInterval) clearInterval(timerInterval);
+                const ft = time, st = steps, u = sessionStorage.getItem('currentUser'), savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
+                if (savedLevel < 8) sessionStorage.setItem('currentLevel', 8);
                 setTimeout(() => {
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
@@ -1118,17 +1004,26 @@
                     fetch(SCRIPT_URL, {
                         method: 'POST',
                         mode: 'no-cors',
-                        body: JSON.stringify({ action: 'saveRecord', username: u, level: 8, steps: st, time: ft, circuit: gateHistory.join(',') })
-                    }).then(() => setTimeout(fetchLeaderboard, 1200));
+                        body: JSON.stringify({
+                            action: 'saveRecord',
+                            username: u,
+                            level: 7,          
+                            steps: st,
+                            time: ft,
+                            circuit: gateHistory.join(',')
+                        })
+                    }).then(() => {
+                        setTimeout(fetchLeaderboard, 1200);
+                    });
                 }
             }
         }
-        function viewInLab() {
-            const circuitData = gateHistory.join(',');
-            window.location.href = `lab3.html?circuit=${encodeURIComponent(circuitData)}`;
-        }
+        
+        function viewInLab() { if (gateHistory.length === 0) { alert("Current circuit is empty!"); return; } window.location.href = `lab3.html?circuit=${encodeURIComponent(gateHistory.join(','))}`; }
+        function toggleLeaderboard() { document.getElementById('leaderboard-wrapper').classList.toggle('expanded'); }
+        async function fetchLeaderboard() { const listArea = document.getElementById('rankList'); try { const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=7`); const data = await response.json(); if (data && Array.isArray(data) && data.length > 0) { leaderboardData = data; renderRank('steps'); } else { listArea.innerHTML = '<p class="text-center italic text-gray-400 mt-10 text-sm">No records yet</p>'; } } catch (e) { listArea.innerHTML = '<p class="text-center italic text-red-400 mt-10 text-sm">Load Error</p>'; } }
+        function renderRank(type) { const tabSteps = document.getElementById('tab-steps'), tabTime = document.getElementById('tab-time'), listArea = document.getElementById('rankList'); if (type === 'steps') { tabSteps.className = 'rank-tab active'; tabTime.className = 'rank-tab bg-gray-100'; } else { tabSteps.className = 'rank-tab bg-gray-100'; tabTime.className = 'rank-tab active'; } if (!leaderboardData || leaderboardData.length === 0) return; const sorted = [...leaderboardData].sort((a, b) => a[type] - b[type]); let html = ""; sorted.slice(0, 10).forEach((item, index) => { const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : (index + 1) + "."; html += `<div class="rank-item"><span class="truncate" style="max-width: 90px;">${medal} ${item.username || item.name || 'Anonymous'}</span><span class="text-blue-600">${type === 'steps' ? item.steps + '🐾' : item.time + 's'}</span></div>`; }); listArea.innerHTML = html; }
+        function initGameLayout() { const nL = document.getElementById('nodes-layer'), fL = document.getElementById('fishes-layer'); nL.innerHTML = ''; fL.innerHTML = ''; for (let i = 0; i < 8; i++) { let bin = i.toString(2).padStart(3, '0'); nL.innerHTML += `<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px; left:${nodePositions[i].l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${(i % 8) + 1}.svg"></div>`; const fishSrc = `./image/Fish${(i % 8) + 1}.svg`; fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper"><div class="fish-label">${bin}</div><img src="${fishSrc}" class="fish-bg-shape"><img src="${fishSrc}" class="fish-img"></div>`; } }
     </script>
 </body>
 </html>
-
-
