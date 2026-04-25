@@ -337,14 +337,16 @@
             if (now - lastSwipeTime < 400) return;
 
             if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
-                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                // 向右傾斜 (+)：前進
+                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
                 lastTiltDirection = 1;
                 lastSwipeTime = now;
                 hasScrolled = true;
                 showIndicatorScrolled();
                 if ('vibrate' in navigator) navigator.vibrate(20);
             } else if (tilt < -TILT_THRESHOLD && lastTiltDirection >= 0) {
-                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                // 向左傾斜 (-)：後退
+                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 lastTiltDirection = -1;
                 lastSwipeTime = now;
                 hasScrolled = true;
