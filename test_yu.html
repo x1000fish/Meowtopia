@@ -79,7 +79,7 @@
         .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background: #463438; top: 50%; transform: translateY(-50%); }
         .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: #ffffff; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; }
         
-        #gate-scroll-area { margin-top: 5px; flex: 1; min-height: 0; overflow-y: auto; width: 100%; padding: 5px; scrollbar-width: none; scroll-behavior: smooth; }
+        #gate-scroll-area { position: relative; margin-top: 5px; flex: 1; min-height: 0; overflow-y: auto; width: 100%; padding: 5px; scrollbar-width: none; scroll-behavior: smooth; }
         #gate-scroll-area::-webkit-scrollbar { display: none; }
 
         .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
@@ -238,12 +238,23 @@
             timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
             
             const circuitWrapper = document.getElementById('circuit-content-wrapper');
+            
+            // Scroll normally inside wrapper
             circuitWrapper.addEventListener('wheel', (e) => {
                 if (Math.abs(e.deltaY) > 0) {
                     e.preventDefault();
                     circuitWrapper.scrollLeft += e.deltaY;
                 }
             }, { passive: false });
+
+            // Allow dragging gate into blank space to auto-scroll wrapper
+            circuitWrapper.addEventListener('dragover', (e) => {
+                if (draggedIndex !== null) {
+                    const rect = circuitWrapper.getBoundingClientRect();
+                    if (e.clientX - rect.left < 60) circuitWrapper.scrollLeft -= 8;
+                    else if (rect.right - e.clientX < 60) circuitWrapper.scrollLeft += 8;
+                }
+            });
 
             // PC Scroll (for locked Line)
             document.addEventListener('wheel', (e) => {
@@ -261,9 +272,24 @@
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             
-            // Cancel lock if clicked/tapped outside connection-line
+            // PC: Left click outside connection-line cancels the lock
             canvas.addEventListener('mousedown', (e) => {
-                if (!e.target.classList.contains('connection-line') && lockedLineId && !isTouchDevice) { cancelLock(); }
+                if (lockedLineId && !isTouchDevice) {
+                    // Only left click cancels when clicking outside
+                    if (e.button === 0 && !e.target.classList.contains('connection-line')) { 
+                        cancelLock(); 
+                    }
+                }
+            });
+            
+            // PC: Right click confirms inside canvas
+            canvas.addEventListener('contextmenu', (e) => {
+                if (lockedLineId && !isTouchDevice) {
+                    e.preventDefault(); 
+                    if (lineMode === 8 && hoverLine) applyGate(`X${3 - hoverLine.dim}`);
+                    else if (lineMode === 1 && hoverLine) applyGate(`SWAP_${hoverLine.i}_${hoverLine.j}`);
+                    else if (currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                }
             });
 
             // Mobile logic: dual-finger tap to confirm
@@ -311,7 +337,6 @@
             if (now - lastSwipeTime < 400) return;
 
             if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
-                // 原本 +1 改為 -1 達成反轉
                 currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 lastTiltDirection = 1;
                 lastSwipeTime = now;
@@ -319,7 +344,6 @@
                 showIndicatorScrolled();
                 if ('vibrate' in navigator) navigator.vibrate(20);
             } else if (tilt < -TILT_THRESHOLD && lastTiltDirection >= 0) {
-                // 原本 -1 改為 +1 達成反轉
                 currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
                 lastTiltDirection = -1;
                 lastSwipeTime = now;
@@ -377,13 +401,15 @@
                 if(btn) {
                     btn.classList.add('btn-highlight');
                     
-                    if (!isTouchDevice) {
-                        const container = document.getElementById('gate-scroll-area');
-                        const btnRect = btn.getBoundingClientRect();
-                        const containerRect = container.getBoundingClientRect();
-                        if (btnRect.top < containerRect.top || btnRect.bottom > containerRect.bottom) {
-                            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                        }
+                    const container = document.getElementById('gate-scroll-area');
+                    const btnRect = btn.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    // 利用 offsetTop 搭配 container 計算安全捲動，不再使用 scrollIntoView 防止網頁跳動
+                    if (btnRect.top < containerRect.top) {
+                        container.scrollTop -= (containerRect.top - btnRect.top + 10);
+                    } else if (btnRect.bottom > containerRect.bottom) {
+                        container.scrollTop += (btnRect.bottom - containerRect.bottom + 10);
                     }
                 }
             }
@@ -606,15 +632,8 @@
                 if (lineMode === 8) { applyGate(`X${3 - dim}`); return; }
 
                 if (lockedLineId === line.id) {
-                    if (isTouchDevice) {
-                        cancelLock(); // 手機版單擊視為取消
-                    } else {
-                        if (hasScrolled && currentOptions[currentOptionIndex]) {
-                            applyGate(currentOptions[currentOptionIndex].gateType);
-                        } else {
-                            cancelLock();
-                        }
-                    }
+                    // 若再次點擊同樣的線，統一視為取消。PC 要用右鍵確定，手機用雙指點擊。
+                    cancelLock();
                     return;
                 }
 
@@ -655,7 +674,7 @@
         function showIndicatorLockedPrompt() {
             const pill = document.getElementById('ios-indicator');
             const frac = document.getElementById('ind-fraction');
-            frac.innerText = isTouchDevice ? `↔ TILT` : `↕ SCROLL`;
+            frac.innerText = isTouchDevice ? `↔ TILT` : `↕ SCROLL & R-CLICK`;
             pill.classList.add('active');
             clearHighlight();
             highlightPairs([[hoverLine.i, hoverLine.j]]);
@@ -753,7 +772,17 @@
                     e.dataTransfer.effectAllowed = 'move';
                     e.dataTransfer.setData('text/plain', idx);
                 });
-                u.addEventListener('dragover', (e) => { e.preventDefault(); if (draggedIndex !== null && draggedIndex !== idx) u.style.borderLeft = '4px solid #463438'; });
+                
+                // Drag over logic that dynamically changes boundary color to Light Gray and auto-scrolls wrapper
+                u.addEventListener('dragover', (e) => { 
+                    e.preventDefault(); 
+                    if (draggedIndex !== null && draggedIndex !== idx) u.style.borderLeft = '4px solid #FFB7C5'; 
+                    
+                    const rect = wrapper.getBoundingClientRect();
+                    if (e.clientX - rect.left < 60) wrapper.scrollLeft -= 8;
+                    else if (rect.right - e.clientX < 60) wrapper.scrollLeft += 8;
+                });
+                
                 u.addEventListener('dragleave', () => { u.style.borderLeft = ''; });
                 u.addEventListener('drop', (e) => {
                     e.preventDefault(); u.style.borderLeft = '';
