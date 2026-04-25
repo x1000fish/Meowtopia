@@ -211,6 +211,10 @@
         const RETURN_THRESHOLD = 10;
         let gyroPermissionGranted = false;
         let lastSwipeTime = 0;
+        
+        // Auto-Scroll Variables for Drag & Drop
+        let autoScrollRAF = null;
+        let scrollSpeed = 0;
 
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
@@ -247,14 +251,35 @@
                 }
             }, { passive: false });
 
-            // Allow dragging gate into blank space to auto-scroll wrapper
+            // Smooth Auto-scroll logic for drag-and-drop
+            function scrollLoop() {
+                if (scrollSpeed !== 0 && draggedIndex !== null) {
+                    circuitWrapper.scrollLeft += scrollSpeed;
+                    autoScrollRAF = requestAnimationFrame(scrollLoop);
+                } else {
+                    autoScrollRAF = null;
+                }
+            }
+
             circuitWrapper.addEventListener('dragover', (e) => {
                 if (draggedIndex !== null) {
+                    e.preventDefault();
                     const rect = circuitWrapper.getBoundingClientRect();
-                    if (e.clientX - rect.left < 60) circuitWrapper.scrollLeft -= 8;
-                    else if (rect.right - e.clientX < 60) circuitWrapper.scrollLeft += 8;
+                    const edgeThreshold = 80;
+                    if (e.clientX - rect.left < edgeThreshold) {
+                        scrollSpeed = -8; // 向左平滑捲動
+                        if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                    } else if (rect.right - e.clientX < edgeThreshold) {
+                        scrollSpeed = 8; // 向右平滑捲動
+                        if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+                    } else {
+                        scrollSpeed = 0;
+                    }
                 }
             });
+
+            circuitWrapper.addEventListener('dragleave', () => { scrollSpeed = 0; });
+            circuitWrapper.addEventListener('drop', () => { scrollSpeed = 0; });
 
             // PC Scroll (for locked Line)
             document.addEventListener('wheel', (e) => {
@@ -275,7 +300,6 @@
             // PC: Left click outside connection-line cancels the lock
             canvas.addEventListener('mousedown', (e) => {
                 if (lockedLineId && !isTouchDevice) {
-                    // Only left click cancels when clicking outside
                     if (e.button === 0 && !e.target.classList.contains('connection-line')) { 
                         cancelLock(); 
                     }
@@ -337,7 +361,7 @@
             if (now - lastSwipeTime < 400) return;
 
             if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
-                // 向右傾斜 (+)：前進
+                // 向右傾斜 (+)：前進 (不論直橫幅)
                 currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
                 lastTiltDirection = 1;
                 lastSwipeTime = now;
@@ -407,7 +431,6 @@
                     const btnRect = btn.getBoundingClientRect();
                     const containerRect = container.getBoundingClientRect();
                     
-                    // 利用 offsetTop 搭配 container 計算安全捲動，不再使用 scrollIntoView 防止網頁跳動
                     if (btnRect.top < containerRect.top) {
                         container.scrollTop -= (containerRect.top - btnRect.top + 10);
                     } else if (btnRect.bottom > containerRect.bottom) {
@@ -481,7 +504,6 @@
             document.getElementById('quantum-toggle').innerText = isQuantumMode ? "⚛️" : "🔮";
             document.getElementById('body-root').classList.toggle('mini-mode', !isQuantumMode);
             
-            // Toggle texts for Circuit / Gate areas based on mode
             document.getElementById('circuit-diagram-title').innerText = isQuantumMode ? "Circuit Diagram" : "Hypercube Paths";
             document.getElementById('panel-gate-title').innerText = isQuantumMode ? "Quantum Gates" : "Transformations";
             for(let i=0; i<4; i++) {
@@ -604,7 +626,7 @@
                 } else if (lineMode === 1) {
                     highlightPairs([[i, j]]); highlightGateButton(`SWAP_${i}_${j}`);
                 } else { 
-                    highlightPairs([[i, j]]); // 單純 highlight 邊, 等待 user 點擊 Lock
+                    highlightPairs([[i, j]]); 
                 }
             };
             line.onmouseleave = () => { 
@@ -615,7 +637,6 @@
                 e.stopPropagation();
                 if (isSolved) return;
                 
-                // 首次點擊線段請求陀螺儀權限 (iOS 13+)
                 if (isTouchDevice && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                     if (!gyroPermissionGranted) {
                         DeviceOrientationEvent.requestPermission().then(state => {
@@ -634,12 +655,10 @@
                 if (lineMode === 8) { applyGate(`X${3 - dim}`); return; }
 
                 if (lockedLineId === line.id) {
-                    // 若再次點擊同樣的線，統一視為取消。PC 要用右鍵確定，手機用雙指點擊。
                     cancelLock();
                     return;
                 }
 
-                // 首次點擊：鎖定線段
                 lockedLineId = line.id;
                 hoverLine = { i, j, dim };
                 currentOptions = buildGateOptions(i, j, dim);
@@ -775,28 +794,51 @@
                     e.dataTransfer.setData('text/plain', idx);
                 });
                 
-                // Drag over logic that dynamically changes boundary color to Light Gray and auto-scrolls wrapper
                 u.addEventListener('dragover', (e) => { 
                     e.preventDefault(); 
-                    if (draggedIndex !== null && draggedIndex !== idx) u.style.borderLeft = '4px solid #FFB7C5'; 
-                    
-                    const rect = wrapper.getBoundingClientRect();
-                    if (e.clientX - rect.left < 60) wrapper.scrollLeft -= 8;
-                    else if (rect.right - e.clientX < 60) wrapper.scrollLeft += 8;
+                    if (draggedIndex !== null && draggedIndex !== idx) {
+                        const rect = u.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        // Highlight pink border left or right to indicate target slot
+                        u.style.borderLeft = isAfter ? '' : '4px solid #FFB7C5';
+                        u.style.borderRight = isAfter ? '4px solid #FFB7C5' : '';
+                    }
                 });
                 
-                u.addEventListener('dragleave', () => { u.style.borderLeft = ''; });
+                u.addEventListener('dragleave', () => { 
+                    u.style.borderLeft = ''; 
+                    u.style.borderRight = '';
+                });
+                
                 u.addEventListener('drop', (e) => {
-                    e.preventDefault(); u.style.borderLeft = '';
+                    e.preventDefault(); 
+                    u.style.borderLeft = ''; 
+                    u.style.borderRight = '';
+                    scrollSpeed = 0;
+                    
                     if (draggedIndex !== null && draggedIndex !== idx) {
+                        const rect = u.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        
+                        let targetIdx = idx;
+                        if (isAfter) targetIdx++;
+                        
+                        // Shift target index back if the element was originally in front of it
+                        if (draggedIndex < targetIdx) targetIdx--;
+                        
                         pop.currentTime = 0; pop.play();
                         const movedGate = gateHistory.splice(draggedIndex, 1)[0];
-                        gateHistory.splice(idx, 0, movedGate);
+                        gateHistory.splice(targetIdx, 0, movedGate);
                         actionStack.push({ type: 'replace', index: 0, oldGates: [], newGate: null });
                         selectedIndices = []; recalculate();
                     }
                 });
-                u.addEventListener('dragend', () => { u.classList.remove('opacity-50'); draggedIndex = null; renderCircuit(); });
+                u.addEventListener('dragend', () => { 
+                    u.classList.remove('opacity-50'); 
+                    draggedIndex = null; 
+                    scrollSpeed = 0;
+                    renderCircuit(); 
+                });
 
                 u.addEventListener('click', (e) => {
                     e.stopPropagation();
