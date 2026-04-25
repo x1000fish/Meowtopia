@@ -116,9 +116,9 @@
         .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; border-top: none !important; opacity: 1 !important; }
     </style>
 </head>
-<body id="body-root">
+<body id="body-root" class="mini-mode">
     <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
-    <div id="quantum-toggle" class="mode-toggle-fixed hidden" onclick="toggleQuantumMode()" style="top: 100px; font-size: 26px;">⚛️</div>
+    <div id="quantum-toggle" class="mode-toggle-fixed hidden" onclick="toggleQuantumMode()" style="top: 100px; font-size: 26px;">🔮</div>
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
             <h2 class="text-xl font-black mb-3 text-center" style="color: #463438;">🏆 TOP CATS</h2>
@@ -144,7 +144,7 @@
         </div>
         <div class="main-layout">
             <div id="pro-panel">
-                <div id="panel-gate-title" class="panel-section-title">Quantum Gates</div>
+                <div id="panel-gate-title" class="panel-section-title">Transformations</div>
                 <div id="gate-scroll-area">
                     <div class="grid grid-cols-4 gap-1 w-full" id="gate-grid"></div>
                 </div>
@@ -168,11 +168,11 @@
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
-            <div id="circuit-diagram-title" class="circuit-title font-black text-xl text-center" style="color: #463438;">Circuit Diagram</div>
-            <div id="q0-label" class="qubit-label" style="top: 60px;">q0</div>
-            <div id="q1-label" class="qubit-label" style="top: 100px;">q1</div>
-            <div id="q2-label" class="qubit-label" style="top: 140px;">q2</div>
-            <div id="q3-label" class="qubit-label" style="top: 180px;">q3</div>
+            <div id="circuit-diagram-title" class="circuit-title font-black text-xl text-center" style="color: #463438;">Hypercube Paths</div>
+            <div id="q0-label" class="qubit-label" style="top: 60px;">d0</div>
+            <div id="q1-label" class="qubit-label" style="top: 100px;">d1</div>
+            <div id="q2-label" class="qubit-label" style="top: 140px;">d2</div>
+            <div id="q3-label" class="qubit-label" style="top: 180px;">d3</div>
             <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
         </div>
         <div class="w-full text-center mt-6 mb-6">
@@ -189,7 +189,7 @@
     </div>
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
-        let steps = 0, time = 0, isPro = false, isQuantumMode = true, timerInterval, gateHistory = [], isSolved = false;
+        let steps = 0, time = 0, isPro = false, isQuantumMode = false, timerInterval, gateHistory = [], isSolved = false;
         let selectedIndices = [];
         let actionStack = [];
         let fishAtNode = [14, 7, 10, 1, 5, 0, 11, 6, 8, 9, 3, 2, 4, 15, 13, 12];    
@@ -311,14 +311,16 @@
             if (now - lastSwipeTime < 400) return;
 
             if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
-                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                // 原本 +1 改為 -1 達成反轉
+                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
                 lastTiltDirection = 1;
                 lastSwipeTime = now;
                 hasScrolled = true;
                 showIndicatorScrolled();
                 if ('vibrate' in navigator) navigator.vibrate(20);
             } else if (tilt < -TILT_THRESHOLD && lastTiltDirection >= 0) {
-                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                // 原本 -1 改為 +1 達成反轉
+                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
                 lastTiltDirection = -1;
                 lastSwipeTime = now;
                 hasScrolled = true;
@@ -375,7 +377,6 @@
                 if(btn) {
                     btn.classList.add('btn-highlight');
                     
-                    // 手機版不自動滾動，避免畫面跳動
                     if (!isTouchDevice) {
                         const container = document.getElementById('gate-scroll-area');
                         const btnRect = btn.getBoundingClientRect();
