@@ -89,10 +89,12 @@
         .ind-fraction { color: #463438; font-size: 16px; font-weight: 900; }
         .ind-label { display: none !important; }
         
+        /* Gate Button Styles */
         .gate-btn-v2 { position: relative; height: 75px; width: 50px; display: flex; align-items: center; justify-content: center; padding: 0; border: 2px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 15px, center 30px, center 45px, center 60px; }
         .gate-btn-v2:hover { background-color: #FFB7C5 !important; filter: brightness(1.05); transform: scale(1.05); z-index: 10; }
         .btn-highlight { transform: scale(1.15); box-shadow: 0 0 10px rgba(0,0,0,0.3); border: 4px solid #99C44D !important; z-index: 10; filter: brightness(1.1); background-color: #FFB7C5 !important; }
         
+        /* Hypercube SVG Styles */
         .hyper-line { stroke: #463438; stroke-width: 0.6; opacity: 0.3; }
         .hyper-line-hi { stroke: #FFB7C5; stroke-width: 2.5; opacity: 1; transition: stroke 0.2s; }
         .gate-btn-v2 .hyper-line-hi { stroke: #f78790; }
@@ -198,11 +200,18 @@
         let draggedIndex = null;
         let leaderboardData;
         let mobileDragging = false;
-        let isTouchDevice = false;
+        
+        let isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
         let lockedLineId = null;
         let hasScrolled = false;
-        let touchStartY = 0;
+        
+        // Tilt Control Variables
+        let lastTiltDirection = 0;
+        const TILT_THRESHOLD = 15;
+        const RETURN_THRESHOLD = 10;
+        let gyroPermissionGranted = false;
         let lastSwipeTime = 0;
+
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         const baseOffsetY = 195;
         const side = 120;
@@ -238,7 +247,7 @@
 
             // PC Scroll (for locked Line)
             document.addEventListener('wheel', (e) => {
-                if (!lockedLineId || lineMode === 1 || lineMode === 8) return;
+                if (!lockedLineId || lineMode === 1 || lineMode === 8 || isTouchDevice) return;
                 const target = e.target;
                 if (!target.closest('#gate-scroll-area') && !target.closest('#circuit-content-wrapper')) {
                     e.preventDefault();
@@ -249,17 +258,15 @@
                 }
             }, { passive: false });
 
-            window.addEventListener('touchstart', () => { isTouchDevice = true; }, { once: true });
-            
             const canvas = document.getElementById('main-canvas');
             const indicator = document.getElementById('ios-indicator');
             
             // Cancel lock if clicked/tapped outside connection-line
             canvas.addEventListener('mousedown', (e) => {
-                if (!e.target.classList.contains('connection-line') && lockedLineId) { cancelLock(); }
+                if (!e.target.classList.contains('connection-line') && lockedLineId && !isTouchDevice) { cancelLock(); }
             });
 
-            // Mobile logic mapping smoothly onto new lock state
+            // Mobile logic: dual-finger tap to confirm
             window.addEventListener('touchstart', (e) => {
                 if (lockedLineId && e.touches.length >= 2) {
                     e.preventDefault();
@@ -269,32 +276,13 @@
                 }
             }, { passive: false });
 
+            // Mobile logic: single-finger tap outside cancels lock
             canvas.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1 && lockedLineId) {
-                    touchStartY = e.touches[0].clientY;
                     if (!e.target.classList.contains('connection-line')) { cancelLock(); }
                 }
             });
 
-            canvas.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && lockedLineId) {
-                    if (lineMode === 1 || lineMode === 8) return;
-                    if (e.cancelable) e.preventDefault();
-                    const currentY = e.touches[0].clientY;
-                    const diff = currentY - touchStartY;
-                    const now = Date.now();
-                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
-                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        hasScrolled = true;
-                        showIndicatorScrolled();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                        touchStartY = currentY; lastSwipeTime = now;
-                    }
-                }
-            }, { passive: false });
-
-            canvas.addEventListener('touchend', () => { touchStartY = 0; });
             canvas.addEventListener('mousemove', (e) => {
                 if (indicator.classList.contains('active') && !isTouchDevice) {
                     const rect = canvas.getBoundingClientRect();
@@ -303,6 +291,31 @@
                 }
             });
         };
+
+        function handleOrientation(event) {
+            if (!lockedLineId || lineMode === 1 || lineMode === 8) return;
+            let tilt = event.gamma; 
+            const now = Date.now();
+            if (now - lastSwipeTime < 400) return;
+
+            if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
+                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                lastTiltDirection = 1;
+                lastSwipeTime = now;
+                hasScrolled = true;
+                showIndicatorScrolled();
+                if ('vibrate' in navigator) navigator.vibrate(20);
+            } else if (tilt < -TILT_THRESHOLD && lastTiltDirection >= 0) {
+                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                lastTiltDirection = -1;
+                lastSwipeTime = now;
+                hasScrolled = true;
+                showIndicatorScrolled();
+                if ('vibrate' in navigator) navigator.vibrate(20);
+            } else if (Math.abs(tilt) < RETURN_THRESHOLD) {
+                lastTiltDirection = 0;
+            }
+        }
 
         function getRgba(hex, alpha) {
             hex = hex.replace('#', '');
@@ -556,14 +569,34 @@
             line.onclick = (e) => {
                 e.stopPropagation();
                 if (isSolved) return;
+                
+                // 首次點擊線段請求陀螺儀權限 (iOS 13+)
+                if (isTouchDevice && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    if (!gyroPermissionGranted) {
+                        DeviceOrientationEvent.requestPermission().then(state => {
+                            if (state === 'granted') {
+                                gyroPermissionGranted = true;
+                                window.addEventListener('deviceorientation', handleOrientation);
+                            }
+                        }).catch(console.error);
+                    }
+                } else if (isTouchDevice && !gyroPermissionGranted) {
+                    gyroPermissionGranted = true;
+                    window.addEventListener('deviceorientation', handleOrientation);
+                }
+
                 if (lineMode === 1) { applyGate(`SWAP_${i}_${j}`); return; }
                 if (lineMode === 8) { applyGate(`X${3 - dim}`); return; }
 
                 if (lockedLineId === line.id) {
-                    if (hasScrolled && currentOptions[currentOptionIndex]) {
-                        applyGate(currentOptions[currentOptionIndex].gateType);
+                    if (isTouchDevice) {
+                        cancelLock(); // 手機版單擊視為取消
                     } else {
-                        cancelLock();
+                        if (hasScrolled && currentOptions[currentOptionIndex]) {
+                            applyGate(currentOptions[currentOptionIndex].gateType);
+                        } else {
+                            cancelLock();
+                        }
                     }
                     return;
                 }
@@ -605,7 +638,7 @@
         function showIndicatorLockedPrompt() {
             const pill = document.getElementById('ios-indicator');
             const frac = document.getElementById('ind-fraction');
-            frac.innerText = `↕ SCROLL`;
+            frac.innerText = isTouchDevice ? `↔ TILT` : `↕ SCROLL`;
             pill.classList.add('active');
             clearHighlight();
             highlightPairs([[hoverLine.i, hoverLine.j]]);
