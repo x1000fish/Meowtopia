@@ -33,7 +33,7 @@
         .fish-wrapper { position: absolute; width: 80px; height: 80px; pointer-events: none; z-index: 30; display: flex; justify-content: center; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img.fish-img { width: 70px; height: auto; position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); }
         .fish-wrapper img.fish-bg-shape { width: 70px; height: auto; position: absolute; z-index: 1; filter: brightness(0) invert(1); opacity: 1; top: 50%; transform: translateY(-50%); }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; z-index: 5; position: absolute; top: 28px; }
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; z-index: 5; position: absolute; top: px; }
         
         #pro-panel { width: 0; opacity: 0; height: 628px; overflow: hidden; background: #fff; border: 0px solid #463438; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .pro-active #pro-panel { width: 650px; opacity: 1; border: 8px solid #463438; padding: 20px; box-shadow: 10px 10px 0px #99C44D;}
@@ -62,7 +62,11 @@
         .mini-mode #circuit-content { background-image: none !important; }
 
         .qubit-label { position: absolute; left: 18px; font-weight: 900; font-size: 16px; color: #463438; transition: all 0.3s; }
-        .circuit-unit { width: 55px; min-width: 55px; max-width: 55px; height: 140px; flex-shrink: 0; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; background-color: transparent !important; }
+        
+        /* 核心修正：將 .circuit-unit 高度縮小並與背景模式(Quantum)兼容 */
+        .circuit-unit { min-width: 85px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; background-color: transparent !important; }
+        /* 當不是量子模式時，讓容器高度緊貼 Hypercube (約 60px) 並垂直置中 */
+        .mini-mode .circuit-unit { height: 60px; margin-top: 40px; }
         .circuit-unit:hover, .circuit-unit.selected-gate { background-color: var(--bg-hover) !important; border-radius: 12px; }
         
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
@@ -86,7 +90,7 @@
         .ind-fraction { color: #463438; font-size: 16px; font-weight: 900; }
         
         /* Gate Button Styles (Enlarged) */
-        .gate-btn-v2 { position: relative; height: 75px; width: 60px; min-width: 60px; max-width: 60px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0; border: 2px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 18px, center 36.5px, center 55px; margin: auto;}
+        .gate-btn-v2 { position: relative; height: 75px; width: 60px; display: flex; align-items: center; justify-content: center; padding: 0; border: 2px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 18px, center 36.5px, center 55px; margin: auto;}
         .gate-btn-v2:hover { background-color: #FFB7C5 !important; filter: brightness(1.05); transform: scale(1.05); z-index: 10; }
         .btn-highlight { transform: scale(1.15); box-shadow: 0 0 10px rgba(0,0,0,0.3); border: 4px solid #99C44D !important; z-index: 10; filter: brightness(1.1); background-color: #FFB7C5 !important; }
         
@@ -111,6 +115,27 @@
         .pro-active #canvas-bottom-btns {display: none !important;}
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
         .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; border-top: none !important;}
+    
+/* 1. 統一 Gate 容器大小 */
+.circuit-unit { 
+    min-width: 110px; /* 增加寬度以維持放大後的比例 */
+    width: 110px; 
+    max-width: 110px; 
+    flex: 0 0 110px; 
+    height: 140px; /* 回復到與一般 Gate 同高 */
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+    background-color: transparent !important; 
+}
+
+/* 2. 移除 mini-mode 的高度縮減與 margin，確保高度填滿軌道 */
+.mini-mode .circuit-unit { 
+    height: 140px; 
+    margin-top: 0px; 
+}
     </style>
 </head>
 <body id="body-root" class="mini-mode">
@@ -450,31 +475,41 @@
             return '#fff';
         }
 
-        function getMiniHypercubeSVG(type) {
-            let pairs = getHighlightPairsForGate(type);
-            const miniNodes = nodePositions.map(n => ({ 
-                x: (n.relX + 10) / 520 * 40 + 5, 
-                y: (n.t - 20) / 440 * 40 + 5 
-            }));
-            let svg = `<svg viewBox="0 0 50 50" style="width:100%; height:100%; max-width:100%; pointer-events:none;" preserveAspectRatio="xMidYMid meet">`;
-            for(let i=0; i<8; i++) {
-                for(let b=0; b<3; b++) {
-                    let j = i ^ (1<<b);
-                    if(j > i) {
-                        let n1 = miniNodes[i], n2 = miniNodes[j];
-                        let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
-                        let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
-                        svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" stroke-linecap="round"/>`;
-                    }
-                }
+function getMiniHypercubeSVG(type) {
+    let pairs = getHighlightPairsForGate(type);
+    
+    // 重新映射點的位置：
+    // x 軸：(原始寬度範圍 520) 映射到 0~100 之間，並留下一點點左右邊距防止切到點
+    // y 軸：(原始高度範圍 440) 映射到 0~100 之間，讓它完全撐滿 SVG 高度
+    const miniNodes = nodePositions.map(n => ({ 
+        x: (n.relX + 10) / 520 * 90 + 5, 
+        y: (n.t - 20) / 440 * 90 + 5 
+    }));
+    
+    // 使用 0 0 100 100 的視口，這會隨容器高度 (140px) 自動等比例縮放
+    let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
+    
+    for(let i=0; i<8; i++) {
+        for(let b=0; b<3; b++) {
+            let j = i ^ (1<<b);
+            if(j > i) {
+                let n1 = miniNodes[i], n2 = miniNodes[j];
+                let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
+                let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
+                
+                // 增加線條粗細，因為 viewBox 變大了 (100x100)
+                let strokeW = isHighlighted ? 4 : 1.2;
+                svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
             }
-            for(let i=0; i<8; i++) {
-                let n = miniNodes[i];
-                svg += `<circle cx="${n.x}" cy="${n.y}" r="1.5" fill="#463438"/>`;
-            }
-            svg += `</svg>`;
-            return svg;
         }
+    }
+    for(let i=0; i<8; i++) {
+        let n = miniNodes[i];
+        svg += `<circle cx="${n.x}" cy="${n.y}" r="3.5" fill="#463438"/>`;
+    }
+    svg += `</svg>`;
+    return svg;
+}
 
         function getGateContent(type) {
             if (isQuantumMode) {
