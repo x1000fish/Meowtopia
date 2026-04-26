@@ -116,13 +116,13 @@
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
         .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; border-top: none !important;}
     
-/* 1. 統一 Gate 容器大小 */
+/* 1. 一般 Gate (Quantum 模式) 回復原樣：寬度 55px */
 .circuit-unit { 
-    min-width: 110px; /* 增加寬度以維持放大後的比例 */
-    width: 110px; 
-    max-width: 110px; 
-    flex: 0 0 110px; 
-    height: 140px; /* 回復到與一般 Gate 同高 */
+    min-width: 55px; 
+    width: 55px; 
+    max-width: 55px; 
+    flex: 0 0 55px; 
+    height: 140px; 
     display: flex; 
     flex-direction: column; 
     position: relative; 
@@ -131,10 +131,14 @@
     background-color: transparent !important; 
 }
 
-/* 2. 移除 mini-mode 的高度縮減與 margin，確保高度填滿軌道 */
+/* 2. Hypercube 模式 (mini-mode) 維持現狀：寬度 110px，高度填滿 140px */
 .mini-mode .circuit-unit { 
+    min-width: 110px; 
+    width: 110px; 
+    max-width: 110px; 
+    flex: 0 0 110px;
     height: 140px; 
-    margin-top: 0px; 
+    margin-top: 0px; /* 確保高度填滿，不位移 */
 }
     </style>
 </head>
@@ -478,15 +482,12 @@
 function getMiniHypercubeSVG(type) {
     let pairs = getHighlightPairsForGate(type);
     
-    // 重新映射點的位置：
-    // x 軸：(原始寬度範圍 520) 映射到 0~100 之間，並留下一點點左右邊距防止切到點
-    // y 軸：(原始高度範圍 440) 映射到 0~100 之間，讓它完全撐滿 SVG 高度
+    // 維持放大後的坐標映射 (0~100 範圍)
     const miniNodes = nodePositions.map(n => ({ 
         x: (n.relX + 10) / 520 * 90 + 5, 
         y: (n.t - 20) / 440 * 90 + 5 
     }));
     
-    // 使用 0 0 100 100 的視口，這會隨容器高度 (140px) 自動等比例縮放
     let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
     
     for(let i=0; i<8; i++) {
@@ -496,8 +497,6 @@ function getMiniHypercubeSVG(type) {
                 let n1 = miniNodes[i], n2 = miniNodes[j];
                 let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
                 let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
-                
-                // 增加線條粗細，因為 viewBox 變大了 (100x100)
                 let strokeW = isHighlighted ? 4 : 1.2;
                 svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
             }
