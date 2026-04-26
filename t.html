@@ -454,16 +454,17 @@
                 if(btn) {
                     btn.classList.add('btn-highlight');
                     
-                    if (!isTouchDevice) {
-                        const container = document.getElementById('gate-scroll-area');
-                        const btnRect = btn.getBoundingClientRect();
-                        const containerRect = container.getBoundingClientRect();
-                        
-                        if (btnRect.top < containerRect.top) {
-                            container.scrollTop -= (containerRect.top - btnRect.top + 10);
-                        } else if (btnRect.bottom > containerRect.bottom) {
-                            container.scrollTop += (btnRect.bottom - containerRect.bottom + 10);
-                        }
+                    // 【修改重點】移除了 !isTouchDevice 的限制，讓手機與電腦版都能自動滾動
+                    const container = document.getElementById('gate-scroll-area');
+                    const btnRect = btn.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    
+                    // 只在按鈕超出容器可視範圍時，才去微調容器的 scrollTop
+                    // 因為 CSS 已經有 scroll-behavior: smooth，所以會是順暢滑過去的，不會生硬地跳動
+                    if (btnRect.top < containerRect.top) {
+                        container.scrollTop -= (containerRect.top - btnRect.top + 10);
+                    } else if (btnRect.bottom > containerRect.bottom) {
+                        container.scrollTop += (btnRect.bottom - containerRect.bottom + 10);
                     }
                 }
             }
