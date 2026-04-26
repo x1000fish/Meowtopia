@@ -63,10 +63,32 @@
 
         .qubit-label { position: absolute; left: 18px; font-weight: 900; font-size: 16px; color: #463438; transition: all 0.3s; }
         
-        /* 核心修正：將 .circuit-unit 高度縮小並與背景模式(Quantum)兼容 */
-        .circuit-unit { min-width: 85px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; background-color: transparent !important; }
-        /* 當不是量子模式時，讓容器高度緊貼 Hypercube (約 60px) 並垂直置中 */
-        .mini-mode .circuit-unit { height: 60px; margin-top: 40px; }
+        /* 1. 一般 Gate (Quantum 模式) 回復原樣：寬度 55px */
+        .circuit-unit { 
+            min-width: 55px; 
+            width: 55px; 
+            max-width: 55px; 
+            flex: 0 0 55px; 
+            height: 140px; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            background-color: transparent !important; 
+        }
+
+        /* 2. Hypercube 模式 (mini-mode)：容器稍微加寬並增加 padding 以提供更多左右邊界 */
+        .mini-mode .circuit-unit { 
+            min-width: 120px; 
+            width: 120px; 
+            max-width: 120px; 
+            flex: 0 0 120px;
+            height: 140px; 
+            margin-top: 0px; /* 確保高度填滿，不位移 */
+            padding: 0 5px;  /* 為圖形左右增加額外的空間 */
+        }
+        
         .circuit-unit:hover, .circuit-unit.selected-gate { background-color: var(--bg-hover) !important; border-radius: 12px; }
         
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
@@ -115,31 +137,6 @@
         .pro-active #canvas-bottom-btns {display: none !important;}
         canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
         .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; border-top: none !important;}
-    
-/* 1. 一般 Gate (Quantum 模式) 回復原樣：寬度 55px */
-.circuit-unit { 
-    min-width: 55px; 
-    width: 55px; 
-    max-width: 55px; 
-    flex: 0 0 55px; 
-    height: 140px; 
-    display: flex; 
-    flex-direction: column; 
-    position: relative; 
-    cursor: pointer; 
-    transition: all 0.2s; 
-    background-color: transparent !important; 
-}
-
-/* 2. Hypercube 模式 (mini-mode) 維持現狀：寬度 110px，高度填滿 140px */
-.mini-mode .circuit-unit { 
-    min-width: 110px; 
-    width: 110px; 
-    max-width: 110px; 
-    flex: 0 0 110px;
-    height: 140px; 
-    margin-top: 0px; /* 確保高度填滿，不位移 */
-}
     </style>
 </head>
 <body id="body-root" class="mini-mode">
@@ -174,7 +171,7 @@
             <div id="pro-panel">
                 <div id="panel-gate-title" class="panel-section-title">Transformations</div>
                 <div id="gate-scroll-area">
-                    <div class="flex flex-col gap-4 w-full" id="gate-grid"></div>
+                    <div class="flex flex-col gap-2 w-full" id="gate-grid"></div>
                 </div>
                 <div class="panel-section-title mt-2">Control</div>
                 <button class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
@@ -479,36 +476,36 @@
             return '#fff';
         }
 
-function getMiniHypercubeSVG(type) {
-    let pairs = getHighlightPairsForGate(type);
-    
-    // 維持放大後的坐標映射 (0~100 範圍)
-    const miniNodes = nodePositions.map(n => ({ 
-        x: (n.relX + 10) / 520 * 90 + 5, 
-        y: (n.t - 20) / 440 * 90 + 5 
-    }));
-    
-    let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
-    
-    for(let i=0; i<8; i++) {
-        for(let b=0; b<3; b++) {
-            let j = i ^ (1<<b);
-            if(j > i) {
-                let n1 = miniNodes[i], n2 = miniNodes[j];
-                let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
-                let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
-                let strokeW = isHighlighted ? 4 : 1.2;
-                svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
+        function getMiniHypercubeSVG(type) {
+            let pairs = getHighlightPairsForGate(type);
+            
+            // 維持之前的極大化坐標映射 (0~100 範圍內)，保證圖案尺寸不變
+            const miniNodes = nodePositions.map(n => ({ 
+                x: (n.relX + 10) / 520 * 90 + 5, 
+                y: (n.t - 20) / 440 * 90 + 5 
+            }));
+            
+            let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
+            
+            for(let i=0; i<8; i++) {
+                for(let b=0; b<3; b++) {
+                    let j = i ^ (1<<b);
+                    if(j > i) {
+                        let n1 = miniNodes[i], n2 = miniNodes[j];
+                        let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
+                        let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
+                        let strokeW = isHighlighted ? 4 : 1.2;
+                        svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
+                    }
+                }
             }
+            for(let i=0; i<8; i++) {
+                let n = miniNodes[i];
+                svg += `<circle cx="${n.x}" cy="${n.y}" r="3.5" fill="#463438"/>`;
+            }
+            svg += `</svg>`;
+            return svg;
         }
-    }
-    for(let i=0; i<8; i++) {
-        let n = miniNodes[i];
-        svg += `<circle cx="${n.x}" cy="${n.y}" r="3.5" fill="#463438"/>`;
-    }
-    svg += `</svg>`;
-    return svg;
-}
 
         function getGateContent(type) {
             if (isQuantumMode) {
