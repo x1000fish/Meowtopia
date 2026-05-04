@@ -2,13 +2,13 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1200">
+    <meta name="viewport" content="width=1200, user-scalable=no, viewport-fit=cover">
     <title>Meowtopia - Level 8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
         .hidden { display: none !important; }
         .main-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; margin-top: 20px; }
         .game-canvas { position: relative; width: 1950px; height: 628px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5;}
@@ -22,88 +22,108 @@
         #rankList::-webkit-scrollbar-thumb { background-color: #FFB7C5; border-radius: 10px; }
         .rank-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 2px dashed #fce4ec; font-weight: 900; font-size: 14px; color: #463438; }
         .rank-tab { flex: 1; padding: 4px; font-size: 12px; font-weight: 900; border: 3px solid #463438; border-radius: 12px; cursor: pointer; transition: all 0.1s; text-align: center; background: #fff; color: #463438;}
-        .rank-tab.active { background: #463438; color: #fff; }
+        .rank-tab.active { background: #463438; color: #fff; }      
         .node { width: 130px; height: 130px; background: white; border: 6px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #463438; z-index: 20; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .node img { width: 100px; height: auto; pointer-events: none; }
-        .fixed-number { position: absolute; bottom: -4px; right: 41px; font-size: 20px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
-        .connection-line { position: absolute; background: #463438; z-index: 10; cursor: pointer; transition: all 0.2s ease; opacity: 1; }
-        @media (hover: hover) { .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); height: 10px !important; z-index: 16; } }
-        .swap-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; }
-        .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; height: 8px !important; z-index: 15; }
-        .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        .fish-wrapper img { width: 70px; height: auto; }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -45px; z-index: 5; position: relative; top: -8px; }
+        .node img { width: 100px; height: auto; pointer-events: none; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fixed-number { position: absolute; bottom: -4px; right: 38px; font-size: 20px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; display: flex; gap: 1px; transition: opacity 0.3s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .bit { display: inline-block; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); padding: 0 1px; border-radius: 4px; }
+        .connection-line { position: absolute; background: #463438; z-index: 10; cursor: pointer; transition: all 0.2s ease; opacity: 1; touch-action: none; }
+        .connection-line::after { content: ''; position: absolute; top: -20px; bottom: -20px; left: 0; right: 0; background-color: transparent; z-index: 10; }
+        @media (hover: hover) { .connection-line:hover { background: var(--hl-bg, #99C44D) !important; box-shadow: 0 0 15px var(--hl-shadow, rgba(153, 196, 77, 0.8)); height: 10px !important; z-index: 16; opacity: 1 !important; } }
+        .line-highlight { background: var(--hl-bg, #99C44D) !important; box-shadow: 0 0 15px var(--hl-shadow, rgba(153, 196, 77, 0.8)) !important; height: 8px !important; z-index: 15; opacity: 1 !important; }
+        .swap-active { background: var(--hl-bg, #99C44D) !important; box-shadow: 0 0 15px var(--hl-shadow, rgba(153, 196, 77, 0.8)) !important; height: 8px !important; z-index: 15 !important; opacity: 1 !important; border-top: none !important;}  
+        .fish-wrapper { position: absolute; width: 80px; height: 80px; pointer-events: none; z-index: 30; display: flex; justify-content: center; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-wrapper img.fish-img { width: 70px; height: auto; position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-wrapper img.fish-bg-shape { width: 70px; height: auto; position: absolute; z-index: 1; filter: brightness(0) invert(1); opacity: 1; top: 50%; transform: translateY(-50%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; padding: 2px 5px; height: 26px; border-radius: 13px; display: flex; gap: 1px; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; z-index: 5; position: absolute; transition: opacity 0.3s, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }       
+        .hide-labels .fixed-number { opacity: 0; pointer-events: none; transform: scale(0.5); }
+        .hide-labels .fish-label { opacity: 0; pointer-events: none; transform: scale(0.5); }
+        .hide-labels .node > img { transform: scale(1.15); }
+        .hide-labels .fish-wrapper > img.fish-img, .hide-labels .fish-wrapper > img.fish-bg-shape { transform: scale(1.15) translateY(-40%); }      
+        .node img { transform: scale(1.05) translateY(-5px); }
+        .fish-wrapper img.fish-img, .fish-wrapper img.fish-bg-shape { transform: scale(1.05) translateY(-50%); }
+        body.labels-colorful .bit-2 { color: #629eed; } 
+        body.labels-colorful .node .bit-1 { color: #555555; } 
+        body.labels-colorful .fish-wrapper .bit-1 { color: #dddddd; } 
+        body.labels-colorful .bit-0 { color: #FFB7C5; } 
+        .mode-toggle-inline { width: 44px; height: 44px; background: #ffffff; border: 3px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #463438; transition: all 0.1s; }
+        .mode-toggle-inline:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #463438; }
+        .mode-toggle-inline:active { transform: translateY(2px); box-shadow: 0 1px 0 #463438; }
         #pro-panel { width: 0; opacity: 0; height: 628px; overflow: hidden; background: #fff; border: 0px solid #463438; border-radius: 40px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .pro-active #pro-panel { width: 650px; opacity: 1; border: 8px solid #463438; padding: 20px; box-shadow: 10px 10px 0px #99C44D;}
         .panel-section-title { font-weight: 900; font-size: 18px; margin: 10px 0 1px; color: #463438; text-align: center; white-space: nowrap; }
-        .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 2px 2px 0 #463438; box-shadow: 0 6px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
+        .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 2px 2px 0 #463438; box-shadow: 0 6px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
         .game-btn:active { top: 6px; box-shadow: 0 2px 0 #463438; }
         .btn-red { background: #FFB7C5; }
         .btn-green { background: #99C44D; }
         .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
         .multi-toggle-btn.mode-2 { background: #629eed; }
         .multi-toggle-btn.mode-4 { background: #b583e5; }
-        .multi-toggle-btn:hover,
-        .game-btn:hover,
-        .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438;}
-        .multi-toggle-btn:active,
-        .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
-        .gate-btn-v2 { position: relative; height: 60px; width: 45px; display: flex; align-items: center; justify-content: center; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 15px, center 30px, center 45px; padding: 0; border: 2px solid #463438; cursor: pointer; transition: all 0.2s; border-radius: 8px; margin: auto; background-color: #ffffff; color: #463438; box-shadow: 0 3px 6px rgba(70,52,56,0.1); }
-        .gate-not { background-color: #fce4ec !important; }
-        .gate-tof { background-color: #f0fdf4 !important; }
-        .gate-btn-v2:hover, .func-btn:hover, .gate-not:hover, .gate-tof:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; box-shadow: 0 3px 0 #463438 !important; transform: scale(1.05); z-index: 10; }
-        .gate-btn-v2:active { transform: translateY(2px) scale(1.05); box-shadow: 0 1px 2px rgba(70,52,56,0.2); }
+        .multi-toggle-btn:hover, .game-btn:hover, .mode-toggle-fixed:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438;}
+        .multi-toggle-btn:active, .mode-toggle-fixed:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438;}
+        .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); color: #463438; background: #fff;}
+        .btn-reset { background: #FFF9F0; color: #463438; }
+        .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; pointer-events: none;}
+        .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; pointer-events: auto;}
+        .btn-undo.active:hover { background-color: #ff9fb2 !important; transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
+        .func-btn:hover { background-color: #FFB7C5 !important; color: #fff !important; border-color: #463438 !important; transform: translateY(-2px); box-shadow: 0 3px 0 #463438; }
+        #circuit-area { width: 1024px; height: 0; opacity: 0; background: #fff; border: 0px solid #463438; border-radius: 30px; margin-top: 20px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; }
+        .pro-active #circuit-area { height: 210px; opacity: 1; border: 8px solid #463438; padding: 15px; box-shadow: 10px 10px 0px #FFB7C5;}
+        #circuit-content-wrapper { position: relative; height: 150px; overflow-x: auto; margin-left: 45px; -ms-overflow-style: none; scrollbar-width: none; touch-action: pan-x; }
+        #circuit-content-wrapper::-webkit-scrollbar { display: none; }
+        #circuit-content { display: flex; height: 100%; padding: 0 10px 0 0; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 30px, 0 70px, 0 110px; }
+        .mini-mode #circuit-content { background-image: none !important; }   
+        .qubit-label { position: absolute; left: 0px; font-weight: 900; font-size: 16px; color: #463438; width: 35px; text-align: right; display: flex; align-items: center; justify-content: flex-end;}  
+        .circuit-unit { box-sizing: content-box !important; min-width: 55px; width: 55px; max-width: 55px; flex: 0 0 55px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; background-color: transparent !important; background-clip: padding-box; border-left: 0px solid transparent; border-right: 0px solid transparent; margin-left: 0px; margin-right: 0px; transition: background-color 0.2s ease, box-shadow 0.2s ease, border-left-width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-right-width 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s ease, opacity 0.2s ease; } 
+        .mini-mode .circuit-unit { min-width: 110px; width: 110px; max-width: 110px; flex: 0 0 110px; height: 140px; margin-top: 0px; padding: 0 5px; }
+        .circuit-unit:hover { background-color: var(--bg-hover) !important; border-radius: 12px; }
+        .circuit-unit.selected-gate { background-color: var(--bg-hover) !important; border-radius: 12px; box-shadow: inset 0 0 0 3px var(--border-color) !important; }
+        .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
+        .connection-v-line { position: absolute; width: 2.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 3; }
+        .circuit-target { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 15; }
+        .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background: #463438; left: 50%; transform: translateX(-50%); }
+        .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background: #463438; top: 50%; transform: translateY(-50%); }        
+        .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: #fff; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; }
+        #gate-scroll-area { position: relative; margin-top: 5px; flex: 1; min-height: 0; overflow-y: auto; width: 100%; padding: 10px; -ms-overflow-style: none; scrollbar-width: none; }
+        #gate-scroll-area::-webkit-scrollbar { display: none; }
+        :root { --cube-offset-x: 175px; }
+        .pro-active { --cube-offset-x: 42px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438;}      
+        #ios-indicator { position: absolute; top: 0; left: 0; transform: translate(-50%, -120%) scale(0.8); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(15px); border-radius: 50px; padding: 6px 18px; display: flex; align-items: center; box-shadow: 0 8px 24px rgba(70,52,56,0.12); opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; pointer-events: none; border: 1px solid rgba(70,52,56,0.35); }
+        #ios-indicator.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
+        .ind-fraction { color: #463438; font-size: 16px; font-weight: 900; }       
+        .gate-btn-v2 { position: relative; height: 75px; width: 60px; display: flex; align-items: center; justify-content: center; padding: 0; border: 2px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); background-size: 60% 1.5px; background-repeat: no-repeat; background-position: center 18px, center 36.5px, center 55px; margin: auto;}
+        .gate-btn-v2:hover { background-color: #FFB7C5 !important; filter: brightness(1.05); transform: scale(1.05); z-index: 10; }
+        .btn-highlight { transform: scale(1.15); box-shadow: 0 0 10px rgba(0,0,0,0.3); border: 4px solid #99C44D !important; z-index: 10; filter: brightness(1.1); background-color: #FFB7C5 !important; }        
+        .hyper-line { stroke: #463438; stroke-width: 0.6; opacity: 0.3; }
+        .hyper-line-hi { stroke: #FFB7C5; stroke-width: 2.5; opacity: 1; transition: stroke 0.2s; }
+        .gate-btn-v2 .hyper-line-hi { stroke: #f78790; }
+        .gate-btn-v2:hover .hyper-line-hi { stroke: #ffffff !important; }
+        .btn-highlight .hyper-line-hi { stroke: #ffffff !important; }
+        .circuit-unit:hover .hyper-line-hi, .circuit-unit.selected-gate .hyper-line-hi { stroke: #99C44D !important; }      
         .gate-v-line { position: absolute; width: 1.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 1; }
         .gate-dot { position: absolute; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
         .gate-dot.fill { background: #463438; }
         .gate-dot.empty { background: #fff; }
         .gate-target-circle { position: absolute; width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #463438; background: #fff; left: 50%; transform: translate(-50%, -50%); z-index: 3; }
         .gate-target-circle::before { content: ''; position: absolute; width: 100%; height: 1.5px; top: 50%; left: 0; transform: translateY(-50%); background: #463438; }
-        .gate-target-circle::after { content: ''; position: absolute; height: 100%; width: 1.5px; left: 50%; top: 0; transform: translateX(-50%); background: #463438; }
-        .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); color: #463438; background: #fff;}
-        .btn-reset { background: #FFF9F0; color: #463438; }
-        .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; }
-        .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; }
-        .btn-undo.active:hover { background-color: #ff9fb2 !important; transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
-        #circuit-area { width: 1024px; height: 0; opacity: 0; background: #fff; border: 0px solid #463438; border-radius: 30px; margin-top: 20px; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden; }
-        .pro-active #circuit-area { height: 210px; opacity: 1; border: 8px solid #463438; padding: 15px; box-shadow: 10px 10px 0px #FFB7C5;}
-        #circuit-content-wrapper { position: relative; height: 150px; overflow-x: auto; margin-left: 45px; -ms-overflow-style: none; scrollbar-width: none; }
-        #circuit-content-wrapper::-webkit-scrollbar { display: none; }
-        #circuit-content { display: flex; height: 100%; padding: 0 10px; min-width: 100%; width: max-content; position: relative; background-image: linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: 0 30px, 0 70px, 0 110px; }
-        .qubit-label { position: absolute; left: 18px; font-weight: 900; font-size: 16px; color: #463438; }
-        .circuit-unit { min-width: 55px; height: 140px; display: flex; flex-direction: column; position: relative; cursor: pointer; transition: all 0.2s; }
-        .circuit-unit:hover { background: rgba(255, 183, 197, 0.3); border-radius: 12px; }
-        .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D !important; }
-        .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%); z-index: 5; }
-        .connection-v-line { position: absolute; width: 2.5px; background: #463438; left: 50%; transform: translateX(-50%); z-index: 3; }
-        .circuit-target { position: absolute; width: 24px; height: 24px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; left: 50%; transform: translate(-50%, -50%); z-index: 15; }
-        .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background: #463438; left: 50%; transform: translateX(-50%); }
-        .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background: #463438; top: 50%; transform: translateY(-50%); }
-        .mode-toggle-fixed { position: fixed; top: 20px; right: 20px; width: 70px; height: 70px; background: #fff; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438;}
-        #gate-scroll-area { margin-top: 5px; max-height: 350px; overflow-y: auto; width: 100%; padding: 10px; -ms-overflow-style: none; scrollbar-width: none; }
-        #gate-scroll-area::-webkit-scrollbar { display: none; }
-        :root { --cube-offset-x: 175px; }
-        .pro-active { --cube-offset-x: 42px; }
-        #ios-indicator { position: absolute; top: 0; left: 0; transform: translate(-50%, -120%) scale(0.8); background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(15px); border-radius: 50px; padding: 6px 18px; display: flex; align-items: center; box-shadow: 0 8px 24px rgba(70,52,56,0.12); opacity: 0; transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1000; pointer-events: none; border: 1px solid rgba(70,52,56,0.35); }
-        #ios-indicator.active { opacity: 1; transform: translate(-50%, -120%) scale(1); }
-        .ind-fraction { color: #463438; font-size: 18px; font-weight: 900; }
+        .gate-target-circle::after { content: ''; position: absolute; height: 100%; width: 1.5px; left: 50%; top: 0; transform: translateX(-50%); background: #463438; }      
         #canvas-bottom-btns {position: absolute;bottom: 20px;right: 30px; display: flex;flex-direction: column; gap: 10px;z-index: 100;}
         #canvas-bottom-btns .func-btn { margin-top: 0; width: 90px; font-size: 14px;padding: 8px 5px; text-transform: uppercase; border-width: 3px;}
         .pro-active #canvas-bottom-btns {display: none !important;}
-        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; } 
-        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); background: #99C44D; color: #463438; padding: 15px 40px; border-radius: 50px; font-weight: 900; font-size: 24px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 4px solid #463438; box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
-        #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
-        @keyframes pulse-toast { 0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; } 50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; } }
-        .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
-	
+        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-v2 { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }       
+        .drag-target { border-left-width: 35px !important; position: relative; }
+        .drag-target.right { border-left-width: 0px !important; border-right-width: 35px !important; }
+        .circuit-unit::before { content: ''; position: absolute; top: 10px; bottom: 10px; width: 4px; background-color: #FFB7C5; border-radius: 4px; z-index: 200; pointer-events: none; opacity: 0; transition: opacity 0.2s ease; }
+        .drag-target::before { opacity: 1; left: -19.5px; right: auto; }
+        .drag-target.right::before { opacity: 1; left: auto; right: -19.5px; }
     </style>
 </head>
-<body id="body-root">
-    <div id="shake-toast">Ctrl Mode: ON</div>
-
-    <div id="mode-toggle" class="mode-toggle-fixed" onclick="togglePro()">👁️</div>
+<body id="body-root" class="mini-mode hide-labels">
+    <div id="mode-toggle" class="mode-toggle-fixed" onclick="toggleProMode()">👁️</div>
+    <div id="hyper-toggle" class="mode-toggle-fixed hidden" onclick="toggleMiniHypercube()" style="top: 100px;">🧊</div>
+    <div id="logic-toggle" class="mode-toggle-fixed hidden" onclick="toggleQuantumMode()" style="top: 180px;">🪄</div>   
     <div id="leaderboard-wrapper">
         <div class="side-leaderboard-content">
             <h2 class="text-xl font-black mb-3 text-center" style="color: #463438;">🏆 TOP CATS</h2>
@@ -122,16 +142,17 @@
     <div class="w-full max-w-5xl">
         <div class="flex justify-between w-full px-4 mb-4 items-center mt-6">
             <div class="text-3xl font-black" style="color: #463438;">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
-            <div class="flex items-center gap-12 ml-auto">
+            <div class="flex items-center gap-4 ml-auto">
+                <button id="label-toggle-inline" class="mode-toggle-inline" onclick="toggleLabels()">🌈</button>
                 <button id="mode-btn" class="multi-toggle-btn" onclick="cycleLineMode()">Mode: 1</button>
-            <div class="text-3xl font-black" style="color: #7bc202;">LEVEL 8</div>
+                <div class="text-3xl font-black ml-8" style="color: #7bc202;">LEVEL 8</div>
             </div>
         </div>
         <div class="main-layout">
             <div id="pro-panel">
-                <div class="panel-section-title">Quantum Gates</div>
+                <div id="panel-gate-title" class="panel-section-title">Transformations</div>
                 <div id="gate-scroll-area">
-                    <div class="grid grid-cols-4 gap-3 w-full justify-items-center" id="gate-grid"></div>
+                    <div class="flex flex-col gap-2 w-full" id="gate-grid"></div>
                 </div>
                 <div class="panel-section-title mt-2">Control</div>
                 <button class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
@@ -140,11 +161,11 @@
             <div class="game-canvas" id="main-canvas">
                 <div id="ios-indicator">
                     <span class="ind-fraction" id="ind-fraction">1 / 2</span>
+                    <span class="ind-label" id="ind-label"></span>
                 </div>
                 <div id="lines-layer"></div>
                 <div id="nodes-layer"></div>
                 <div id="fishes-layer"></div>
-                
                 <div id="canvas-bottom-btns">
                     <button class="func-btn btn-reset" onclick="resetCircuit()">RESET</button>
                     <button id="undo-btn-bottom" class="func-btn btn-undo" onclick="undo()">UNDO</button>
@@ -152,10 +173,10 @@
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
-            <div class="circuit-title font-black text-xl text-center">Circuit Diagram</div>
-            <div class="qubit-label" style="top: 60px;">q0</div>
-            <div class="qubit-label" style="top: 100px;">q1</div>
-            <div class="qubit-label" style="top: 140px;">q2</div>
+            <div id="circuit-diagram-title" class="circuit-title font-black text-xl text-center" style="color: #463438;">Paths</div>
+            <div id="q0-label" class="qubit-label" style="top: 60px;">d1</div>
+            <div id="q1-label" class="qubit-label" style="top: 100px;">d2</div>
+            <div id="q2-label" class="qubit-label" style="top: 140px;">d3</div>
             <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
         </div>
         <div class="w-full text-center mt-6 mb-6">
@@ -173,961 +194,866 @@
     </div>
     <script>
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
-        let steps = 0,
-            time = 0,
-            isPro = false,
-            timerInterval,
-            gateHistory = [],
-            historyStack = [[]],
-            selectedIndices = [],
-            fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4],
-            isSolved = false,
-            lineMode = 1,
-            hoverLine = null,
-            currentOptionIndex = 0,
-            currentOptions = [],
-            draggedIdx = null;
-        let leaderboardData; 
-        let isShakeCtrlActive = false; 
-        let lastShakeTime = 0;
-        let shakePermissionRequested = false;
+        let steps = 0, time = 0, isPro = false, showMiniHypercube = true, isKidsMode = true, labelState = 0, timerInterval, gateHistory = [], isSolved = false;
+        let selectedIndices = [];
+        let actionStack = [];
+        let fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4];
+        let lineMode = 1;
+        let hoverLine = null;
+        let currentOptionIndex = -1;
+        let currentOptions = [];
+        let draggedIndex = null;
+        let leaderboardData;
         let mobileDragging = false;
-        let mDragIndex = null;
         let dragGhost = null;
-        let isTouchDevice = false; 
-        let activeMobileLine = null;
-        let touchStartY = 0; 
-        let lastSwipeTime = 0;
+        let originalDragEl = null;
+        let mDragIndex = null;
+        let isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+        let lockedLineId = null;
+        let hasScrolled = false;
         let lastTiltDirection = 0;
         const TILT_THRESHOLD = 15;
-        const RETURN_THRESHOLD = 10; 
+        const RETURN_THRESHOLD = 10;
         let gyroPermissionGranted = false;
-        const pop = new Audio('pop.m4a'),
-            meow = new Audio('meow.m4a'),
-            getDynamicOffset = () => parseInt(getComputedStyle(document.body).getPropertyValue('--cube-offset-x')) || 0;
-        const nodePositions = [
-            { t: 150, get l() { return 135 + getDynamicOffset() } },
-            { t: 150, get l() { return 350 + getDynamicOffset() } },
-            { t: 330, get l() { return 135 + getDynamicOffset() } },
-            { t: 330, get l() { return 350 + getDynamicOffset() } },
-            { t: 20,  get l() { return -10 + getDynamicOffset() } },
-            { t: 20,  get l() { return 510 + getDynamicOffset() } },
-            { t: 460, get l() { return -10 + getDynamicOffset() } },
-            { t: 460, get l() { return 510 + getDynamicOffset() } }
-        ];
-        const edges = [[0, 1], [1, 3], [3, 2], [2, 0], [4, 5], [5, 7], [7, 6], [6, 4], [0, 4], [1, 5], [2, 6], [3, 7]];
-        function handleMotion(event) {
-            const acc = event.accelerationIncludingGravity;
-            if (!acc) return;
-            const threshold = 20;
-            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
-            if (delta > threshold) {
-                const now = Date.now();
-                if (now - lastShakeTime > 1000) { 
-                    isShakeCtrlActive = !isShakeCtrlActive;
-                    lastShakeTime = now;
-                    if (navigator.vibrate) navigator.vibrate([100]);
-                    const toast = document.getElementById('shake-toast');
-                    if (toast) {
-                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
-                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
-                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
-                        toast.classList.add('show');
-                        setTimeout(() => { 
-                            toast.classList.remove('show'); 
-                        }, 4000);
-                    }
-                }
-            }
+        let lastSwipeTime = 0;
+        let canvasTouchStartX = 0, canvasTouchStartY = 0;
+        let lastCanvasX = 0, lastCanvasY = 0;
+        let isCanvasSwiping = false;
+        let targetScrollSpeed = 0, currentScrollSpeed = 0, autoScrollRAF = null;
+        let targetGateScrollSpeed = 0, currentGateScrollSpeed = 0, gateAutoScrollRAF = null;
+        let circuitRectCache = null, gateRectCache = null;
+        window.activeDropUnit = null;
+        window.activeDropLeft = null;
+        const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');     
+        const dimColors = {
+            2: '#629eed',
+            1: '#333333',
+            0: '#FFB7C5'
+        };
+        const dimLineStyles = {
+            2: '#629eed',
+            1: 'repeating-linear-gradient(45deg, #463438, #463438 8px, #ffffff 8px, #ffffff 16px)',
+            0: 'repeating-linear-gradient(45deg, #FFB7C5, #FFB7C5 8px, #e2de6e 8px, #e2de6e 16px)'
+        };
+        const getDynamicOffset = () => parseInt(getComputedStyle(document.body).getPropertyValue('--cube-offset-x')) || 0;
+        const nodePositions = Array.from({ length: 8 }, (_, i) => {
+            let t, l_rel;
+            if (i === 0) { t = 150; l_rel = 135; }
+            else if (i === 1) { t = 150; l_rel = 350; }
+            else if (i === 2) { t = 330; l_rel = 135; }
+            else if (i === 3) { t = 330; l_rel = 350; }
+            else if (i === 4) { t = 20;  l_rel = -10; }
+            else if (i === 5) { t = 20;  l_rel = 510; }
+            else if (i === 6) { t = 460; l_rel = -10; }
+            else if (i === 7) { t = 460; l_rel = 510; }
+            const pos = { t: t, relX: l_rel };
+            Object.defineProperty(pos, 'l', { get: () => pos.relX + getDynamicOffset() });
+            return pos;
+        });
+        function getQubitLabelHTML(q, type, sizeClass = '24px') {
+            let borderStyle = type === 1 ? 'solid' : 'dashed';
+            let innerOpac = type === 1 ? 1 : 0.3;
+            let borderColor = type === 1 ? '#463438' : 'rgba(70, 52, 56, 0.3)';
+            const colors = [
+                `#629eed`, 
+                `repeating-linear-gradient(45deg, #463438, #463438 4px, transparent 4px, transparent 8px)`, 
+                `#FFB7C5` 
+            ];
+            return `<div style="width: ${sizeClass}; height: ${sizeClass}; border: 2.5px ${borderStyle} ${borderColor}; border-radius: 50%; background-color: #fff; position: relative; overflow: hidden; box-sizing: border-box;">
+                <div style="position: absolute; inset: 0; background: ${colors[q]}; opacity: ${innerOpac};"></div>
+            </div>`;
         }
-        function requestShakePermission() {
-            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission()
-                    .then(state => {
-                        if (state === 'granted') {
-                            window.addEventListener('devicemotion', handleMotion);
-                        }
-                    }).catch(console.error);
+        function scrollLoop() {
+            const circuitWrapper = document.getElementById('circuit-content-wrapper');
+            currentScrollSpeed += (targetScrollSpeed - currentScrollSpeed) * 0.3;
+            if (Math.abs(currentScrollSpeed) > 0.1 || Math.abs(targetScrollSpeed) > 0) {
+                circuitWrapper.scrollLeft += currentScrollSpeed;
+                autoScrollRAF = requestAnimationFrame(scrollLoop);
             } else {
-                window.addEventListener('devicemotion', handleMotion);
+                currentScrollSpeed = 0;
+                autoScrollRAF = null;
             }
         }
-        window.onload = () => {
-            initGameLayout();
-            initGates();
-            drawStaticLines();
-            updateFishUI();
-            updateUndoStatus();
-            fetchLeaderboard();
-            timerInterval = setInterval(() => {
-                time++;
-                document.getElementById('timer').innerText = time;
-            }, 1000);
-            const requestGyroPermission = async () => {
-                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                    try {
-                        const permission = await DeviceOrientationEvent.requestPermission();
-                        if (permission === 'granted') {
-                            gyroPermissionGranted = true;
-                        }
-                    } catch (error) {
-                        console.log("Gyroscope access granted", error);
-                    }
+        function gateScrollLoop() {
+            const gateScrollArea = document.getElementById('gate-scroll-area');
+            currentGateScrollSpeed += (targetGateScrollSpeed - currentGateScrollSpeed) * 0.3;
+            if (Math.abs(currentGateScrollSpeed) > 0.1 || Math.abs(targetGateScrollSpeed) > 0) {
+                gateScrollArea.scrollTop += currentGateScrollSpeed;
+                gateAutoScrollRAF = requestAnimationFrame(gateScrollLoop);
+            } else {
+                currentGateScrollSpeed = 0;
+                gateAutoScrollRAF = null;
+            }
+        }
+        function handleCircuitScroll(e) {
+            const circuitWrapper = document.getElementById('circuit-content-wrapper');
+            if (!circuitRectCache) circuitRectCache = circuitWrapper.getBoundingClientRect();
+            const rect = circuitRectCache;
+            const edgeThreshold = 100, maxSpeed = 10;
+            let distLeft = e.clientX - rect.left;
+            let distRight = rect.right - e.clientX;
+            if (distLeft < edgeThreshold && distLeft > -50) {
+                let ratio = Math.max(0, 1 - (Math.max(0, distLeft) / edgeThreshold));
+                targetScrollSpeed = -(ratio * maxSpeed);
+                if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else if (distRight < edgeThreshold && distRight > -50) {
+                let ratio = Math.max(0, 1 - (Math.max(0, distRight) / edgeThreshold));
+                targetScrollSpeed = (ratio * maxSpeed);
+                if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else {
+                targetScrollSpeed = 0;
+            }
+        }
+        function handleGateScroll(e) {
+            const gateScrollArea = document.getElementById('gate-scroll-area');
+            if (!gateRectCache) gateRectCache = gateScrollArea.getBoundingClientRect();
+            const rect = gateRectCache;
+            const edgeThreshold = 100, maxSpeed = 10;
+            if (gateScrollArea.scrollHeight > gateScrollArea.clientHeight) {
+                let distTop = e.clientY - rect.top;
+                let distBottom = rect.bottom - e.clientY;
+                if (distTop < edgeThreshold && distTop > -50) {
+                    let ratio = Math.max(0, 1 - (Math.max(0, distTop) / edgeThreshold));
+                    targetGateScrollSpeed = -(ratio * maxSpeed);
+                    if (!gateAutoScrollRAF) gateAutoScrollRAF = requestAnimationFrame(gateScrollLoop);
+                } else if (distBottom < edgeThreshold && distBottom > -50) {
+                    let ratio = Math.max(0, 1 - (Math.max(0, distBottom) / edgeThreshold));
+                    targetGateScrollSpeed = (ratio * maxSpeed);
+                    if (!gateAutoScrollRAF) gateAutoScrollRAF = requestAnimationFrame(gateScrollLoop);
                 } else {
-                    gyroPermissionGranted = true;
+                    targetGateScrollSpeed = 0;
                 }
-                window.removeEventListener('click', requestGyroPermission);
-                window.removeEventListener('touchstart', requestGyroPermission);
-            };
-            window.addEventListener('click', requestGyroPermission);
-            window.addEventListener('touchstart', requestGyroPermission);
-            const btnPro = document.getElementById('mode-toggle'); 
-            const btnMode = document.getElementById('mode-btn');   
-            if (btnPro) btnPro.addEventListener('click', requestGyroPermission);
-            if (btnMode) btnMode.addEventListener('click', requestGyroPermission);
-            document.getElementById('circuit-content-wrapper').addEventListener('wheel', (e) => {
-                e.preventDefault();
-                e.currentTarget.scrollLeft += e.deltaY;
-            });
-            document.addEventListener('wheel', (e) => {
-                if (!hoverLine || lineMode === 1) return;
-                e.preventDefault();
-                if (e.deltaY > 0) {
-                    currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                } else {
-                    currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+            }
+        }       
+        function getRgba(hex, alpha) {
+            hex = hex.replace('#', '');
+            const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }  
+        function getDimFromGateType(type) {
+            if (type.startsWith('X')) return 2 - parseInt(type[1]);
+            if (type.startsWith('CX')) return 2 - parseInt(type[4]);
+            if (type.startsWith('SWAP_')) {
+                let p = type.split('_');
+                return Math.round(Math.log2(parseInt(p[1]) ^ parseInt(p[2])));
+            }
+            return null;
+        }
+        function getHighlightPairsForGate(type) {
+            let pairs = [];
+            if (type.startsWith('X')) {
+                pairs = getAllPairs(2 - parseInt(type[1]));
+            } else if (type.startsWith('CX')) {
+                let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]);
+                let bit = 1 << (2 - t), cBit = 1 << (2 - c);
+                for (let k = 0; k < 8; k++) {
+                    if ((k & bit) === 0 && ((k & cBit) >> (2 - c)) === ctrlVal) pairs.push([k, k ^ bit]);
                 }
-                showIndicator();
-            }, { passive: false });
-            window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
-            const canvas = document.getElementById('main-canvas');
-            canvas.addEventListener('touchstart', (e) => {
-                if (!e.target.classList.contains('connection-line')) {
-                    activeMobileLine = null;
-                    hoverLine = null;
-                    hideIndicator();
-                }
-            });
-            canvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1 && activeMobileLine) {
-                    touchStartY = e.touches[0].clientY;
-                }
-            }, { passive: true });
-            canvas.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && activeMobileLine) {
-                    if (lineMode === 1) return; 
-                    if (e.cancelable) e.preventDefault(); 
-                    let currentY = e.touches[0].clientY;
-                    let diff = currentY - touchStartY;
-                    let now = Date.now();
-                    if (Math.abs(diff) > 25 && (now - lastSwipeTime > 250)) {
-                        if (diff > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                        touchStartY = currentY; 
-                        lastSwipeTime = now;
-                    }
-                }
-            }, { passive: false });
-            canvas.addEventListener('touchend', () => { touchStartY = 0; });
-            const indicator = document.getElementById('ios-indicator');
-            canvas.addEventListener('mousemove', (e) => {
-                if (indicator.classList.contains('active') && !isTouchDevice) {
-                    const rect = canvas.getBoundingClientRect();
-                    indicator.style.left = (e.clientX - rect.left) + 'px';
-                    indicator.style.top = (e.clientY - rect.top - 12) + 'px';
-                }
-            });
-            window.addEventListener('deviceorientation', (e) => {
-                if (!isTouchDevice || !activeMobileLine || lineMode === 1) return;
-                let orientation = window.orientation || (screen.orientation && screen.orientation.angle) || 0;
-                let tilt = 0;
-                if (orientation === 0) {
-                    tilt = e.gamma;
-                } else if (orientation === 90) {
-                    tilt = e.beta; 
-                } else if (orientation === -90 || orientation === 270) {
-                    tilt = -e.beta;
-                } else if (orientation === 180) {
-                    tilt = -e.gamma;
-                }
-                if (tilt === null) return; 
-                if (lastTiltDirection === 0) {
-                    if (tilt > TILT_THRESHOLD) {
-                        lastTiltDirection = 1;
-                        currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                    } else if (tilt < -TILT_THRESHOLD) {
-                        lastTiltDirection = -1;
-                        currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
-                        showIndicator();
-                        if ('vibrate' in navigator) navigator.vibrate(20);
-                    }
-                } else {
-                    if (Math.abs(tilt) < RETURN_THRESHOLD) {
-                        lastTiltDirection = 0;
-                    }
-                }
+            } else if (type.startsWith('SWAP_')) {
+                let p = type.split('_');
+                pairs.push([parseInt(p[1]), parseInt(p[2])]);
+            }
+            return pairs;
+        }
+        window.clearHighlight = function() { 
+            document.querySelectorAll('.connection-line').forEach(l=>{
+                l.classList.remove('line-highlight');
+                l.style.removeProperty('--hl-bg');
+                l.style.removeProperty('--hl-shadow');
+            }); 
+            document.querySelectorAll('.gate-btn-v2').forEach(b=>b.classList.remove('btn-highlight'));
+            
+            document.querySelectorAll('.bit').forEach(el => {
+                el.style.transform = '';
+                el.style.color = '';
+                el.style.textShadow = '';
+                el.style.background = '';
             });
         };
-        function startMobileDrag(touch, el, index) {
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
-            mobileDragging = true;
-            mDragIndex = index;
-            if (navigator.vibrate) navigator.vibrate(50);
-
-            dragGhost = el.cloneNode(true);
-            dragGhost.style.position = 'fixed';
-            dragGhost.style.zIndex = '999999';
-            dragGhost.style.opacity = '0.8';
-            dragGhost.style.pointerEvents = 'none';
-            dragGhost.style.transition = 'none';
-            dragGhost.classList.remove('selected'); 
-            const rect = el.getBoundingClientRect();
-            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
-            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
-            document.body.appendChild(dragGhost);
-            el.style.opacity = '0.35';
-        }
-        function moveMobileDrag(touch) {
-            if (!dragGhost) return;
-            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
-            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
-        }
-        function endMobileDrag(touch) {
-            mobileDragging = false;
-            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
-            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
-            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-            let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
-            if (dropUnit) {
-                let children = Array.from(document.getElementById('circuit-content').children);
-                let targetIndex = children.indexOf(dropUnit);
-                if (targetIndex > -1 && targetIndex !== mDragIndex) {
-                    pop.currentTime = 0; pop.play();
-                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
-                    gateHistory.splice(targetIndex, 0, movedItem);
-                    historyStack.push([...gateHistory]);
-                    selectedIndices = [];
-                    recalculate();
+        window.highlightPairs = function(pairs, dim = null) {
+            clearHighlight();
+            let bg = '#99C44D';
+            let shadow = 'rgba(153, 196, 77, 0.8)';
+            if (dim !== null) {
+                bg = dimLineStyles[dim] || bg;
+                shadow = getRgba(dimColors[dim] === '#000000' ? '#555555' : dimColors[dim], 0.8) || shadow;
+            }
+            if (labelState === 0) {
+                pairs.forEach(([a,b])=>{ 
+                    const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`); 
+                    if(el) { 
+                        el.classList.add('line-highlight'); 
+                        el.style.setProperty('--hl-bg', bg); 
+                        el.style.setProperty('--hl-shadow', shadow); 
+                    } 
+                });
+                return;
+            }          
+            pairs.forEach(([a,b])=>{ 
+                const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`); 
+                if(el) { 
+                    el.classList.add('line-highlight'); 
+                    el.style.setProperty('--hl-bg', bg); 
+                    el.style.setProperty('--hl-shadow', shadow); 
+                } 
+            });
+            if(dim !== null) {
+                document.querySelectorAll(`.bit-${dim}`).forEach(el => {
+                    el.style.transform = 'scale(1.5) translateY(-2px)';
+                    el.style.color = dimColors[dim];
+                    el.style.textShadow = '0 0 3px #fff, 0px 2px 0px rgba(0,0,0,0.3)';
+                    el.style.background = 'radial-gradient(circle, rgba(255,255,255,0.75) 20%, transparent 75%)';
+                });
+            }
+        };
+        function highlightGateButton(type) {
+            document.querySelectorAll('.gate-btn-v2').forEach(btn => btn.classList.remove('btn-highlight'));
+            if(type) {
+                const btn = document.getElementById(`gate-btn-${type}`);
+                if(btn) {
+                    btn.classList.add('btn-highlight');
+                    const container = document.getElementById('gate-scroll-area');
+                    const btnRect = btn.getBoundingClientRect();
+                    const containerRect = container.getBoundingClientRect();
+                    if (btnRect.top < containerRect.top) container.scrollTo({ top: container.scrollTop - (containerRect.top - btnRect.top + 10), behavior: 'smooth' });
+                    else if (btnRect.bottom > containerRect.bottom) container.scrollTo({ top: container.scrollTop + (btnRect.bottom - containerRect.bottom + 10), behavior: 'smooth' });
                 }
             }
-            mDragIndex = null;
         }
-        function toggleLeaderboard() {
-            const wrapper = document.getElementById('leaderboard-wrapper');
-            wrapper.classList.toggle('expanded');
+        window.highlightByGate = function(type) {
+            highlightPairs(getHighlightPairsForGate(type), getDimFromGateType(type));
+            highlightGateButton(type);
+        };
+        function getGateColorMap(type) {
+            if (type.startsWith('SWAP')) return '#e2de6e';
+            if (type.startsWith('CX')) return '#629eed';
+            if (type.startsWith('X')) return '#b583e5';
+            return '#fff';
+        }
+        function getMiniHypercubeSVG(type) {
+            let pairs = getHighlightPairsForGate(type);
+            const miniNodes = nodePositions.map(n => ({ x: (n.relX + 10) / 520 * 70 + 15, y: (n.t - 20) / 440 * 70 + 15 }));
+            let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
+            for(let i=0; i<8; i++) {
+                for(let b=0; b<3; b++) {
+                    let j = i ^ (1<<b);
+                    if(j > i) {
+                        let n1 = miniNodes[i], n2 = miniNodes[j];
+                        let isHighlighted = pairs.some(p => (p[0]===i && p[1]===j) || (p[0]===j && p[1]===i));
+                        let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
+                        let strokeW = isHighlighted ? 5 : 1.2;
+                        svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
+                    }
+                }
+            }
+            for(let i=0; i<8; i++) {
+                let n = miniNodes[i];
+                svg += `<circle cx="${n.x}" cy="${n.y}" r="3.5" fill="#463438"/>`;
+            }
+            svg += `</svg>`;
+            return svg;
+        }       
+        function getGateContent(type) {
+            if (showMiniHypercube) {
+                return getMiniHypercubeSVG(type);
+            } else {
+                let controls = [], target = -1;
+                if (type.startsWith('X')) { target = parseInt(type[1]); } 
+                else if (type.startsWith('CX')) { controls.push({ line: parseInt(type[3]), type: parseInt(type[2]) }); target = parseInt(type[4]); } 
+                else if (type.startsWith('SWAP_')) {
+                    let p = type.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]);
+                    target = 2 - Math.round(Math.log2(iA ^ iB));
+                    let binary = Math.min(iA, iB).toString(2).padStart(3, '0').split('').map(Number);
+                    for (let q = 0; q < 3; q++) if (q !== target) controls.push({ line: q, type: binary[q] });
+                }               
+                let content = '';
+                const getY = (q) => 19 + q * 18.5;
+                if (controls.length > 0) {
+                    const allQs = [target, ...controls.map(c => c.line)];
+                    const minQ = Math.min(...allQs), maxQ = Math.max(...allQs);
+                    content += `<div class="gate-v-line" style="top:${getY(minQ)}px; height:${(maxQ-minQ)*18.5}px;"></div>`;
+                }               
+                if (isKidsMode) {
+                    controls.forEach(ctrl => {
+                        content += `<div style="position:absolute; left:50%; transform:translate(-50%, -50%); top:${getY(ctrl.line)}px; z-index:2;">${getQubitLabelHTML(ctrl.line, ctrl.type, '18px')}</div>`;
+                    });
+                    content += `<div style="position:absolute; left:50%; transform:translate(-50%, -50%); top:${getY(target)}px; width:22px; height:22px; display:flex; align-items:center; justify-content:center; background:#e2de6e; border: 2px solid #463438; border-radius:50%; box-sizing:border-box; padding:2px; z-index:6;"><img src="./image/change.svg" style="width:100%; height:100%;"></div>`;
+                } else {
+                    controls.forEach(ctrl => { content += `<div class="gate-dot ${ctrl.type === 1 ? 'fill' : 'empty'}" style="top:${getY(ctrl.line)}px;"></div>`; });
+                    content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
+                }
+                return content;
+            }
+        }       
+        function updateUIState() {
+            document.getElementById('mode-toggle').innerText = isPro ? "⚡" : "👁️";
+            const hyperBtn = document.getElementById('hyper-toggle');
+            const logicBtn = document.getElementById('logic-toggle');
+
+            if (isPro) {
+                document.getElementById('body-root').classList.add('pro-active');
+                hyperBtn.classList.remove('hidden');
+                hyperBtn.innerText = showMiniHypercube ? "🍡" : "🧊";
+                if (!showMiniHypercube) {
+                    logicBtn.classList.remove('hidden');
+                    logicBtn.innerText = isKidsMode ? "⚛️" : "🪄";
+                } else {
+                    logicBtn.classList.add('hidden');
+                }
+            } else {
+                document.getElementById('body-root').classList.remove('pro-active');
+                hyperBtn.classList.add('hidden');
+                logicBtn.classList.add('hidden');
+            }
+            if (showMiniHypercube) {
+                document.getElementById('circuit-diagram-title').innerText = "Paths";
+                document.getElementById('panel-gate-title').innerText = "Transformations";
+                document.getElementById('body-root').classList.add('mini-mode');
+            } else {
+                document.getElementById('circuit-diagram-title').innerText = isKidsMode ? "Kids Rules" : "Circuit Diagram";
+                document.getElementById('panel-gate-title').innerText = isKidsMode ? "Magic Rules" : "Quantum Gates";
+                document.getElementById('body-root').classList.remove('mini-mode');
+            }
+
+            for(let i=0; i<3; i++) {
+                const label = document.getElementById(`q${i}-label`);
+                if (!showMiniHypercube && isKidsMode) {
+                    label.innerHTML = getQubitLabelHTML(i, 1, '28px');
+                    label.style.left = '5px';
+                } else {
+                    label.innerHTML = (!showMiniHypercube) ? `q${i}` : `d${i+1}`;
+                    label.style.left = '0px';
+                }
+            }
+
+            initGates();
+            renderCircuit();
+        }
+        function toggleProMode() {
+            pop.currentTime = 0; pop.play();
+            isPro = !isPro;
+            updateUIState();
+            
+            let startTime = Date.now();
+            const animateMove = () => {
+                for (let i = 0; i < 8; i++) {
+                    const n = document.getElementById(`node-${i}`);
+                    if (n) { n.style.left = nodePositions[i].l + "px"; n.style.top = nodePositions[i].t + "px"; }
+                }
+                drawStaticLines();
+                updateFishUI();
+                if (Date.now() - startTime < 600) requestAnimationFrame(animateMove);
+            };
+            requestAnimationFrame(animateMove);
+        }
+        function toggleMiniHypercube() {
+            pop.currentTime = 0; pop.play();
+            showMiniHypercube = !showMiniHypercube;
+            updateUIState();
+        }
+        function toggleQuantumMode() {
+            pop.currentTime = 0; pop.play();
+            isKidsMode = !isKidsMode;
+            updateUIState();
+        }
+        function toggleLabels() {
+            pop.currentTime = 0; pop.play();
+            labelState = (labelState + 1) % 3;
+            const btn = document.getElementById('label-toggle-inline');
+            const root = document.getElementById('body-root');
+            if (labelState === 0) {
+                btn.innerText = "🌈"; 
+                root.classList.add('hide-labels');
+                root.classList.remove('labels-colorful');
+            } else if (labelState === 1) {
+                btn.innerText = "🏷️"; 
+                root.classList.remove('hide-labels');
+                root.classList.add('labels-colorful');
+            } else {
+                btn.innerText = "🚫"; 
+                root.classList.remove('hide-labels');
+                root.classList.remove('labels-colorful');
+            }
         }
         function initGates() {
             const grid = document.getElementById('gate-grid');
             let html = '';
-            const getGateIcon = (type) => {
-                let ctrl = [], target = -1, zero = [];
-                if (type.startsWith('X')) target = parseInt(type[1]);
-                else if (type.startsWith('CX')) {
-                    ctrl = [parseInt(type[2])]; target = parseInt(type[3]);
-                } else if (type.startsWith('C0X')) {
-                    ctrl = [parseInt(type[3])]; target = parseInt(type[4]); zero = [parseInt(type[3])];
-                } else if (type.startsWith('TOF')) {
-                    let s = type.split('_')[0].replace('TOF', ''), parts = [];
-                    for (let i = 0; i < s.length; i++) {
-                        if (s[i + 1] === 'p') {
-                            parts.push({ v: parseInt(s[i]), p: true }); i++;
-                        } else parts.push({ v: parseInt(s[i]), p: false });
-                    }
-                    target = parts.pop().v;
-                    parts.forEach(p => { ctrl.push(p.v); if (p.p) zero.push(p.v); });
-                }
-                let content = '';
-                const getY = (q) => 15 + q * 15;
-                if (ctrl.length > 0) {
-                    const allQs = [target, ...ctrl];
-                    const minQ = Math.min(...allQs), maxQ = Math.max(...allQs);
-                    content += `<div class="gate-v-line" style="top:${getY(minQ)}px; height:${(maxQ-minQ)*15}px;"></div>`;
-                }
-                ctrl.forEach(q => {
-                    const isZero = zero.includes(q);
-                    content += `<div class="gate-dot ${isZero ? 'empty' : 'fill'}" style="top:${getY(q)}px;"></div>`;
+            let gateOrderX = [], gateOrderCX = [], gateOrderSWAP = [], added = new Set();
+            let edges = [];
+            for (let dim=0; dim<3; dim++) for (let i=0; i<8; i++) { let j = i ^ (1<<dim); if (i < j) edges.push({i, j, dim}); }
+            for(let dim=0; dim<3; dim++) { let g = `X${2-dim}`; if(!added.has(g)) { gateOrderX.push(g); added.add(g); } }
+            edges.forEach(edge => {
+                const targetQ = 2 - edge.dim;
+                const ctrlPool = [0,1,2].filter(q=>q!==targetQ);
+                ctrlPool.forEach(c => { 
+                    const val = (edge.i >> (2-c)) & 1;
+                    let g = `CX${val}${c}${targetQ}`;
+                    if(!added.has(g)) { gateOrderCX.push(g); added.add(g); }
                 });
-                if (target !== -1) {
-                    content += `<div class="gate-target-circle" style="top:${getY(target)}px;"></div>`;
-                }
-                return content;
-            };
-            const wrapBtn = (type, extraClass = "") => {
-                if (type.startsWith('X')) extraClass += " gate-not";
-                if (type.startsWith('TOF')) extraClass += " gate-tof";
-                return `<button class="gate-btn-v2 ${extraClass}"
-                    onmouseenter="previewGate('${type}')"
-                    onmouseleave="hideIndicator()"
-                    onclick="applyGate('${type}')">${getGateIcon(type)}</button>`;
-            };
-            for(let i=0; i<3; i++) html += wrapBtn(`X${i}`, "");
-            html += `<div style="width: 45px"></div>`;
-            for(let i=0; i<3; i++) {
-                for(let j=0; j<3; j++) {
-                    if(i !== j) {
-                        html += wrapBtn(`CX${i}${j}`, "");
-                        html += wrapBtn(`C0X${i}${j}`, "");
-                    }
-                }
-            }
-            const tofs = [ [0,1,2], [0,2,1], [1,2,0] ];
-            tofs.forEach(([c1,c2,t]) => {
-                html += wrapBtn(`TOF${c1}${c2}${t}`, "");
-                html += wrapBtn(`TOF${c1}p${c2}p${t}`, "");
-                html += wrapBtn(`TOF${c1}p${c2}${t}`, "");
-                html += wrapBtn(`TOF${c1}${c2}p${t}`, "");
             });
+            edges.forEach(edge => { let g = `SWAP_${edge.i}_${edge.j}`; if(!added.has(g)) { gateOrderSWAP.push(g); added.add(g); } });          
+            const wrapBtn = (type) => {
+                const hex = getGateColorMap(type);
+                const rgbaLight = getRgba(hex, 0.35);
+                const isQuantumGateMode = !showMiniHypercube;
+                const bgImage = isQuantumGateMode ? `linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438)` : `none`;
+                return `<button id="gate-btn-${type}" class="gate-btn-v2" style="background-color: ${rgbaLight}; background-image: ${bgImage};" onmouseenter="highlightByGate('${type}')" onmouseleave="clearHighlight()" onclick="applyGate('${type}')">${getGateContent(type)}</button>`;
+            }; 
+            html += `<div class="flex flex-wrap justify-center gap-2 w-full">` + gateOrderX.map(g => wrapBtn(g)).join('') + `</div>`;
+            html += `<div class="flex flex-wrap justify-center gap-2 w-full">` + gateOrderCX.map(g => wrapBtn(g)).join('') + `</div>`;
+            html += `<div class="flex flex-wrap justify-center gap-2 w-full">` + gateOrderSWAP.map(g => wrapBtn(g)).join('') + `</div>`;
             grid.innerHTML = html;
         }
-        async function fetchLeaderboard() {
-            const listArea = document.getElementById('rankList');
-            try {
-                const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=8`);
-                const data = await response.json();
-                if (data && Array.isArray(data) && data.length > 0) {
-                    leaderboardData = data;
-                    renderRank('steps');
-                } else {
-                    listArea.innerHTML = '<p class="text-center italic text-gray-400 mt-10 text-sm">No records yet</p>';
+        function flashGateLines(type) {
+            let dim = getDimFromGateType(type);
+            let pairs = getHighlightPairsForGate(type);
+            pairs.forEach(([a, b]) => { 
+                const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`); 
+                if (el) {
+                    el.classList.add('swap-active');
+                    el.style.setProperty('--hl-bg', dim !== null ? dimLineStyles[dim] : '#99C44D'); 
+                    el.style.setProperty('--hl-shadow', dim !== null ? getRgba(dimColors[dim] === '#000000' ? '#555555' : dimColors[dim], 0.8) : 'rgba(153, 196, 77, 0.8)');
                 }
-            } catch (e) {
-                console.error("Leaderboard Error:", e);
-                listArea.innerHTML = '<p class="text-center italic text-red-400 mt-10 text-sm">Load Error</p>';
-            }
-        }
-        function renderRank(type) {
-            const tabSteps = document.getElementById('tab-steps');
-            const tabTime = document.getElementById('tab-time');
-            const listArea = document.getElementById('rankList');
-            if (type === 'steps') {
-                tabSteps.className = 'rank-tab active';
-                tabTime.className = 'rank-tab bg-gray-100';
-            } else {
-                tabSteps.className = 'rank-tab bg-gray-100';
-                tabTime.className = 'rank-tab active';
-            }
-            if (!leaderboardData || leaderboardData.length === 0) return;
-            const sorted = [...leaderboardData].sort((a, b) => a[type] - b[type]);
-            let html = "";
-            sorted.slice(0, 10).forEach((item, index) => {
-                const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : (index + 1) + ".";
-                const displayName = item.username || item.name || 'Anonymous';
-                const displayValue = type === 'steps' ? item.steps + '🐾' : item.time + 's';
-                html += `
-                    <div class="rank-item">
-                        <span class="truncate" style="max-width: 90px;">${medal} ${displayName}</span>
-                        <span class="text-blue-600">${displayValue}</span>
-                    </div>`;
             });
-            listArea.innerHTML = html;
-        }
-        function cycleLineMode() {
-            pop.currentTime = 0;
-            pop.play();
-            if (lineMode === 1) lineMode = 2;
-            else if (lineMode === 2) lineMode = 4;
-            else lineMode = 1;
-            const btn = document.getElementById('mode-btn');
-            btn.innerText = `Mode: ${lineMode}`;
-            btn.classList.remove('mode-2', 'mode-4');
-            if (lineMode === 2) btn.classList.add('mode-2');
-            else if (lineMode === 4) btn.classList.add('mode-4');
-            hideIndicator();
-        }
-        function highlightPairs(pairs) {
-            clearHighlight();
-            pairs.forEach(([a, b]) => {
-                const key = Math.min(a, b) + '-' + Math.max(a, b);
-                edges.forEach((edge, index) => {
-                    const edgeKey = Math.min(edge[0], edge[1]) + '-' + Math.max(edge[0], edge[1]);
-                    if (edgeKey === key) {
-                        const lineEl = document.getElementById(`line-edge-${index}`);
-                        if (lineEl) lineEl.classList.add('line-highlight');
-                    }
-                });
-            });
-        }
-        function buildGateOptions3Bit(idxA, idxB) {
-            const diff = idxA ^ idxB;
-            const targetBit = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
-            const otherBits = [0, 1, 2].filter(b => b !== targetBit);
-            const options = [];
-            if (lineMode === 4) {
-                options.push({
-                    gateType: `X${targetBit}`,
-                    highlightPairs: edges.filter(([u, v]) => (u ^ v) === diff).map(([u, v]) => [u, v])
-                });
-            } else if (lineMode === 2) {
-                const ctrlBit = otherBits[0];
-                const ctrlMask = 1 << (2 - ctrlBit);
-                const ctrlVal = ((idxA & ctrlMask) !== 0) ? 1 : 0;
-                const gateA = ctrlVal ? `CX${ctrlBit}${targetBit}` : `C0X${ctrlBit}${targetBit}`;
-                const pairsA = edges.filter(([u, v]) => {
-                    if ((u ^ v) !== diff) return false;
-                    return (u & ctrlMask) === (idxA & ctrlMask);
-                }).map(([u, v]) => [u, v]);
-                const otherCtrlBit = otherBits[1];
-                const otherCtrlMask = 1 << (2 - otherCtrlBit);
-                const otherCtrlVal = ((idxA & otherCtrlMask) !== 0) ? 1 : 0;
-                const gateB = otherCtrlVal ? `CX${otherCtrlBit}${targetBit}` : `C0X${otherCtrlBit}${targetBit}`;
-                const pairsB = edges.filter(([u, v]) => {
-                    if ((u ^ v) !== diff) return false;
-                    return (u & otherCtrlMask) === (idxA & otherCtrlMask);
-                }).map(([u, v]) => [u, v]);
-                options.push(
-                    { gateType: gateA, highlightPairs: pairsA },
-                    { gateType: gateB, highlightPairs: pairsB }
-                );
-            }
-            return options;
-        }
-        function clearHighlight() {
-            document.querySelectorAll('.connection-line').forEach(line => {
-                line.classList.remove('line-highlight');
-            });
-        }
-        function showIndicator() {
-            const pill = document.getElementById('ios-indicator');
-            const frac = document.getElementById('ind-fraction');
-            const opt = currentOptions[currentOptionIndex];
-            if (!opt) return;
-            frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`;
-            pill.classList.add('active');
-            clearHighlight();
-            highlightPairs(opt.highlightPairs);
-        }
-        function hideIndicator() {
-            document.getElementById('ios-indicator').classList.remove('active');
-            clearHighlight();
-        }
-        function previewGate(gateType) {
-            if (isSolved) return;
-            let targetBit = -1, ctrlBit = -1, ctrlVal = -1, tofBits = [];
-            if (gateType.startsWith('X')) {
-                targetBit = parseInt(gateType[1]);
-            } else if (gateType.startsWith('CX')) {
-                ctrlBit = parseInt(gateType[2]);
-                targetBit = parseInt(gateType[3]);
-                ctrlVal = 1;
-            } else if (gateType.startsWith('C0X')) {
-                ctrlBit = parseInt(gateType[3]);
-                targetBit = parseInt(gateType[4]);
-                ctrlVal = 0;
-            } else if (gateType.startsWith('TOF')) {
-                let s = gateType.replace('TOF', '');
-                let parts = [];
-                for (let i = 0; i < s.length; i++) {
-                    if (s[i + 1] === 'p') {
-                        parts.push({ v: parseInt(s[i]), p: true });
-                        i++;
-                    } else parts.push({ v: parseInt(s[i]), p: false });
-                }
-                let targetPart = parts.pop();
-                targetBit = targetPart.v;
-                tofBits = parts;
-            }
-            const diff = (targetBit === 0) ? 4 : (targetBit === 1) ? 2 : 1;
-            const pairs = edges.filter(([u, v]) => {
-                if ((u ^ v) !== diff) return false;
-                if (ctrlBit !== -1) {
-                    const mask = 1 << (2 - ctrlBit);
-                    const val = (u & mask) ? 1 : 0;
-                    return val === ctrlVal;
-                }
-                if (tofBits.length > 0) {
-                    return tofBits.every(ctrl => {
-                        const mask = 1 << (2 - ctrl.v);
-                        const val = (u & mask) ? 1 : 0;
-                        return ctrl.p ? val === 0 : val === 1;
-                    });
-                }
-                return true;
-            }).map(([u, v]) => [u, v]);
-            highlightPairs(pairs);
-        }
-	function flashGateLines(type) {
-            let targetBit = -1, ctrlBit = -1, ctrlVal = -1, tofBits = [];
-            
-            if (type.startsWith('X')) {
-                targetBit = parseInt(type[1]);
-            } else if (type.startsWith('CX')) {
-                ctrlBit = parseInt(type[2]);
-                targetBit = parseInt(type[3]);
-                ctrlVal = 1;
-            } else if (type.startsWith('C0X')) {
-                ctrlBit = parseInt(type[3]);
-                targetBit = parseInt(type[4]);
-                ctrlVal = 0;
-            } else if (type.startsWith('TOF')) {
-                let s = type.replace('TOF', '');
-                let parts = [];
-                for (let i = 0; i < s.length; i++) {
-                    if (s[i + 1] === 'p') {
-                        parts.push({ v: parseInt(s[i]), p: true }); i++;
-                    } else parts.push({ v: parseInt(s[i]), p: false });
-                }
-                let targetPart = parts.pop();
-                targetBit = targetPart.v;
-                tofBits = parts;
-            }
-            
-            const diff = (targetBit === 0) ? 4 : (targetBit === 1) ? 2 : 1;
-            const pairs = edges.filter(([u, v]) => {
-                if ((u ^ v) !== diff) return false;
-                if (ctrlBit !== -1) {
-                    const mask = 1 << (2 - ctrlBit);
-                    return ((u & mask) ? 1 : 0) === ctrlVal;
-                }
-                if (tofBits.length > 0) {
-                    return tofBits.every(ctrl => {
-                        const mask = 1 << (2 - ctrl.v);
-                        const val = (u & mask) ? 1 : 0;
-                        return ctrl.p ? val === 0 : val === 1;
-                    });
-                }
-                return true;
-            });
-
-            // 針對 3-bit Level 的邊緣 (edges) 綁定動畫特效
-            const activeElements = [];
-            pairs.forEach(([a, b]) => {
-                const key = Math.min(a, b) + '-' + Math.max(a, b);
-                edges.forEach((edge, index) => {
-                    const edgeKey = Math.min(edge[0], edge[1]) + '-' + Math.max(edge[0], edge[1]);
-                    if (edgeKey === key) {
-                        const lineEl = document.getElementById(`line-edge-${index}`);
-                        if (lineEl) {
-                            lineEl.classList.add('swap-active');
-                            activeElements.push(lineEl);
-                        }
-                    }
-                });
-            });
-
-            // 動畫結束後徹底清除狀態
             setTimeout(() => {
-                activeElements.forEach(el => el.classList.remove('swap-active'));
+                pairs.forEach(([a, b]) => { 
+                    const el = document.getElementById(`line-${Math.min(a,b)}-${Math.max(a,b)}`); 
+                    if (el) el.classList.remove('swap-active'); 
+                });
                 clearHighlight();
             }, 500);
-        }
-        function initGameLayout() {
-            const nL = document.getElementById('nodes-layer'),
-                fL = document.getElementById('fishes-layer');
-            for (let i = 0; i < 8; i++) {
-                let bin = i.toString(2).padStart(3, '0');
-                nL.innerHTML += `<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px; left:${nodePositions[i].l}px;"><div class="fixed-number">${bin}</div><img src="./image/Cat${i+1}.svg"></div>`;
-                fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper"><div class="fish-label">${bin}</div><img src="./image/Fish${i+1}.svg"></div>`;
-            }
         }
         function drawStaticLines() {
             const layer = document.getElementById('lines-layer');
             layer.innerHTML = '';
-            edges.forEach((e, index) => createLine(e[0], e[1], index));
+            for (let i = 0; i < 8; i++) for (let b = 0; b < 3; b++) { let j = i ^ (1 << b); if (j > i) createLine(i, j, b); }
         }
-        function createLine(i, j, index) {
-            const n1 = nodePositions[i],
-                n2 = nodePositions[j],
-                x1 = n1.l + 60,
-                y1 = n1.t + 60,
-                x2 = n2.l + 60,
-                y2 = n2.t + 60;
-            const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2),
-                ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        function createLine(i, j, dim) {
+            const n1 = nodePositions[i], n2 = nodePositions[j];
+            const x1 = n1.l + 65, y1 = n1.t + 65, x2 = n2.l + 65, y2 = n2.t + 65;
+            const len = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+            const ang = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
             const line = document.createElement('div');
             line.className = 'connection-line';
-            line.id = `line-edge-${index}`;
-            line.style.cssText = `width:${len}px; height:4px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
-            
-            line.onmouseenter = () => {
-                if (isTouchDevice || isSolved) return;
-                hoverLine = { i, j };
-                if (lineMode === 1) return;
-                currentOptions = buildGateOptions3Bit(i, j);
-                currentOptionIndex = 0;
-                showIndicator();
-            };
-            line.onmouseleave = () => {
-                if (isTouchDevice) return;
-                hoverLine = null;
-                hideIndicator();
-            };
+            line.id = `line-${Math.min(i,j)}-${Math.max(i,j)}`;
+            line.style.cssText = `width:${len}px; left:${x1}px; top:${y1}px; transform:rotate(${ang}deg); transform-origin:0 50%;`;
+            line.style.height='3px'; line.style.background='#463438';
+            line.onmouseenter = () => { if (isTouchDevice || lockedLineId) return; hoverLine = { i, j, dim }; if (lineMode === 4) { highlightPairs(getAllPairs(dim), dim); highlightGateButton(`X${2 - dim}`); } else if (lineMode === 1) { highlightPairs([[i, j]], dim); highlightGateButton(`SWAP_${i}_${j}`); } else { highlightPairs([[i, j]], dim); } };
+            line.onmouseleave = () => { if (isTouchDevice || lockedLineId) return; hoverLine = null; clearHighlight(); };
             line.onclick = (e) => {
-                e.stopPropagation();
-                if(isSolved) return;
-                if(lineMode === 1) { swapNodes(i, j); return; }
-                if (isTouchDevice) {
-                    const lineId = line.id;
-                    if (activeMobileLine !== lineId) {
-                        activeMobileLine = lineId;
-                        hoverLine = {i, j};
-                        currentOptions = buildGateOptions3Bit(i, j);
-                        currentOptionIndex = 0;
-
-                        const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
-                        const indicator = document.getElementById('ios-indicator');
-                        indicator.style.left = (e.clientX - canvasRect.left) + 'px';
-                        indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
-
-                        showIndicator();
-                        return;
-                    } else {
-                        if(currentOptions[currentOptionIndex]) {
-                            applyGate(currentOptions[currentOptionIndex].gateType);
-                        }
-                        activeMobileLine = null;
-                        hideIndicator();
-                    }
-                } else {
-                    if(currentOptions[currentOptionIndex]) {
-                        applyGate(currentOptions[currentOptionIndex].gateType);
-                    }
-                }
+                e.stopPropagation(); if (isSolved) return;
+                if (isTouchDevice && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    if (!gyroPermissionGranted) { DeviceOrientationEvent.requestPermission().then(state => { if (state === 'granted') { gyroPermissionGranted = true; window.addEventListener('deviceorientation', handleOrientation); } }).catch(console.error); }
+                } else if (isTouchDevice && !gyroPermissionGranted) { gyroPermissionGranted = true; window.addEventListener('deviceorientation', handleOrientation); }
+                if (lineMode === 1) { applyGate(`SWAP_${i}_${j}`); return; }
+                if (lineMode === 4) { applyGate(`X${2 - dim}`); return; }
+                if (lockedLineId === line.id) { cancelLock(); return; }
+                lockedLineId = line.id; hoverLine = { i, j, dim }; currentOptions = buildGateOptions(i, j, dim); currentOptionIndex = 0; hasScrolled = false;
+                const canvasRect = document.getElementById('main-canvas').getBoundingClientRect();
+                const indicator = document.getElementById('ios-indicator');
+                indicator.style.left = (e.clientX - canvasRect.left) + 'px';
+                indicator.style.top = (e.clientY - canvasRect.top - 25) + 'px';
+                showIndicatorLockedPrompt();
             };
             document.getElementById('lines-layer').appendChild(line);
         }
-        function swapNodes(idxA, idxB) {
-            if (isSolved || (typeof tutorialActive !== 'undefined' && tutorialActive)) return;
-            if(typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
-            const diff = idxA ^ idxB; 
-            let target = (diff === 4) ? 0 : (diff === 2) ? 1 : 2;
-            let ctrl = [0, 1, 2].filter(c => c !== target);
-            let b = idxA.toString(2).padStart(3, '0').split('').map(Number);
-            const gateStr = `TOF${ctrl[0]}${b[ctrl[0]] ? '' : 'p'}${ctrl[1]}${b[ctrl[1]] ? '' : 'p'}${target}`;
-            
-            // --- 新增：強制重置所有觸控與高亮 UI 狀態 ---
-            hideIndicator();
-            clearHighlight();
-            activeMobileLine = null;
-            hoverLine = null;
-
-            if(typeof selectedIndices !== 'undefined' && selectedIndices.length > 0) {
-                replaceLogic(gateStr);
-            } else {
-                flashGateLines(gateStr); // 觸發發光特效
-                executeLogic(gateStr);
-                gateHistory.push(gateStr);
-                historyStack.push([...gateHistory]);
-                steps = gateHistory.length;
-                finishMove(); 
+        function cancelLock() { lockedLineId = null; hoverLine = null; hasScrolled = false; isCanvasSwiping = false; hideIndicator(); clearHighlight(); }
+        function cycleLineMode(){ pop.currentTime = 0; pop.play(); const modes = [1, 2, 4]; lineMode = modes[(modes.indexOf(lineMode) + 1) % modes.length]; const btn = document.getElementById('mode-btn'); btn.innerText = `Mode: ${lineMode}`; btn.className = `multi-toggle-btn mode-${lineMode}`; cancelLock(); }
+        function showIndicatorLockedPrompt() { const pill = document.getElementById('ios-indicator'); const frac = document.getElementById('ind-fraction'); frac.innerText = isTouchDevice ? `↔ TILT/SWIPE & 2-FINGER TAP` : `↕ SCROLL & R-CLICK`; pill.classList.add('active'); clearHighlight(); highlightPairs([[hoverLine.i, hoverLine.j]], hoverLine.dim); }
+        function showIndicatorScrolled() { const pill = document.getElementById('ios-indicator'); const frac = document.getElementById('ind-fraction'); const opt = currentOptions[currentOptionIndex]; if (!opt) return; frac.innerText = `${currentOptionIndex + 1} / ${currentOptions.length}`; pill.classList.add('active'); highlightPairs(opt.highlightPairs, getDimFromGateType(opt.gateType)); highlightGateButton(opt.gateType); }
+        function hideIndicator() { document.getElementById('ios-indicator').classList.remove('active'); clearHighlight(); }
+        function buildGateOptions(i, j, dim) {
+            const targetQ = 2 - dim; const ctrlPool = [0,1,2].filter(q=>q!==targetQ); const bit = 1 << dim; const options = [];
+            if(lineMode === 2) {
+                ctrlPool.forEach(c => { 
+                    const val = (i >> (2-c)) & 1;
+                    const cBit = 1 << (2-c), cVal = i & cBit;
+                    let pairs = [];
+                    for(let k=0;k<8;k++) if((k&bit)===0 && (k&cBit)===cVal) pairs.push([k, k^bit]);
+                    options.push({ gateType: `CX${val}${c}${targetQ}`, label: `CNOT: q${c} → q${targetQ}`, highlightPairs: pairs });
+                });
             }
+            return options;
         }
-        function togglePro() {
-            pop.currentTime = 0;
-            pop.play();
-            isPro = !isPro; document.getElementById('body-root').classList.toggle('pro-active', isPro);
-            document.getElementById('mode-toggle').innerText = isPro ? "⚡️" : "👁️";
-            
-            if (isPro && !shakePermissionRequested) {
-                requestShakePermission();
-                shakePermissionRequested = true;
+        function getAllPairs(dim){ const bit=1<<dim, pairs=[]; for(let k=0;k<8;k++) if((k&bit)===0) pairs.push([k,k^bit]); return pairs; }
+        
+        function getDropInfo(targetUnit, clientX) {
+            const type = targetUnit.dataset.type;
+            const now = Date.now();
+            if (!targetUnit._cachedRect || now - (targetUnit._lastRectTime || 0) > 150) {
+                targetUnit._cachedRect = targetUnit.getBoundingClientRect();
+                targetUnit._lastRectTime = now;
             }
-
-            let start = Date.now(), loop = () => { updateNodePositionsUI(); drawStaticLines(); updateFishUI(); if (Date.now() - start < 600) requestAnimationFrame(loop); };
-            requestAnimationFrame(loop);
+            const rect = targetUnit._cachedRect;
+            const isAfter = (clientX - rect.left) > (rect.width / 2);
+            let insertIdx, borderLeft = false, borderRight = false;
+            if (type === 'start') { insertIdx = 0; borderRight = true; }
+            else if (type === 'end') { insertIdx = gateHistory.length; borderLeft = true; }
+            else { const idx = parseInt(targetUnit.dataset.idx); insertIdx = isAfter ? idx + 1 : idx; borderLeft = !isAfter; borderRight = isAfter; }
+            return { insertIdx, borderLeft, borderRight };
         }
-        function updateNodePositionsUI() {
-            for (let i = 0; i < 8; i++) {
-                let n = document.getElementById(`node-${i}`);
-                if (n) {
-                    n.style.top = nodePositions[i].t + "px";
-                    n.style.left = nodePositions[i].l + "px";
+        function startMobileDrag(touch, el, idx) {
+            if (lockedLineId) return;
+            mobileDragging = true; mDragIndex = idx; originalDragEl = el; originalDragEl.style.opacity = '0.3';
+            dragGhost = el.cloneNode(true);
+            dragGhost.style.position = 'fixed'; dragGhost.style.pointerEvents = 'none'; dragGhost.style.zIndex = '9999'; dragGhost.style.opacity = '0.9';
+            dragGhost.classList.remove('selected-gate', 'drag-target', 'right');
+            const hex = getGateColorMap(gateHistory[idx]);
+            dragGhost.style.backgroundColor = getRgba(hex, 0.95); dragGhost.style.border = 'none'; dragGhost.style.borderRadius = '12px'; dragGhost.style.boxShadow = 'none';
+            const rect = el.getBoundingClientRect();
+            dragGhost.dataset.offsetX = touch.clientX - rect.left; dragGhost.dataset.offsetY = touch.clientY - rect.top;
+            dragGhost.style.left = (touch.clientX - dragGhost.dataset.offsetX) + 'px'; dragGhost.style.top = (touch.clientY - dragGhost.dataset.offsetY) + 'px';
+            document.body.appendChild(dragGhost);
+        }
+        function moveMobileDrag(touch) { if (dragGhost) { dragGhost.style.left = (touch.clientX - parseFloat(dragGhost.dataset.offsetX)) + 'px'; dragGhost.style.top = (touch.clientY - parseFloat(dragGhost.dataset.offsetY)) + 'px'; } }
+        function endMobileDrag(touch) {
+            let targetUnit = null;
+            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (targetEl) targetUnit = targetEl.closest('.circuit-unit');
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            if (originalDragEl) { originalDragEl.style.opacity = '1'; originalDragEl = null; }
+            document.querySelectorAll('.circuit-unit').forEach(el => { el.style.opacity = '1'; el.style.visibility = '1'; el.classList.remove('drag-target', 'right'); });
+            window.activeDropUnit = null;
+            if (targetUnit && mDragIndex !== null && !lockedLineId) {
+                const type = targetUnit.dataset.type;
+                const isSelf = type === 'gate' && parseInt(targetUnit.dataset.idx) === mDragIndex;
+                if (!isSelf) {
+                    const info = getDropInfo(targetUnit, touch.clientX);
+                    let finalIdx = info.insertIdx;
+                    if (mDragIndex < finalIdx) finalIdx--;
+                    if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                    const oldHistory = [...gateHistory];
+                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
+                    gateHistory.splice(finalIdx, 0, movedItem);
+                    actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+                    recalculate();
                 }
             }
-        }
-        function replaceLogic(newGate) {
-            let targetIdx = Math.min(...selectedIndices);
-            let newHistory = [];
-            for(let i=0; i<gateHistory.length; i++) {
-                if (i === targetIdx) {
-                    newHistory.push(newGate);
-                } else if (!selectedIndices.includes(i)) {
-                    newHistory.push(gateHistory[i]);
-                }
-            }
-            gateHistory = newHistory;
-            selectedIndices = [];
-            historyStack.push([...gateHistory]);
-            recalculate();
-        }
+            mobileDragging = false; mDragIndex = null; targetScrollSpeed = 0;
+        }        
         function applyGate(type) {
             if (isSolved) return;
-            pop.currentTime = 0; pop.play();
-            
-            // --- 新增：強制重置所有觸控與高亮 UI 狀態 ---
-            hideIndicator();
-            clearHighlight();
-            activeMobileLine = null;
-            hoverLine = null;
-
+            cancelLock();
             if (selectedIndices.length > 0) {
-                replaceLogic(type);
+                selectedIndices.sort((a, b) => a - b);
+                const start = selectedIndices[0], count = selectedIndices.length;
+                const oldOnes = gateHistory.slice(start, start + count);
+                gateHistory.splice(start, count, type);
+                actionStack.push({ type: 'replace', index: start, oldGates: oldOnes, newGate: type });
+                selectedIndices = [];
+                recalculate();
             } else {
-                flashGateLines(type); // 觸發發光特效
+                flashGateLines(type);
                 executeLogic(type);
                 gateHistory.push(type);
-                historyStack.push([...gateHistory]);
+                actionStack.push({ type: 'add', index: gateHistory.length - 1, newGate: type });
                 steps = gateHistory.length;
                 finishMove();
             }
         }
         function executeLogic(type) {
-            if (type.includes('_SWAP_')) {
-                let p = type.split('_'), iA = parseInt(p[2]), iB = parseInt(p[3]);
-                let temp = fishAtNode[iA];
-                fishAtNode[iA] = fishAtNode[iB];
-                fishAtNode[iB] = temp;
-                return;
-            }
+            pop.currentTime = 0; pop.play();
+            if (type.startsWith('SWAP_')) { let p = type.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]); [fishAtNode[iA], fishAtNode[iB]] = [fishAtNode[iB], fishAtNode[iA]]; return; }
             let pm = Array.from({ length: 8 }, (_, p) => {
                 let b = p.toString(2).padStart(3, '0').split('').map(Number);
-                if (type === 'X0') b[0] ^= 1;
-                else if (type === 'X1') b[1] ^= 1;
-                else if (type === 'X2') b[2] ^= 1;
-                else if (type === 'CX01' && b[0]) b[1] ^= 1;
-                else if (type === 'CX10' && b[1]) b[0] ^= 1;
-                else if (type === 'CX02' && b[0]) b[2] ^= 1;
-                else if (type === 'CX20' && b[2]) b[0] ^= 1;
-                else if (type === 'CX12' && b[1]) b[2] ^= 1;
-                else if (type === 'CX21' && b[2]) b[1] ^= 1;
-                else if (type === 'C0X01' && !b[0]) b[1] ^= 1;
-                else if (type === 'C0X10' && !b[1]) b[0] ^= 1;
-                else if (type === 'C0X02' && !b[0]) b[2] ^= 1;
-                else if (type === 'C0X20' && !b[2]) b[0] ^= 1;
-                else if (type === 'C0X12' && !b[1]) b[2] ^= 1;
-                else if (type === 'C0X21' && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF012' && b[0] && b[1]) b[2] ^= 1;
-                else if (type === 'TOF0p1p2' && !b[0] && !b[1]) b[2] ^= 1;
-                else if (type === 'TOF0p12' && !b[0] && b[1]) b[2] ^= 1;
-                else if (type === 'TOF01p2' && b[0] && !b[1]) b[2] ^= 1;
-                else if (type === 'TOF021' && b[0] && b[2]) b[1] ^= 1;
-                else if (type === 'TOF0p2p1' && !b[0] && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF0p21' && !b[0] && b[2]) b[1] ^= 1;
-                else if (type === 'TOF02p1' && b[0] && !b[2]) b[1] ^= 1;
-                else if (type === 'TOF120' && b[1] && b[2]) b[0] ^= 1;
-                else if (type === 'TOF1p2p0' && !b[1] && !b[2]) b[0] ^= 1;
-                else if (type === 'TOF1p20' && !b[1] && b[2]) b[0] ^= 1;
-                else if (type === 'TOF12p0' && b[1] && !b[2]) b[0] ^= 1;
+                if (type.startsWith('X')) { b[parseInt(type.substring(1))] ^= 1; }
+                else if (type.startsWith('CX')) { let ctrlVal = parseInt(type[2]), c = parseInt(type[3]), t = parseInt(type[4]); if (b[c] === ctrlVal) b[t] ^= 1; }
                 return parseInt(b.join(''), 2);
             });
-            let newFishAtNode = new Array(8);
-            for (let oldIdx = 0; oldIdx < 8; oldIdx++) {
-                let newIdx = pm[oldIdx];
-                newFishAtNode[newIdx] = fishAtNode[oldIdx];
-            }
-            fishAtNode = newFishAtNode;
+            let newFish = new Array(8);
+            for (let i = 0; i < 8; i++) newFish[pm[i]] = fishAtNode[i];
+            fishAtNode = newFish;
         }
-        function recalculate() {
+        function recalculate() { 
             fishAtNode = [3, 6, 2, 5, 7, 1, 0, 4];
-            let h = [...gateHistory];
-            gateHistory = [];
-            h.forEach(g => {
-                executeLogic(g);
-                gateHistory.push(g);
-            });
-            steps = gateHistory.length;
-            finishMove();
+            let h = [...gateHistory]; gateHistory = []; h.forEach(g => { executeLogic(g); gateHistory.push(g); });
+            steps = gateHistory.length; finishMove();
         }
-        function finishMove() {
-            document.getElementById('step-count').innerText = steps;
-            updateFishUI();
-            renderCircuit();
-            checkWin();
-        }
-        function updateFishUI() {
-            for (let nI = 0; nI < 8; nI++) {
-                const fI = fishAtNode[nI],
-                    f = document.getElementById(`fish-${fI}`),
-                    n = nodePositions[nI];
-                if (f && n) {
-                    f.style.top = (n.t + 78) + "px";
-                    f.style.left = (n.l + 22) + "px";
-                }
-            }
-        }
+        function finishMove() { document.getElementById('step-count').innerText = steps; updateFishUI(); renderCircuit(); checkWin(); }
+        function updateFishUI() { for (let nI = 0; nI < 8; nI++) { const f = document.getElementById(`fish-${fishAtNode[nI]}`); const n = nodePositions[nI]; if (f && n) { f.style.top = (n.t + 42) + "px"; f.style.left = (n.l + 25) + "px"; } } }       
         function renderCircuit() {
             const c = document.getElementById('circuit-content');
+            const wrapper = document.getElementById('circuit-content-wrapper');
             c.innerHTML = '';
+            const bindDropEvents = (unit) => {
+                unit.addEventListener('dragenter', (e) => { if (draggedIndex !== null) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } });
+                unit.addEventListener('dragover', (e) => {
+                    e.preventDefault(); if (draggedIndex === null || lockedLineId) return; e.dataTransfer.dropEffect = 'move';
+                    const type = unit.dataset.type;
+                    if (type === 'gate' && parseInt(unit.dataset.idx) === draggedIndex) return;
+                    const info = getDropInfo(unit, e.clientX);
+                    if (window.activeDropUnit !== unit || window.activeDropLeft !== info.borderLeft) {
+                        document.querySelectorAll('.circuit-unit').forEach(el => { el.classList.remove('drag-target', 'right'); });
+                        if (info.borderLeft) unit.classList.add('drag-target');
+                        if (info.borderRight) unit.classList.add('right');
+                        window.activeDropUnit = unit; window.activeDropLeft = info.borderLeft;
+                    }
+                    if (typeof handleCircuitScroll === 'function') handleCircuitScroll(e);
+                });
+                unit.addEventListener('dragleave', () => {});
+                unit.addEventListener('drop', (e) => {
+                    e.preventDefault(); e.stopPropagation(); unit.classList.remove('drag-target', 'right');
+                    window.activeDropUnit = null; targetScrollSpeed = 0;
+                    if (draggedIndex === null || lockedLineId) return;
+                    const type = unit.dataset.type;
+                    if (type === 'gate' && parseInt(unit.dataset.idx) === draggedIndex) return;
+                    const info = getDropInfo(unit, e.clientX);
+                    let finalIdx = info.insertIdx;
+                    if (draggedIndex < finalIdx) finalIdx--;
+                    if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                    const oldHistory = [...gateHistory];
+                    const movedItem = gateHistory.splice(draggedIndex, 1)[0];
+                    gateHistory.splice(finalIdx, 0, movedItem);
+                    actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+                    draggedIndex = null; selectedIndices = []; recalculate();
+                });
+            };
+            const startU = document.createElement('div');
+            startU.className = 'circuit-unit'; startU.style.minWidth = '5px'; startU.style.width = '5px'; startU.style.maxWidth = '5px'; startU.style.flex = '0 0 5px'; startU.style.padding = '0'; startU.style.cursor = 'default'; startU.dataset.type = 'start';
+            bindDropEvents(startU); c.appendChild(startU);         
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
-                u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
-                u.draggable = true;
-                u.oncontextmenu = (e) => { e.preventDefault(); return false; };
-                u.ondragstart = (e) => { draggedIdx = idx; e.dataTransfer.effectAllowed = 'move'; e.target.style.opacity = '0.5'; };
-                u.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; };
-                u.ondrop = (e) => {
-                    if (isSolved || draggedIdx === null || draggedIdx === idx) return;
-                    pop.currentTime = 0; pop.play();
-                    const movedGate = gateHistory.splice(draggedIdx, 1)[0];
-                    gateHistory.splice(idx, 0, movedGate);
-                    historyStack.push([...gateHistory]); selectedIndices = []; recalculate(); draggedIdx = null;
-                };
-                u.ondragend = (e) => { e.target.style.opacity = '1'; draggedIdx = null; };
-                let touchTimer = null;
-                let startX, startY;
+                u.className = 'circuit-unit'; u.dataset.type = 'gate'; u.dataset.idx = idx;
+                const hex = getGateColorMap(g);
+                u.style.setProperty('--bg-hover', getRgba(hex, 0.35)); u.style.setProperty('--border-color', hex);
+                if (selectedIndices.includes(idx)) u.classList.add('selected-gate');
+                u.draggable = true; bindDropEvents(u);
+                
+                u.addEventListener('dragstart', (e) => {
+                    if (isSolved || mobileDragging || lockedLineId) return;
+                    draggedIndex = idx;
+                    const ghost = u.cloneNode(true); ghost.id = 'custom-drag-ghost'; ghost.style.position = 'absolute'; ghost.style.top = '-10000px'; ghost.style.left = '-10000px'; ghost.style.opacity = '1'; ghost.style.transform = 'none'; ghost.style.backgroundColor = getRgba(hex, 0.95); ghost.style.border = 'none'; ghost.style.borderRadius = '12px'; ghost.style.boxShadow = 'none'; ghost.classList.remove('selected-gate', 'drag-target', 'right');
+                    document.body.appendChild(ghost); const rect = u.getBoundingClientRect(); e.dataTransfer.setDragImage(ghost, e.clientX - rect.left, e.clientY - rect.top);
+                    setTimeout(() => { if (ghost.parentNode) document.body.removeChild(ghost); u.style.opacity = '0.3'; }, 0);
+                    e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', idx);
+                });
+                u.addEventListener('dragend', () => { const leftoverGhost = document.getElementById('custom-drag-ghost'); if (leftoverGhost && leftoverGhost.parentNode) leftoverGhost.parentNode.removeChild(leftoverGhost); u.style.opacity = ''; draggedIndex = null; targetScrollSpeed = 0; document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'right')); window.activeDropUnit = null; renderCircuit(); });
+                u.addEventListener('click', (e) => { e.stopPropagation(); if (isSolved || mobileDragging || isTouchDevice || lockedLineId) return; pop.currentTime = 0; pop.play(); const removed = gateHistory[idx]; actionStack.push({ type: 'delete', index: idx, oldGates: [removed] }); gateHistory.splice(idx, 1); selectedIndices = []; recalculate(); });
+                u.addEventListener('contextmenu', (e) => { e.preventDefault(); if (isSolved || mobileDragging || lockedLineId) return; const sIdx = selectedIndices.indexOf(idx); if (sIdx > -1) selectedIndices.splice(sIdx, 1); else selectedIndices.push(idx); renderCircuit(); });
+                u.onmouseenter = () => highlightByGate(g); u.onmouseleave = () => clearHighlight();
+                let touchTimer = null, startX, startY;
                 u.addEventListener('touchstart', (e) => {
-                    if(isSolved || e.touches.length > 1) return;
-                    u.draggable = false; 
-                    startX = e.touches[0].clientX;
-                    startY = e.touches[0].clientY;
-                    touchTimer = setTimeout(() => {
-                        touchTimer = null;
-                        startMobileDrag(e.touches[0], u, idx);
-                    }, 300); 
-                }, {passive: true});
+                    if (isSolved || e.touches.length > 1 || lockedLineId) return;
+                    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                    touchTimer = setTimeout(() => { touchTimer = null; startMobileDrag(e.touches[0], u, idx); }, 400);
+                }, { passive: true });
                 u.addEventListener('touchmove', (e) => {
-                    if (mobileDragging) {
-                        if (e.cancelable) e.preventDefault();
-                        moveMobileDrag(e.touches[0]);
-                    } else if (touchTimer) {
-                        let dx = e.touches[0].clientX - startX;
-                        let dy = e.touches[0].clientY - startY;
-                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                            clearTimeout(touchTimer);
-                            touchTimer = null;
+                    if (mobileDragging) { if (e.cancelable) e.preventDefault(); moveMobileDrag(e.touches[0]); handleCircuitScroll(e.touches[0]); const targetEl = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY); if (targetEl) { const targetUnit = targetEl.closest('.circuit-unit'); if (targetUnit) { const type = targetUnit.dataset.type; const isSelf = type === 'gate' && parseInt(targetUnit.dataset.idx) === idx; if (!isSelf) { const info = getDropInfo(targetUnit, e.touches[0].clientX); if (window.activeDropUnit !== targetUnit || window.activeDropLeft !== info.borderLeft) { document.querySelectorAll('.circuit-unit').forEach(el => { el.classList.remove('drag-target', 'right'); }); if (info.borderLeft) targetUnit.classList.add('drag-target'); if (info.borderRight) targetUnit.classList.add('right'); window.activeDropUnit = targetUnit; window.activeDropLeft = info.borderLeft; } } } } }
+                    else if (touchTimer !== null && !lockedLineId) {
+                        const dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) { if(touchTimer) { clearTimeout(touchTimer); touchTimer = null; } }
+                        if (Math.abs(dy) > 30 && Math.abs(dy) > Math.abs(dx)) {
+                            if (e.cancelable) e.preventDefault();
+                            if (dy > 30) { const sIdx = selectedIndices.indexOf(idx); if (sIdx > -1) selectedIndices.splice(sIdx, 1); else selectedIndices.push(idx); renderCircuit(); startY = undefined; }
+                            else if (dy < -30) { pop.currentTime = 0; pop.play(); const removed = gateHistory[idx]; actionStack.push({ type: 'delete', index: idx, oldGates: [removed] }); gateHistory.splice(idx, 1); selectedIndices = []; recalculate(); startY = undefined; }
                         }
                     }
-                }, {passive: false});
-
-                u.addEventListener('touchend', (e) => {
-                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-                    if (mobileDragging) {
-                        if (e.cancelable) e.preventDefault();
-                        endMobileDrag(e.changedTouches[0]);
-                    }
-                    setTimeout(() => { u.draggable = true; }, 100);
-                });
-                u.addEventListener('touchcancel', (e) => {
-                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
-                    if (mobileDragging) endMobileDrag(e.changedTouches[0]);
-                    setTimeout(() => { u.draggable = true; }, 100);
-                });
-                u.onmouseenter = () => previewGate(g);
-                u.onmouseleave = () => hideIndicator();
-                u.onclick = (e) => {
-                    if (isSolved || mobileDragging) return;
-                    pop.currentTime = 0; pop.play();
-                    
-                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
-                        if (selectedIndices.includes(idx)) {
-                            selectedIndices = selectedIndices.filter(i => i !== idx);
+                }, { passive: false });
+                u.addEventListener('touchend', (e) => { if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; } if (mobileDragging) { if (e.cancelable) e.preventDefault(); endMobileDrag(e.changedTouches[0]); } });
+                u.addEventListener('touchcancel', (e) => { if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; } if (mobileDragging) { const touch = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]); if (touch) endMobileDrag(touch); } });               
+                if (showMiniHypercube) { 
+                    u.innerHTML = getMiniHypercubeSVG(g); 
+                } else {
+                    let controls = [], target = -1;
+                    if (g.startsWith('SWAP_')) { let p = g.split('_'), iA = parseInt(p[1]), iB = parseInt(p[2]); target = 2 - Math.round(Math.log2(iA ^ iB)); let binary = Math.min(iA, iB).toString(2).padStart(3, '0').split('').map(Number); for (let q = 0; q < 3; q++) if (q !== target) controls.push({ line: q, type: binary[q] }); }
+                    else if (g.startsWith('X')) { target = parseInt(g.substring(1)); }
+                    else if (g.startsWith('CX')) { controls.push({ line: parseInt(g[3]), type: parseInt(g[2]) }); target = parseInt(g[4]); }              
+                    if (target !== -1) {
+                        let lines = [target, ...controls.map(ctrl => ctrl.line)]; let minQ = Math.min(...lines), maxQ = Math.max(...lines);
+                        const vLine = document.createElement('div'); vLine.className = 'connection-v-line'; vLine.style.cssText = `top:${31 + minQ * 40}px; height:${(maxQ - minQ) * 40}px; z-index: 5;`; u.appendChild(vLine);                
+                        controls.forEach(ctrl => { 
+                            if (isKidsMode) {
+                                const wrapper = document.createElement('div');
+                                wrapper.style.position = 'absolute';
+                                wrapper.style.left = '50%';
+                                wrapper.style.transform = 'translate(-50%, -50%)';
+                                wrapper.style.top = (31 + ctrl.line * 40) + 'px';
+                                wrapper.style.zIndex = '6';
+                                wrapper.innerHTML = getQubitLabelHTML(ctrl.line, ctrl.type, '32px');
+                                u.appendChild(wrapper);
+                            } else {
+                                const dot = document.createElement('div');
+                                dot.className = 'control-dot';
+                                dot.style.top = (24 + ctrl.line * 40) + 'px';
+                                if (ctrl.type === 0) {
+                                    dot.style.background = '#fff';
+                                    dot.style.border = '2px solid #463438';
+                                }
+                                u.appendChild(dot);
+                            }
+                        });                       
+                        const t = document.createElement('div'); 
+                        if (isKidsMode) {
+                            t.style.position = 'absolute';
+                            t.style.left = '50%';
+                            t.style.transform = 'translate(-50%, -50%)';
+                            t.style.top = (31 + target * 40) + 'px';
+                            t.style.width = '34px';
+                            t.style.height = '34px';
+                            t.style.display = 'flex';
+                            t.style.alignItems = 'center';
+                            t.style.justifyContent = 'center';
+                            t.style.background = '#e2de6e';
+                            t.style.border = '2.5px solid #463438';
+                            t.style.borderRadius = '50%';
+                            t.style.boxSizing = 'border-box';
+                            t.style.padding = '2px';
+                            t.style.zIndex = '6';
+                            t.innerHTML = `<img src="./image/change.svg" style="width:100%; height:100%;">`;
                         } else {
-                            selectedIndices.push(idx);
+                            t.className = 'circuit-target'; 
+                            t.style.top = (31 + target * 40) + 'px';
                         }
-                        renderCircuit();
-                    } else {
-                        selectedIndices = [];
-                        gateHistory.splice(idx, 1);
-                        historyStack.push([...gateHistory]);
-                        recalculate();
-                        hideIndicator();
+                        u.appendChild(t);
                     }
-                };
-                let ctrl = [], target = -1, zero = [];
-                if (g.startsWith('X')) target = parseInt(g[1]);
-                else if (g.startsWith('CX')) {
-                    ctrl = [parseInt(g[2])]; target = parseInt(g[3]);
-                } else if (g.startsWith('C0X')) {
-                    ctrl = [parseInt(g[3])]; target = parseInt(g[4]); zero = [parseInt(g[3])];
-                } else if (g.startsWith('TOF')) {
-                    let s = g.split('_')[0].replace('TOF', ''), parts = [];
-                    for (let i = 0; i < s.length; i++) {
-                        if (s[i + 1] === 'p') {
-                            parts.push({ v: parseInt(s[i]), p: true }); i++;
-                        } else parts.push({ v: parseInt(s[i]), p: false });
-                    }
-                    target = parts.pop().v;
-                    parts.forEach(p => {
-                        ctrl.push(p.v);
-                        if (p.p) zero.push(p.v);
-                    });
                 }
-                if (ctrl.length > 0) {
-                    let min = Math.min(...ctrl, target), max = Math.max(...ctrl, target);
-                    const v = document.createElement('div');
-                    v.className = 'connection-v-line';
-                    v.style.cssText = `top:${30+min*40}px; height:${(max-min)*40}px;`;
-                    u.appendChild(v);
-                    ctrl.forEach(cl => {
-                        const d = document.createElement('div');
-                        d.className = 'control-dot';
-                        d.style.top = (24 + cl * 40) + 'px';
-                        if (zero.includes(cl)) {
-                            d.style.background = '#fff'; d.style.border = '2.5px solid #463438';
-                        }
-                        u.appendChild(d);
-                    });
-                }
-                const t = document.createElement('div');
-                t.className = 'circuit-target';
-                t.style.top = (31 + target * 40) + 'px';
-                u.appendChild(t);
                 c.appendChild(u);
             });
+            const endU = document.createElement('div'); endU.className = 'circuit-unit'; endU.style.minWidth = '50px'; endU.style.width = '50px'; endU.style.flex = '1'; endU.style.padding = '0'; endU.style.cursor = 'default'; endU.dataset.type = 'end'; bindDropEvents(endU); c.appendChild(endU);
             updateUndoStatus();
-            const w = document.getElementById('circuit-content-wrapper');
-            if (draggedIdx === null) {
-                setTimeout(() => w && w.scrollTo({ left: w.scrollWidth, behavior: 'smooth' }), 100);
-            }
-        }
-        function undo() {
-            if (isSolved || historyStack.length <= 1) return;
-            pop.currentTime = 0; pop.play();
-            historyStack.pop();
-            gateHistory = [...historyStack[historyStack.length - 1]];
-            selectedIndices = [];
-            recalculate();
-        }
-        function resetCircuit() {
-            if (isSolved) return;
-            pop.currentTime = 0; pop.play();
-            gateHistory = [];
-            historyStack = [[]];
-            selectedIndices = [];
-            recalculate();
-        }
-        function updateUndoStatus() {
-            const isActive = historyStack.length > 1 && !isSolved;
-            const topUndo = document.getElementById('undo-btn');
-            if(topUndo) {
-                if(isActive) { topUndo.classList.add('active'); topUndo.style.pointerEvents="auto"; }
-                else { topUndo.classList.remove('active'); topUndo.style.pointerEvents="none"; }
-            }
-            const bottomUndo = document.getElementById('undo-btn-bottom');
-            if(bottomUndo) {
-                if(isActive) { bottomUndo.classList.add('active'); bottomUndo.style.pointerEvents="auto"; }
-                else { bottomUndo.classList.remove('active'); bottomUndo.style.pointerEvents="none"; }
-            }
-        }
+            if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null) { setTimeout(() => wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }), 50); }
+        }        
+        function undo() { if (isSolved || actionStack.length === 0) return; pop.currentTime = 0; pop.play(); const action = actionStack.pop(); if (action.type === 'add') { gateHistory.splice(action.index, 1); } else if (action.type === 'delete') { gateHistory.splice(action.index, 0, ...action.oldGates); } else if (action.type === 'replace') { if (action.newGate === null) gateHistory = [...action.oldGates]; else gateHistory.splice(action.index, 1, ...action.oldGates); } selectedIndices = []; recalculate(); }
+        function resetCircuit() { if (isSolved) return; pop.currentTime = 0; pop.play(); gateHistory = []; actionStack = []; selectedIndices = []; recalculate(); }
+        function updateUndoStatus() { const isActive = actionStack.length > 0 && !isSolved; const topUndo = document.getElementById('undo-btn'); if(topUndo) topUndo.classList.toggle('active', isActive); const bottomUndo = document.getElementById('undo-btn-bottom'); if(bottomUndo) bottomUndo.classList.toggle('active', isActive); }
         async function checkWin() {
             if (fishAtNode.every((pos, i) => pos === i)) {
-                isSolved = true;
-                updateUndoStatus();
-                if (timerInterval) clearInterval(timerInterval);
-                const ft = time, st = steps, u = sessionStorage.getItem('currentUser');
-                const savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
+                isSolved = true; updateUndoStatus(); if (timerInterval) clearInterval(timerInterval);
+                const ft = time, st = steps, u = sessionStorage.getItem('currentUser'), savedLevel = parseInt(sessionStorage.getItem('currentLevel')) || 1;
                 if (savedLevel < 9) sessionStorage.setItem('currentLevel', 9);
-                setTimeout(() => {
-                    if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
-                    document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
-                    document.getElementById('victoryModal').style.display = 'flex';
-                }, 800);
-                if (u) {
-                    fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        body: JSON.stringify({ action: 'saveRecord', username: u, level: 8, steps: st, time: ft, circuit: gateHistory.join(',') })
-                    }).then(() => setTimeout(fetchLeaderboard, 1200));
-                }
+                setTimeout(() => { if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); } document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`; document.getElementById('victoryModal').style.display = 'flex'; }, 800);
+                if (u) { fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'saveRecord', username: u, level: 8, steps: st, time: ft, circuit: gateHistory.join(',') }) }).then(() => { setTimeout(fetchLeaderboard, 1200); }); }
             }
         }
-        function viewInLab() {
-            const circuitData = gateHistory.join(',');
-            window.location.href = `lab3.html?circuit=${encodeURIComponent(circuitData)}`;
-        }
+        function viewInLab() { if (gateHistory.length === 0) { alert("Current circuit is empty!"); return; } window.location.href = `lab3.html?circuit=${encodeURIComponent(gateHistory.join(','))}`; }
+        function toggleLeaderboard() { document.getElementById('leaderboard-wrapper').classList.toggle('expanded'); }
+        async function fetchLeaderboard() { const listArea = document.getElementById('rankList'); try { const response = await fetch(`${SCRIPT_URL}?action=getLeaderboard&level=8`); const data = await response.json(); if (data && Array.isArray(data) && data.length > 0) { leaderboardData = data; renderRank('steps'); } else { listArea.innerHTML = '<p class="text-center italic text-gray-400 mt-10 text-sm">No records yet</p>'; } } catch (e) { listArea.innerHTML = '<p class="text-center italic text-red-400 mt-10 text-sm">Load Error</p>'; } }
+        function renderRank(type) { const tabSteps = document.getElementById('tab-steps'), tabTime = document.getElementById('tab-time'), listArea = document.getElementById('rankList'); if (type === 'steps') { tabSteps.className = 'rank-tab active'; tabTime.className = 'rank-tab bg-gray-100'; } else { tabSteps.className = 'rank-tab bg-gray-100'; tabTime.className = 'rank-tab active'; } if (!leaderboardData || leaderboardData.length === 0) return; const sorted = [...leaderboardData].sort((a, b) => a[type] - b[type]); let html = ""; sorted.slice(0, 10).forEach((item, index) => { const medal = index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : (index + 1) + "."; html += `<div class="rank-item"><span class="truncate" style="max-width: 90px;">${medal} ${item.username || item.name || 'Anonymous'}</span><span class="text-blue-600">${type === 'steps' ? item.steps + '🐾' : item.time + 's'}</span></div>`; }); listArea.innerHTML = html; }       
+        function initGameLayout() { 
+            const nL = document.getElementById('nodes-layer');
+            const fL = document.getElementById('fishes-layer');
+            if (!nL || !fL) return;
+            nL.innerHTML = ''; fL.innerHTML = ''; 
+            for (let i = 0; i < 8; i++) { 
+                let binStr = i.toString(2).padStart(3, '0');
+                let labelHTML = '';
+                for(let b=0; b<3; b++) {
+                    labelHTML += `<span class="bit bit-${2-b}">${binStr[b]}</span>`;
+                }
+                let itemIdx = i % 4;
+                let isBlue = i >= 4;
+                let blueOutlineFilter = isBlue ? `filter: drop-shadow(2.5px 0px 0px #4A90E2) drop-shadow(0px 2.5px 0px #4A90E2) drop-shadow(-2.5px 0px 0px #4A90E2) drop-shadow(0px -2.5px 0px #4A90E2);` : ``;               
+                let catSrc = `./image/cat${itemIdx}.svg`;
+                nL.innerHTML += `<div class="node" id="node-${i}" style="top:${nodePositions[i].t}px; left:${nodePositions[i].l}px;"><div class="fixed-number">${labelHTML}</div><img src="${catSrc}" style="${blueOutlineFilter}"></div>`;               
+                let fishSrc = `./image/fish${itemIdx}.svg`; 
+                fL.innerHTML += `<div id="fish-${i}" class="fish-wrapper"><div class="fish-label">${labelHTML}</div><img src="${fishSrc}" class="fish-bg-shape"><img src="${fishSrc}" class="fish-img" style="${blueOutlineFilter}"></div>`; 
+            } 
+        }                
+        function handleOrientation(event) {
+            if (!lockedLineId || lineMode === 1 || lineMode === 4) return;
+            let tilt = event.gamma;
+            const orientation = (screen.orientation || {}).type || window.orientation;
+            if (orientation === 90 || orientation === "landscape-primary") tilt = event.beta;
+            else if (orientation === -90 || orientation === "landscape-secondary") tilt = -event.beta;
+            else if (orientation === 180 || orientation === "portrait-secondary") tilt = -event.gamma;
+            const now = Date.now();
+            if (now - lastSwipeTime < 400) return;
+            if (tilt > TILT_THRESHOLD && lastTiltDirection <= 0) {
+                currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length;
+                lastTiltDirection = 1; lastSwipeTime = now; hasScrolled = true;
+                showIndicatorScrolled();
+                if ('vibrate' in navigator) navigator.vibrate(20);
+            } else if (tilt < -TILT_THRESHOLD && lastTiltDirection >= 0) {
+                currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length;
+                lastTiltDirection = -1; lastSwipeTime = now; hasScrolled = true;
+                showIndicatorScrolled();
+                if ('vibrate' in navigator) navigator.vibrate(20);
+            } else if (Math.abs(tilt) < RETURN_THRESHOLD) lastTiltDirection = 0;
+        }        
+        window.onload = () => {
+            initGameLayout(); drawStaticLines(); updateFishUI(); updateUndoStatus(); fetchLeaderboard();
+            updateUIState();
+            timerInterval = setInterval(() => { time++; document.getElementById('timer').innerText = time; }, 1000);
+            const circuitWrapper = document.getElementById('circuit-content-wrapper');
+            const gateScrollArea = document.getElementById('gate-scroll-area');
+            const canvas = document.getElementById('main-canvas');
+            const indicator = document.getElementById('ios-indicator');           
+            circuitWrapper.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); circuitWrapper.scrollLeft += e.deltaY; } }, { passive: false });
+            circuitWrapper.addEventListener('mouseenter', () => { circuitRectCache = circuitWrapper.getBoundingClientRect(); });
+            circuitWrapper.addEventListener('dragenter', (e) => { circuitRectCache = circuitWrapper.getBoundingClientRect(); if (draggedIndex !== null) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; } });
+            circuitWrapper.addEventListener('mousemove', (e) => { if (draggedIndex === null) handleCircuitScroll(e); });
+            circuitWrapper.addEventListener('dragover', (e) => { if (draggedIndex !== null) { e.preventDefault(); handleCircuitScroll(e); } });
+            circuitWrapper.addEventListener('mouseleave', () => { targetScrollSpeed = 0; circuitRectCache = null; });
+            circuitWrapper.addEventListener('dragleave', () => { targetScrollSpeed = 0; });
+            circuitWrapper.addEventListener('drop', () => { targetScrollSpeed = 0; circuitRectCache = null; window.activeDropUnit = null; });
+            gateScrollArea.addEventListener('mouseenter', () => { gateRectCache = gateScrollArea.getBoundingClientRect(); });
+            gateScrollArea.addEventListener('mousemove', handleGateScroll);
+            gateScrollArea.addEventListener('mouseleave', () => { targetGateScrollSpeed = 0; gateRectCache = null; });
+            gateScrollArea.addEventListener('dragenter', () => { gateRectCache = gateScrollArea.getBoundingClientRect(); });
+            gateScrollArea.addEventListener('dragover', (e) => { if (draggedIndex !== null) { e.preventDefault(); handleGateScroll(e); } });
+            gateScrollArea.addEventListener('dragleave', () => { targetGateScrollSpeed = 0; });
+            gateScrollArea.addEventListener('drop', () => { targetGateScrollSpeed = 0; gateRectCache = null; });            
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    canvasTouchStartX = e.touches[0].clientX;
+                    canvasTouchStartY = e.touches[0].clientY;
+                    lastCanvasX = canvasTouchStartX;
+                    lastCanvasY = canvasTouchStartY;
+                    isCanvasSwiping = false;
+                } else if (lockedLineId && e.touches.length >= 2) {
+                    e.preventDefault();
+                    if (lineMode === 4 && hoverLine) applyGate(`X${2 - hoverLine.dim}`);
+                    else if (lineMode === 1 && hoverLine) applyGate(`SWAP_${hoverLine.i}_${hoverLine.j}`);
+                    else if (hasScrolled && currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType);
+                }
+            }, { passive: false });
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && lockedLineId && lineMode !== 1 && lineMode !== 4) {
+                    let currentX = e.touches[0].clientX, currentY = e.touches[0].clientY;
+                    let diffX = currentX - lastCanvasX, diffY = currentY - lastCanvasY;
+                    if (Math.abs(currentX - canvasTouchStartX) > 8 || Math.abs(currentY - canvasTouchStartY) > 8) {
+                        isCanvasSwiping = true;
+                        if (e.cancelable) e.preventDefault();
+                    }
+                    if (isCanvasSwiping) {
+                        if (Math.abs(diffX) > Math.abs(diffY)) {
+                            let steps = Math.floor(Math.abs(diffX) / 80);
+                            if (steps > 0) {
+                                let dir = diffX > 0 ? 1 : -1;
+                                let shift = (dir * steps) % currentOptions.length;
+                                currentOptionIndex = (((currentOptionIndex + shift) % currentOptions.length) + currentOptions.length) % currentOptions.length;
+                                lastCanvasX += dir * steps * 80;
+                                hasScrolled = true;
+                                showIndicatorScrolled();
+                            }
+                        } else {
+                            let steps = Math.floor(Math.abs(diffY) / 80);
+                            if (steps > 0) {
+                                let dir = diffY > 0 ? 1 : -1;
+                                let shift = (dir * steps) % currentOptions.length;
+                                currentOptionIndex = (((currentOptionIndex + shift) % currentOptions.length) + currentOptions.length) % currentOptions.length;
+                                lastCanvasY += dir * steps * 80;
+                                hasScrolled = true;
+                                showIndicatorScrolled();
+                            }
+                        }
+                    }
+                }
+            }, { passive: false });
+            canvas.addEventListener('touchend', (e) => {
+                if (!isCanvasSwiping && lockedLineId && e.changedTouches.length === 1) {
+                    const target = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+                    if (target && !target.classList.contains('connection-line')) {
+                        cancelLock();
+                    }
+                }
+                isCanvasSwiping = false;
+            });
+            canvas.addEventListener('mousemove', (e) => { if (indicator.classList.contains('active') && !isTouchDevice) { const rect = canvas.getBoundingClientRect(); indicator.style.left = (e.clientX - rect.left) + 'px'; indicator.style.top = (e.clientY - rect.top - 25) + 'px'; } });
+            canvas.addEventListener('mousedown', (e) => { if (lockedLineId && !isTouchDevice && e.button === 0 && !e.target.classList.contains('connection-line')) cancelLock(); });
+            canvas.addEventListener('contextmenu', (e) => { if (lockedLineId && !isTouchDevice) { e.preventDefault(); if (lineMode === 4 && hoverLine) applyGate(`X${2 - hoverLine.dim}`); else if (lineMode === 1 && hoverLine) applyGate(`SWAP_${hoverLine.i}_${hoverLine.j}`); else if (currentOptions[currentOptionIndex]) applyGate(currentOptions[currentOptionIndex].gateType); } });
+            document.addEventListener('wheel', (e) => { if (!lockedLineId || lineMode === 1 || lineMode === 4 || isTouchDevice) return; if (!e.target.closest('#gate-scroll-area') && !e.target.closest('#circuit-content-wrapper')) { e.preventDefault(); if (e.deltaY > 0) currentOptionIndex = (currentOptionIndex + 1) % currentOptions.length; else currentOptionIndex = (currentOptionIndex - 1 + currentOptions.length) % currentOptions.length; hasScrolled = true; showIndicatorScrolled(); } }, { passive: false });
+        };
     </script>
 </body>
 </html>
