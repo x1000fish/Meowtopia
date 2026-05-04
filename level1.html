@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Gaegu:wght@700&family=Titan+One&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Bungee+Shade&family=Shrikhand&family=Alfa+Slab+One&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; }
+        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; } 
         .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: white; text-shadow: 2px 2px 0 #463438; box-shadow: 0 6px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
         .game-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #463438; }
         .game-btn:active { top: 6px; box-shadow: 0 2px 0 #463438; transform: translateY(0); }
@@ -15,38 +15,112 @@
         .btn-green { background: #99C44D; }
         .game-canvas { position: relative; width: 850px; height: 410px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; margin: 20px auto; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
         .connection-line { height: 8px; background: #463438; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); cursor: pointer; transition: all 0.3s ease; z-index: 10; }
-        .connection-line:hover { background: #99C44D; box-shadow: 0 0 20px rgba(153, 196, 77, 0.8); }
+        .connection-line:hover { background: repeating-linear-gradient(45deg, #FFB7C5, #FFB7C5 8px, #e2de6e 8px, #e2de6e 16px); box-shadow: 0 0 20px rgba(226, 222, 110, 0.8); }
+        .connection-line::after { content: ''; position: absolute; top: -20px; bottom: -20px; left: -20px; right: -20px; background-color: transparent; z-index: 11; }       
         .cat-node { width: 160px; height: 160px; background: white; border: 6px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #463438; top: 50%; transform: translateY(-50%); z-index: 20; }
         #node-0 { left: 150px; } #node-1 { right: 150px; }
-        .fish-wrapper { position: absolute; width: 80px; z-index: 30; pointer-events: none; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-wrapper { position: absolute; width: 80px; z-index: 30; pointer-events: none; display: none; flex-direction: column; align-items: center; }
+        .fish-ready { display: flex; }
+        .fish-ready.animate-move { transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1), left 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 75px; height: auto; }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -10px; }
         .fixed-number { position: absolute; bottom: -5px; right: 65px; font-size: 24px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(70, 52, 56, 0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; }
-        .line-guide { animation: line-glow 1.5s infinite ease-in-out; }
-        @keyframes line-glow { 0%, 100% { box-shadow: 0 0 5px #99C44D; background: #463438; } 50% { box-shadow: 0 0 20px #99C44D; background: #99C44D; transform: translate(-50%, -50%) scaleY(1.5); } }
-        .guide-hand { position: absolute; top: 38%; left: 50%; transform: translateX(-50%); z-index: 100; pointer-events: none; display: flex; flex-direction: column; align-items: center; animation: tap-anim 1.5s infinite; }
-        @keyframes tap-anim { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-15px); } }
-        .guide-hidden { display: none !important; }
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -47px; z-index: 5; position: relative; top: -15px; }
+        .bit { display: inline-block; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); padding: 0 1px; border-radius: 4px; }
+        body.labels-colorful .bit-0 { color: #FFB7C5; }
+        .cat-node > img, .fish-wrapper > img { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: translateY(-5px); }
+        .hide-labels .cat-node > img { transform: scale(1.05) translateY(0px); }
+        .hide-labels .fish-wrapper > img { transform: scale(1.05) translateY(0px); }
+        .fixed-number, .fish-label { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .hide-labels .fixed-number, .hide-labels .fish-label { opacity: 0; transform: translateY(1px); pointer-events: none; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 2000; pointer-events: auto; }
+        .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; z-index: 2001; }
+        .help-btn { background: #FFB7C5; border: 3px solid #463438; border-radius: 50%; width: 34px; height: 34px; font-weight: 900; font-size: 18px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; display: flex; align-items: center; justify-content: center; padding-bottom: 2px; }
+        .help-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
+        .help-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438; }
+        .tut-card { background: white; border: 3px solid #463438; border-radius: 16px; padding: 15px; display: flex; flex-direction: column; align-items: center; box-shadow: 4px 4px 0 #FFB7C5; position: relative; margin-bottom: 24px; }
+        .tut-anim-area { width: 100%; height: 160px; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 15px; background: #fffaf5; border-radius: 10px; border: 2px dashed #ccc; }
+        .tut-text { font-weight: 900; font-size: 16px; color: #463438; text-align: center; line-height: 1.5; }
+        .tut-title { font-weight: 900; font-size: 18px; margin-bottom: 8px; color: #629eed; width: 100%; text-align: center; letter-spacing: 1px;}
+        .mode-toggle-inline { width: 44px; height: 44px; background: #ffffff; border: 3px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #463438; transition: all 0.1s; margin-left: 10px;}
+        .mode-toggle-inline:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #463438; }
+        .mode-toggle-inline:active { transform: translateY(2px); box-shadow: 0 1px 0 #463438; }
+        @keyframes tut-hand-anim { 0%, 75%, 100% { transform: translateY(30px); opacity: 0; } 6% { transform: translateY(30px); opacity: 1; } 18% { transform: translateY(0px) scale(0.9); opacity: 1; } 28% { transform: translateY(30px); opacity: 0; } }
+        @keyframes tut-line-anim { 0%, 15%, 30%, 100% { background: #463438; box-shadow: none; } 18%, 26% { background: repeating-linear-gradient(45deg, #FFB7C5, #FFB7C5 8px, #e2de6e 8px, #e2de6e 16px); box-shadow: 0 0 20px rgba(226, 222, 110, 0.8); } }
+        @keyframes tut-fish-1 { 0%, 5% { transform: translateX(-135px); opacity: 0; } 10%, 22% { transform: translateX(-135px); opacity: 1; } 40%, 80% { transform: translateX(135px); opacity: 1; } 85%, 100% { transform: translateX(135px); opacity: 0; } }
+        @keyframes tut-fish-2 { 0%, 5% { transform: translateX(135px); opacity: 0; } 10%, 22% { transform: translateX(135px); opacity: 1; } 40%, 80% { transform: translateX(-134px); opacity: 1; } 85%, 100% { transform: translateX(-134px); opacity: 0; } }
+        @keyframes tut-hand-anim-label { 0%, 15% { transform: translateY(30px); opacity: 0; } 20% { transform: translateY(30px); opacity: 1; } 30% { transform: translateY(0px) scale(0.9); opacity: 1; } 35% { transform: translateY(30px); opacity: 1; } 40%, 48% { transform: translateY(30px); opacity: 0; } 53% { transform: translateY(30px); opacity: 1; } 63% { transform: translateY(0px) scale(0.9); opacity: 1; } 68% { transform: translateY(30px); opacity: 1; } 73%, 81% { transform: translateY(30px); opacity: 0; } 86% { transform: translateY(30px); opacity: 1; } 96% { transform: translateY(0px) scale(0.9); opacity: 1; } 100% { transform: translateY(30px); opacity: 0; } }
+        @keyframes tut-label-opacity { 0%, 30% { opacity: 0; } 31%, 96% { opacity: 1; } 97%, 100% { opacity: 0; } }
+        @keyframes tut-fish-scale { 0%, 30% { transform: scale(1.15) translateY(0px); } 31%, 96% { transform: scale(1) translateY(-5px); } 97%, 100% { transform: scale(1.15) translateY(0px); } }
+        @keyframes tut-label-color { 0%, 30% { color: #fff; } 31%, 63% { color: #FFB7C5; } 64%, 100% { color: #fff; } }
+        @keyframes tut-icon-rainbow { 0%, 30% { opacity: 1; } 31%, 100% { opacity: 0; } }
+        @keyframes tut-icon-tag { 0%, 30% { opacity: 0; } 31%, 63% { opacity: 1; } 64%, 100% { opacity: 0; } }
+        @keyframes tut-icon-ban { 0%, 63% { opacity: 0; } 64%, 96% { opacity: 1; } 97%, 100% { opacity: 0; } }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4">
+<body class="min-h-screen flex flex-col items-center justify-center p-4 hide-labels">    
+    <div id="tutorialModal" class="modal-overlay" style="display: flex;">
+        <div class="modal-content" id="tut-page" style="width: 520px; position: relative;">    
+            <div id="tut-step-1">
+                <h2 class="text-3xl font-black mb-4" style="color: #463438;">HOW TO PLAY</h2>
+                <div class="tut-card">
+                    <div class="tut-title">CLICK / TAP TO SWAP</div>
+                    <div class="tut-anim-area">
+                        <img src="./image/cat0.svg" style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); width: 75px; z-index: 3;">
+                        <img src="./image/cat1.svg" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); width: 75px; z-index: 3;">  
+                        <div style="position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 8px; border-radius: 4px; z-index: 2; animation: tut-line-anim 3.5s infinite;"></div>
+                        <div style="position: absolute; top: 50%; left: 50%; margin-top: -3px; margin-left: -25px; z-index: 4; animation: tut-fish-1 3.5s infinite;">
+                            <img src="./image/fish0.svg" style="width: 50px;">
+                        </div>
+                        <div style="position: absolute; top: 50%; left: 50%; margin-top: -3px; margin-left: -25px; z-index: 4; animation: tut-fish-2 3.5s infinite;">
+                            <img src="./image/fish1.svg" style="width: 50px;">
+                        </div>
+                        <div style="position: absolute; top: 50%; left: 50%; margin-top: -9px; margin-left: -16px; font-size: 36px; z-index: 10; animation: tut-hand-anim 3.5s infinite;">👆🏻</div>
+                    </div>
+                    <div class="tut-text">Click (PC) / Tap (Mobile) the line to swap the fish and guide them to the matching cats!</div>
+                </div>
+                <button onclick="nextTutPage()" class="game-btn btn-green w-full" style="font-size: 20px; border-radius: 25px;">NEXT</button>
+            </div>
+            <div id="tut-step-2" style="display: none;">
+                <h2 class="text-3xl font-black mb-4" style="color: #463438;">HOW TO PLAY</h2>
+                <div class="tut-card">
+                    <div class="tut-title">TOGGLE LABELS</div>
+                    <div class="tut-anim-area">
+                        <div style="position: absolute; left: 80px; top: 50%; transform: translateY(-50%);">
+                            <div style="position: relative;">
+                                <div style="background: rgba(70, 52, 56, 0.8); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; position: absolute; top: 0px; left: 14px; z-index: 5; animation: tut-label-opacity 6s infinite;">
+                                    <span style="animation: tut-label-color 6s infinite;">1</span>
+                                </div>
+                                <img src="./image/fish0.svg" style="width: 50px; position: relative; z-index: 4; transform: scale(1.15); animation: tut-fish-scale 6s infinite;">
+                            </div>
+                        </div>
+                        <div style="position: absolute; right: 100px; top: 45%; transform: translateY(-50%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #fff; border: 4px solid #463438; border-radius: 50%; box-shadow: 0 4px 0 #463438; z-index: 2;">
+                            <span style="font-size: 24px; position: absolute; animation: tut-icon-rainbow 6s infinite;">🌈</span>
+                            <span style="font-size: 24px; position: absolute; opacity: 0; animation: tut-icon-tag 6s infinite;">🏷️</span>
+                            <span style="font-size: 24px; position: absolute; opacity: 0; animation: tut-icon-ban 6s infinite;">🚫</span>
+                        </div>
+                        <div style="position: absolute; right: 90px; top: 45%; margin-top: 0px; font-size: 36px; z-index: 10; animation: tut-hand-anim-label 6s infinite;">👆🏻</div>
+                    </div>
+                    <div class="tut-text">Click the label button to toggle between hidden, colorful, and normal labels!</div>
+                </div>
+                <button onclick="closeTutorial()" class="game-btn btn-green w-full" style="font-size: 20px; border-radius: 25px;">LET'S GO!</button>
+            </div>
+        </div>
+    </div>
     <div id="level-screen" class="flex flex-col items-center w-full max-w-4xl mt-10">
-        <div class="flex justify-between w-full px-4 mb-4">
+        <div class="flex justify-between w-full px-4 mb-4 items-center">
             <div class="text-3xl font-black" style="color: #463438">STEPS: <span id="step-count">0</span> | TIME: <span id="timer">0</span>s</div>
-            <div class="text-3xl font-black" style="color: #7bc202">LEVEL 1</div>
+            <div class="flex items-center gap-2 ml-auto">
+                <button id="reopen-tut-btn" class="help-btn" onclick="openTutorial()">?</button>
+                <button id="label-toggle-btn" class="mode-toggle-inline" onclick="toggleLabels()">🌈</button>
+                <div class="text-3xl font-black ml-3" style="color: #7bc202">LEVEL 1</div>
+            </div>
         </div>
         <div class="game-canvas">
-            <div id="main-line" class="connection-line line-guide" style="width: 300px;" onclick="swapFish()"></div>
-            <div id="guide-hand" class="guide-hand">
-                <div class="bg-[#99C44D] text-white font-black px-4 py-1 rounded-full mb-7" style="border: 3px solid #463438; box-shadow: 0 4px 0 #463438;">CLICK TO SWAP</div>
-                <span class="text-5xl">👆🏻</span>
-            </div>
-            <div class="cat-node" id="node-0"><div class="fixed-number">0</div><img src="./image/Cat1.svg" class="w-32"></div>
-            <div class="cat-node" id="node-1"><div class="fixed-number">1</div><img src="./image/Cat2.svg" class="w-32"></div>
-            <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label">1</div><img id="fish-0" src="./image/Fish1.svg"></div>
-            <div id="fish-wrap-1" class="fish-wrapper"><div id="label-1" class="fish-label">0</div><img id="fish-1" src="./image/Fish2.svg"></div>
+            <div id="main-line" class="connection-line" style="width: 300px;" onclick="swapFish()"></div>      
+            <div class="cat-node" id="node-0"><div class="fixed-number"><span class="bit bit-0">0</span></div><img src="./image/cat0.svg" class="w-32"></div>
+            <div class="cat-node" id="node-1"><div class="fixed-number"><span class="bit bit-0">1</span></div><img src="./image/cat1.svg" class="w-32"></div>
+            <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label"><span class="bit bit-0">1</span></div><img id="fish-0" src="./image/fish0.svg"></div>
+            <div id="fish-wrap-1" class="fish-wrapper"><div id="label-1" class="fish-label"><span class="bit bit-0">0</span></div><img id="fish-1" src="./image/fish1.svg"></div>
         </div>
         <div class="w-full text-center mt-6"><a href="index.html" class="game-btn btn-red px-16">GIVE UP</a></div>
     </div>
@@ -60,9 +134,82 @@
     <script>
         let currentSteps = 0, fishAtNode = [1, 0], startTime, timerInterval = null;
         let isGameOver = false;
+        let labelState = 0;
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzR0J0VXyl5ayKwDXlHimc4WS1FjvGEb2-gTBMhum8APQKfDHxc5wsiWRkNqkxJrocMOw/exec';
-        const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
-        window.onload = () => { startTimer(); updateFishUI(); };
+        const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');    
+        window.onload = () => { 
+            updateFishUI(); 
+            const fish0 = document.getElementById('fish-wrap-0');
+            const fish1 = document.getElementById('fish-wrap-1');
+            fish0.classList.add('fish-ready');
+            fish1.classList.add('fish-ready');
+            setTimeout(() => {
+                fish0.classList.add('animate-move');
+                fish1.classList.add('animate-move');
+            }, 50);
+        };
+        function toggleLabels() {
+            pop.currentTime = 0; pop.play();
+            labelState = (labelState + 1) % 3;
+            const btn = document.getElementById('label-toggle-btn');
+            const root = document.body;
+            if (labelState === 0) {
+                btn.innerText = "🌈"; 
+                root.classList.add('hide-labels');
+                root.classList.remove('labels-colorful');
+            } else if (labelState === 1) {
+                btn.innerText = "🏷️"; 
+                root.classList.remove('hide-labels');
+                root.classList.add('labels-colorful');
+            } else {
+                btn.innerText = "🚫"; 
+                root.classList.remove('hide-labels');
+                root.classList.remove('labels-colorful');
+            }
+        }
+        function nextTutPage() {
+            pop.currentTime = 0; pop.play();
+            document.getElementById('tut-step-1').style.display = 'none';
+            document.getElementById('tut-step-2').style.display = 'block';
+        }
+        function openTutorial() {
+            pop.currentTime = 0; pop.play();
+            document.getElementById('tut-step-1').style.display = 'block';
+            document.getElementById('tut-step-2').style.display = 'none';       
+            const modal = document.getElementById('tutorialModal');
+            modal.style.display = 'flex';
+            const modalContent = document.getElementById('tut-page');
+            modalContent.style.transition = '';
+            modalContent.style.transform = '';
+            modalContent.style.opacity = '1';
+        }
+        function closeTutorial() {
+            pop.currentTime = 0; pop.play();
+            const modalOverlay = document.getElementById('tutorialModal');
+            const modalContent = document.getElementById('tut-page');
+            const targetBtn = document.getElementById('reopen-tut-btn');
+            if (modalContent && targetBtn) {
+                const btnRect = targetBtn.getBoundingClientRect();
+                const modalRect = modalContent.getBoundingClientRect();     
+                const tx = btnRect.left + btnRect.width / 2 - (modalRect.left + modalRect.width / 2);
+                const ty = btnRect.top + btnRect.height / 2 - (modalRect.top + modalRect.height / 2);
+                const scale = targetBtn.offsetWidth / modalRect.width;
+                modalContent.style.transformOrigin = 'center center';
+                modalContent.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease 0.1s';
+                modalContent.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
+                modalContent.style.opacity = '0';
+                setTimeout(() => {
+                    modalOverlay.style.display = 'none';
+                    modalContent.style.transition = '';
+                    modalContent.style.transform = '';
+                    modalContent.style.opacity = '1';
+                    startTimer();
+                }, 400);
+            } else {
+                modalOverlay.style.display = 'none';
+                startTimer();
+            }
+        }
         function startTimer() {
             if (timerInterval) return;
             startTime = Date.now();
@@ -73,8 +220,6 @@
         function swapFish() {
             if (isGameOver) return;
             pop.currentTime = 0; pop.play();
-            document.getElementById('main-line').classList.remove('line-guide');
-            document.getElementById('guide-hand').classList.add('guide-hidden');
             currentSteps++; document.getElementById('step-count').innerText = currentSteps;
             [fishAtNode[0], fishAtNode[1]] = [fishAtNode[1], fishAtNode[0]];
             updateFishUI(); checkWin();
@@ -82,7 +227,10 @@
         function updateFishUI() {
             for(let i=0; i<2; i++) {
                 const f = document.getElementById(`fish-wrap-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`);
-                f.style.top = (n.offsetTop + 21) + "px"; f.style.left = (n.offsetLeft + 35) + "px";
+                if(f && n) {
+                    f.style.top = (n.offsetTop + 21) + "px"; 
+                    f.style.left = (n.offsetLeft + 35) + "px";
+                }
             }
         }
         async function checkWin() {
