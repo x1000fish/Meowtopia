@@ -12,6 +12,24 @@
         .node img { width: 110px; height: auto; pointer-events: none; }
         .fixed-number { position: absolute; bottom: -5px; right: 50px; font-size: 22px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
         .connection-line { position: absolute; background: #463438; cursor: pointer; z-index: 10; transition: all 0.2s ease; opacity: 1; }
+	.line-h::after { 
+            content: ''; 
+            position: absolute; 
+            top: -10px; 
+            bottom: -10px; 
+            left: 0; 
+            right: 0; 
+            background-color: transparent; 
+        }
+	.line-v::after { 
+            content: ''; 
+            position: absolute; 
+            top: 0; 
+            bottom: 0; 
+            left: -10px; 
+            right: -10px; 
+            background-color: transparent; 
+        }
         .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); z-index: 16; }
         .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; z-index: 15; }
         .line-h { height: 8px; width: 300px; }
@@ -30,13 +48,20 @@
         .view-btn { background: #3d6183; }
         .multi-toggle-btn:hover, .mode-toggle-fixed:hover, .view-btn:hover, .game-btn:hover, .btn-share:hover {transform: translateY(-2px);box-shadow: 0 6px 0 #000; }
         .multi-toggle-btn:active, .mode-toggle-fixed:active, .view-btn:active, .game-btn:active, .btn-share:active {transform: translateY(2px); box-shadow: 0 2px 0 #000;}
-        .gate-btn-v2 { background: #ffffff; border: 2.5px solid #000; border-radius: 30px; padding: 5px; font-weight: 800; font-size: 16px; color: #000; cursor: pointer; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.1s; text-align: center; }
-        .gate-btn-v2:active { transform: translateY(2px); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .gate-btn-v2:hover, .func-btn:hover { background-color: #ffb7c5 !important; border-color: #000 !important; color: #000 !important; box-shadow: 0 0 5px rgba(0, 0, 0, 0.7), 0 3px 0 #000 !important; transform: translateY(-2px); }
-        .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); }
+        
+        .gate-btn-v2 { position: relative; height: 76px; width: 72px; display: flex; align-items: center; justify-content: center; padding: 0; border: 2.5px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); margin: auto; background-color: transparent;}
+        .btn-not { background-color: rgba(226, 222, 110, 0.35) !important; }
+        .btn-cnot { background-color: rgba(98, 158, 237, 0.35) !important; }
+        .gate-btn-v2:hover { background-color: #FFB7C5 !important; filter: brightness(1.05); transform: scale(1.05); z-index: 10; border-color: #463438; }
+        .btn-highlight { transform: scale(1.15) !important; box-shadow: 0 0 10px rgba(0,0,0,0.3) !important; border: 4px solid #99C44D !important; z-index: 10 !important; filter: brightness(1.1) !important; background-color: #FFB7C5 !important; }
+        
+        .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); transition: all 0.2s; }
+        .func-btn:hover { background-color: #ffb7c5 !important; border-color: #463438 !important; color: #fff !important; box-shadow: 0 3px 0 #463438 !important; transform: translateY(-2px); }
+        
         .btn-reset { background: #FFF9F0; color: #463438; }
         .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; pointer-events: none; }
         .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; pointer-events: auto; }
+        
         #node-0, #node-2 { left: 65px !important; }
         #node-1, #node-3 { left: 405px !important; }
         .line-h { left: 130px !important; }
@@ -52,53 +77,93 @@
         .panel-section-title.gate-title { margin-top: 2px; margin-bottom: 12px; }
         .panel-section-title.control-title { margin-top: 12px; margin-bottom: 10px; }
         .game-canvas { position: relative; width: 625px; height: 500px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
+        
+        /* 擴大 Circuit Area 接收範圍，防止禁止符號出現 */
         #circuit-area { width: 915px; height: 170px; opacity: 1; background: #fff; border: 8px solid #463438; border-radius: 30px; margin: 20px auto 0 auto; position: relative; padding: 15px; overflow: hidden; box-sizing: border-box; box-shadow: 10px 10px 0px #FFB7C5; }
         #circuit-content-wrapper { position: relative; height: 130px; overflow-x: auto !important; overflow-y: hidden; margin-left: 30px; margin-right: 30px; padding-top: 4px; scrollbar-width: none; }
         #circuit-content { display: flex; height: 100%; padding: 0 7px; min-width: 100%; width: max-content; position: relative; }
-        .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #463438; z-index: 5; width: 25px; text-align: center; }
+        
+        .qubit-label { position: absolute; left: 12px; font-weight: 900; font-size: 16px; color: #463438; z-index: 5; width: 25px; text-align: center; transition: opacity 0.2s; }
         .qubit-label.right-side { left: auto !important; right: 15px !important; color: rgb(255, 151, 172) !important; font-weight: 900; background-color: #fff; padding: 2px 10px; z-index: 50; border-radius: 5px; transform: translateY(-50%); }
-        .circuit-unit { min-width: 50px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s; }
-        .circuit-unit:hover { background: rgba(239, 68, 68, 0.2); border-radius: 12px; }
-        .circuit-unit.selected { background: rgba(153, 196, 77, 0.3) !important; border-radius: 12px; box-shadow: inset 0 0 0 2px #99C44D; }
-        .circuit-unit.trace-active { background: #bdfc507a !important; box-shadow: inset 0 0 0 3px #99C44D !important; border-radius: 12px; z-index: 100 !important; }
+        
+        .circuit-unit { min-width: 50px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s ease, margin 0.2s cubic-bezier(0.16, 1, 0.3, 1); border: 3px solid transparent; }
+        .circuit-unit:hover { background-color: var(--bg-hover, rgba(239, 68, 68, 0.2)) !important; border-radius: 12px; }
+        .circuit-unit.selected { background-color: var(--bg-hover, rgba(153, 196, 77, 0.3)) !important; border: 3px solid var(--bg-selected, #99C44D) !important; border-radius: 12px; box-shadow: none; }
+        .circuit-unit.trace-active { background: #bdfc507a !important; box-shadow:  0 0 0 3px #99C44D !important; border-radius: 12px; z-index: 100 !important; }
+        
         .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; z-index: 5; transform: translate(-50%, -50%); }
         .connection-v-line { position: absolute; width: 2.5px; background: #463438; z-index: 3; transform: translateX(-50%); }
-        .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid #463438; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
+        .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
         .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background-color: #463438; }
         .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background-color: #463438; }
-        .gate-btn-circuit { padding: 0 !important; height: 76px; display: flex; align-items: center; justify-content: center; border-radius: 16px !important; position: relative; }
-        .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#000, #000), linear-gradient(#000, #000); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
+        .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
+        
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        
         #tt-body { font-family: Arial, sans-serif; }
         #tt-body tr { transition: all 0.2s ease; }
         #tt-body td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
         #tt-body td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
         #tt-body tr:hover td { background-color: rgba(0, 0, 0, 0.05); cursor: pointer; }
         #tt-body tr.active-trace td { background-color: #a3cd5a9f !important; color: #463438 !important; font-weight: bold; }
+        
         #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 40px; padding: 10px 4px; gap: 4px; margin-top: 8px; margin-bottom: 10px; border: 2.5px solid #000; }
         #trace-controls .func-btn { margin: 0; padding: 10px 8px; font-size: 11px; border-radius: 50px; background: #e7e5dc; color: white; }
         #trace-controls .btn-red { background: #FFB7C5; border-color: #463438; }
         #trace-step-text { color: #463438; font-family: 'Courier New', monospace; font-size: 24px; }
+        
         .btn-share { background: #99C44D; border: 4px solid #463438; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; }
         .btn-share:hover { background-color: #99C44D !important; }
+        
         .nav-fab { position: fixed; top: 25px; right: 25px; width: 70px; height: 70px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
         .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #463438; }
-        canvas, .game-canvas, .circuit-unit, .node, .gate-btn-circuit { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
-        #shake-toast { position: fixed; top: 30px; left: 50%; transform: translateX(-50%) scale(0.8); background: #99C44D; color: #463438; padding: 15px 40px; border-radius: 50px; font-weight: 900; font-size: 24px; z-index: 10000; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; border: 4px solid #463438; box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; }
-        #shake-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
-        @keyframes pulse-toast { 0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(153, 196, 77, 0.6), 0 8px 0 #463438; } 50% { transform: translateX(-50%) scale(1.1); box-shadow: 0 0 30px #99C44D, 0 8px 0 #463438; } }
-        .toast-highlight { animation: pulse-toast 1s infinite !important; background: #99C44D !important; color: white !important; }
+        
+        canvas, .game-canvas, .circuit-unit, .node { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+               
+        /* 拖曳提示紅線與推擠動畫 */
+        .drag-target { margin-left: 25px !important; }
+        .drag-target-right { margin-right: 25px !important; }
+        .drag-target::before, .drag-target-right::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            bottom: 10px;
+            width: 4px;
+            background-color: #f78790;
+            border-radius: 4px;
+            z-index: 200;
+            pointer-events: none;
+        }
+        .drag-target::before { left: -14px; }
+        .drag-target-right::after { right: -14px; }
+        
+        /* 讓被推開的 Wire 可以平滑伸縮避免斷線 */
+        .horizontal-wire { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .drag-target .horizontal-wire { left: -28px !important; width: calc(100% + 31px) !important; }
+        .drag-target-right .horizontal-wire { width: calc(100% + 31px) !important; }
+
         .dragging-snapshot-frame { position: absolute; inset: 4px; border: 4px; border-radius: 12px; opacity: 0; z-index: 50; pointer-events: none; }
         .circuit-unit.during-snapshot .dragging-snapshot-frame { opacity: 1 !important; }
+        
+        .hyper-line { stroke: #463438; stroke-width: 2; opacity: 0.3; }
+        .hyper-line-hi { stroke: #FFB7C5; stroke-width: 4.5; opacity: 1; transition: stroke 0.2s; }
+        .gate-btn-v2 .hyper-line-hi { stroke: #f78790; }
+        .gate-btn-v2:hover .hyper-line-hi { stroke: #ffffff !important; }
+        .btn-highlight .hyper-line-hi { stroke: #ffffff !important; }
+        .circuit-unit:hover .hyper-line-hi, .circuit-unit.selected .hyper-line-hi { stroke: #99C44D !important; }
+        
+        .mini-mode #circuit-content { background-image: none !important; }
+        .mini-mode .circuit-unit { min-width: 85px !important; width: 85px !important; max-width: 85px !important; flex: 0 0 85px !important; padding: 0 !important; }
+        .mode-toggle-fixed { position: fixed; top: 110px; right: 25px; width: 70px; height: 70px; background: white; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; transition: all 0.1s; }
     </style>
 </head>
-<body id="body-root" class="pro-active">
-    <div id="shake-toast">Ctrl Mode: ON</div>
+<body id="body-root" class="pro-active mini-mode">
     <button onclick="navWithSound('lab3.html')" class="nav-fab" title="Go to 3-Bit">3</button>
+    <div id="quantum-toggle" class="mode-toggle-fixed" onclick="toggleQuantumMode()">⚛️</div>
     <div class="lab-shell">
         <div class="lab-topbar">
             <div class="text-3xl font-black">GATE COUNT: <span id="step-count">0</span></div>
@@ -111,54 +176,16 @@
         <div class="main-layout">
             <div id="pro-panel">
                 <div id="gate-view-container" class="w-full flex-col flex h-full min-h-0">
-                    <div class="panel-section-title gate-title">Quantum Gates</div>
+                    <div class="panel-section-title gate-title">Transformations</div>
                     <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
-                       <button id="gate-x0" class="gate-btn-v2 gate-btn-circuit" style="background-color: #fce7f3;"
-                            onclick="applyGate('X0')"
-                            onmouseover="syncGateHighlight('X0', true)"
-                            onmouseout="syncGateHighlight('X0', false)">
-                        <div class="wire-container">
-                            <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
-                        </div>
-                    </button>
-                    <button id="gate-x1" class="gate-btn-v2 gate-btn-circuit" style="background-color: #fce7f3;"
-                            onclick="applyGate('X1')"
-                            onmouseover="syncGateHighlight('X1', true)"
-                            onmouseout="syncGateHighlight('X1', false)">
-                        <div class="wire-container">
-                            <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
-                        </div>
-                    </button>
-                        <button id="gate-cx01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)">
-                            <div class="wire-container">
-                                <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
-                                <div class="control-dot" style="left: 50%; top: 25.5px; background: black; transform: translate(-50%, -50%);"></div>
-                                <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
-                            </div>
-                        </button>
-                        <button id="gate-c0x01" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X01')" onmouseover="syncGateHighlight('C0X01', true)" onmouseout="syncGateHighlight('C0X01', false)">
-                            <div class="wire-container">
-                                <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
-                                <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 25.5px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
-                                <div class="circuit-target" style="left: 50%; top: 53.5px;"></div>
-                            </div>
-                        </button>
-                        <button id="gate-cx10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('CX10')" onmouseover="syncGateHighlight('CX10', true)" onmouseout="syncGateHighlight('CX10', false)">
-                            <div class="wire-container">
-                                <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
-                                <div class="control-dot" style="left: 50%; top: 53.5px; background: black; transform: translate(-50%, -50%);"></div>
-                                <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
-                            </div>
-                        </button>
-                        <button id="gate-c0x10" class="gate-btn-v2 gate-btn-circuit" onclick="applyGate('C0X10')" onmouseover="syncGateHighlight('C0X10', true)" onmouseout="syncGateHighlight('C0X10', false)">
-                            <div class="wire-container">
-                                <div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div>
-                                <div class="control-dot" style="box-sizing: border-box; left: 50%; top: 53.5px; background: white; border: 2.5px solid black; transform: translate(-50%, -50%);"></div>
-                                <div class="circuit-target" style="left: 50%; top: 25.5px;"></div>
-                            </div>
-                        </button>
+                        <button id="gate-x0" class="gate-btn-v2 btn-not" onclick="applyGate('X0')" onmouseover="syncGateHighlight('X0', true)" onmouseout="syncGateHighlight('X0', false)"></button>
+                        <button id="gate-x1" class="gate-btn-v2 btn-not" onclick="applyGate('X1')" onmouseover="syncGateHighlight('X1', true)" onmouseout="syncGateHighlight('X1', false)"></button>
+                        <button id="gate-cx10" class="gate-btn-v2 btn-cnot" onclick="applyGate('CX10')" onmouseover="syncGateHighlight('CX10', true)" onmouseout="syncGateHighlight('CX10', false)"></button>
+                        <button id="gate-cx01" class="gate-btn-v2 btn-cnot" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)"></button>
+                        <button id="gate-c0x10" class="gate-btn-v2 btn-cnot" onclick="applyGate('C0X10')" onmouseover="syncGateHighlight('C0X10', true)" onmouseout="syncGateHighlight('C0X10', false)"></button>
+                        <button id="gate-c0x01" class="gate-btn-v2 btn-cnot" onclick="applyGate('C0X01')" onmouseover="syncGateHighlight('C0X01', true)" onmouseout="syncGateHighlight('C0X01', false)"></button>
                     </div>
-                    <div class="mt-auto w-full">
+                    <div class="mt-auto w-full pt-2">
                         <div class="panel-section-title control-title">Control</div>
                         <button id="reset-btn" class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
                         <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Step</button>
@@ -166,9 +193,9 @@
                 </div>
                 <div id="tt-view-container" class="w-full flex-col hidden-el h-full flex" style="max-height: 100%; overflow: hidden;">
                     <div class="panel-section-title shrink-0 mt-2">Truth Table</div>
-                    <div class="text-lg text-gray-400 text-center mb-2 font-bold flex justify-between px-8 shrink-0 border-b border-black-100 pb-2">
-                        <span class="w-1/2 text-left text-black">INPUT</span>
-                        <span class="w-1/2 text-right text-black">OUTPUT</span>
+                    <div class="text-lg text-gray-400 text-center mb-2 mt-4 font-bold flex justify-between px-8 shrink-0 border-b border-black-100 pb-2">
+                        <span class="w-1/2 text-left text-black">CAT</span>
+                        <span class="w-1/2 text-right text-black">FISH</span>
                     </div>
                     <div class="overflow-y-auto w-full flex-grow px-2 mb-2 custom-scrollbar" style="scrollbar-width: none;">
                         <table class="w-full text-center text-lg border-separate border-spacing-y-1">
@@ -187,10 +214,10 @@
                 </div>
             </div>
             <div class="game-canvas" id="main-canvas">
-                <div id="line-h-0" class="connection-line line-h" style="top: 95px;" onclick="handleLineClick('H')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
-                <div id="line-h-1" class="connection-line line-h" style="bottom: 90px;" onclick="handleLineClick('H')" onmouseover="syncHighlight('H', true)" onmouseout="syncHighlight('H', false)"></div>
-                <div id="line-v-0" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick('V')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
-                <div id="line-v-1" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick('V')" onmouseover="syncHighlight('V', true)" onmouseout="syncHighlight('V', false)"></div>
+                <div id="line-h-0" class="connection-line line-h" style="top: 95px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                <div id="line-h-1" class="connection-line line-h" style="bottom: 90px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                <div id="line-v-0" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                <div id="line-v-1" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
                 <div class="node" id="node-0" style="top: 25px;"><div class="fixed-number">00</div><img src="./image/Cat1.svg"></div>
                 <div class="node" id="node-1" style="top: 25px;"><div class="fixed-number">01</div><img src="./image/Cat2.svg"></div>
                 <div class="node" id="node-2" style="bottom: 25px;"><div class="fixed-number">10</div><img src="./image/Cat3.svg"></div>
@@ -202,9 +229,9 @@
             </div>
         </div>
         <div id="circuit-area" class="mx-auto">
-            <div class="circuit-title">Circuit Diagram</div>
-            <div id="q-in-0" class="qubit-label" style="top: 62px;">q0</div>
-            <div id="q-in-1" class="qubit-label" style="top: 102px;">q1</div>
+            <div class="circuit-title">Paths</div>
+            <div id="q-in-0" class="qubit-label" style="top: 62px;">d1</div>
+            <div id="q-in-1" class="qubit-label" style="top: 102px;">d2</div>
             <div id="q-out-0" class="qubit-label right-side hidden-el" style="top: 75px;"></div>
             <div id="q-out-1" class="qubit-label right-side hidden-el" style="top: 115px;"></div>
             <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
@@ -220,7 +247,7 @@
         let gateHistory = [], historyStack = [[]];
         let selectedIndices = [], draggedIndex = null;
         let isMode2 = false;
-        let pendingMode2Dir = null;
+        let isQuantumMode = false; 
         let isTraceMode = false;
         let activeTraceInput = null;
         let currentTraceStep = 0;
@@ -229,43 +256,346 @@
         let mobileDragging = false;
         let mDragIndex = null;
         let dragGhost = null;
-        let isShakeCtrlActive = false; 
-        let lastShakeTime = 0;
         let gyroPermissionGranted = false;
         window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
-        function handleMotion(event) {
-            const acc = event.accelerationIncludingGravity;
-            if (!acc) return;
-            const threshold = 20;
-            const delta = Math.sqrt(acc.x ** 2 + acc.y ** 2 + acc.z ** 2);
-            if (delta > threshold) {
-                const now = Date.now();
-                if (now - lastShakeTime > 1000) { 
-                    isShakeCtrlActive = !isShakeCtrlActive;
-                    lastShakeTime = now;
-                    if (navigator.vibrate) navigator.vibrate([100]); 
-                    const toast = document.getElementById('shake-toast');
-                    if (toast) {
-                        toast.style.background = isShakeCtrlActive ? "#99C44D" : "#FFB7C5";
-                        toast.style.color = isShakeCtrlActive ? "white" : "#463438";
-                        toast.innerText = isShakeCtrlActive ? "CTRL MODE: ON" : "CTRL MODE: OFF";
-                        toast.classList.add('show');
-                        setTimeout(() => { 
-                            if(tutorialPhase !== 0.5) toast.classList.remove('show'); 
-                        }, 4000);
-                    }
-                }
+        
+        let autoScrollRAF = null;
+        let scrollSpeed = 0;
+
+        const gateLineMap = {
+            X0: ['line-v-0', 'line-v-1'],
+            X1: ['line-h-0', 'line-h-1'],
+            C0X01: ['line-h-0'],
+            CX01: ['line-h-1'],
+            C0X10: ['line-v-0'],
+            CX10: ['line-v-1']
+        };
+
+        function updateScrollSpeed(clientX) {
+            const wrapper = document.getElementById('circuit-content-wrapper');
+            if (!wrapper) return;
+            const rect = wrapper.getBoundingClientRect();
+            const edgeThreshold = 120;
+            const maxSpeed = 13;
+
+            if (clientX - rect.left < edgeThreshold) {
+                let intensity = 1 - Math.max(0, clientX - rect.left) / edgeThreshold;
+                scrollSpeed = -(maxSpeed * Math.pow(intensity, 1.5));
+                if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else if (rect.right - clientX < edgeThreshold) {
+                let intensity = 1 - Math.max(0, rect.right - clientX) / edgeThreshold;
+                scrollSpeed = maxSpeed * Math.pow(intensity, 1.5);
+                if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else {
+                scrollSpeed = 0;
             }
         }
+
+        function scrollLoop() {
+            const wrapper = document.getElementById('circuit-content-wrapper');
+            if (scrollSpeed !== 0) {
+                wrapper.scrollLeft += scrollSpeed;
+                autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else {
+                autoScrollRAF = null;
+            }
+        }
+
+        function getRgba(hex, alpha) {
+            hex = hex.replace('#', '');
+            const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        
+        function getGateColorMap(type) {
+            if (type.startsWith('X')) return '#e2de6e'; 
+            return '#629eed'; 
+        }
+
+        function getHighlightPairsForGate(type) {
+            let pairs = [];
+            if (type === 'X0') pairs = [[0,2], [1,3]];
+            else if (type === 'X1') pairs = [[0,1], [2,3]];
+            else if (type === 'CX01') pairs = [[2,3]];
+            else if (type === 'C0X01') pairs = [[0,1]];
+            else if (type === 'CX10') pairs = [[1,3]];
+            else if (type === 'C0X10') pairs = [[0,2]];
+            return pairs;
+        }
+
+        function getMiniSquareSVG(type, activeState = null) {
+            let pairs = getHighlightPairsForGate(type);
+            const miniNodes = [
+                { x: 20, y: 20 }, 
+                { x: 80, y: 20 }, 
+                { x: 20, y: 80 }, 
+                { x: 80, y: 80 }  
+            ];
+            let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
+            const edges = [ [0, 1], [0, 2], [1, 3], [2, 3] ];
+            edges.forEach(([i, j]) => {
+                let n1 = miniNodes[i], n2 = miniNodes[j];
+                let isHighlighted = pairs.some(p => (p[0] === i && p[1] === j) || (p[0] === j && p[1] === i));
+                let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
+                let strokeW = isHighlighted ? 4.5 : 2;
+                svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
+            });
+            for(let i=0; i<4; i++) {
+                let n = miniNodes[i];
+                let isTraceNode = (activeState !== null && i === activeState);
+                if (isTraceNode) {
+                    svg += `<circle cx="${n.x}" cy="${n.y}" r="9" fill="#f78790" stroke="#FFF9F0" stroke-width="2"/>`;
+                } else {
+                    svg += `<circle cx="${n.x}" cy="${n.y}" r="6" fill="#463438"/>`;
+                }
+            }
+            svg += `</svg>`;
+            return svg;
+        }
+
+        function toggleQuantumMode() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            isQuantumMode = !isQuantumMode;
+            document.getElementById('body-root').classList.toggle('mini-mode', !isQuantumMode);
+            
+            const qToggle = document.getElementById('quantum-toggle');
+            qToggle.innerText = isQuantumMode ? "🧊" : "⚛️";
+
+            updateLabels();
+            updateGateButtonsUI();
+            
+            if (isTraceMode && activeTraceInput !== null) {
+                renderTraceStep();
+            } else {
+                renderCircuit();
+            }
+        }
+
+        function updateLabels() {
+            const isCube = !isQuantumMode;
+            document.querySelector('.gate-title').innerText = isCube ? 'Transformations' : 'Quantum Gates';
+            document.querySelector('.circuit-title').innerText = isCube ? 'Paths' : 'Circuit Diagram';
+            
+            if (isTraceMode) {
+                if (isCube) {
+                    document.getElementById('q-in-0').classList.add('hidden-el');
+                    document.getElementById('q-in-1').classList.add('hidden-el');
+                    document.getElementById('q-out-0').classList.add('hidden-el');
+                    document.getElementById('q-out-1').classList.add('hidden-el');
+                } else {
+                    document.getElementById('q-in-0').classList.remove('hidden-el');
+                    document.getElementById('q-in-1').classList.remove('hidden-el');
+                    if (activeTraceInput !== null) {
+                        document.getElementById('q-out-0').classList.remove('hidden-el');
+                        document.getElementById('q-out-1').classList.remove('hidden-el');
+                    } else {
+                        document.getElementById('q-out-0').classList.add('hidden-el');
+                        document.getElementById('q-out-1').classList.add('hidden-el');
+                        document.getElementById('q-in-0').innerText = 'q0';
+                        document.getElementById('q-in-1').innerText = 'q1';
+                    }
+                }
+            } else {
+                document.getElementById('q-in-0').classList.remove('hidden-el');
+                document.getElementById('q-in-1').classList.remove('hidden-el');
+                document.getElementById('q-out-0').classList.add('hidden-el');
+                document.getElementById('q-out-1').classList.add('hidden-el');
+                
+                document.getElementById('q-in-0').innerText = isCube ? 'd1' : 'q0';
+                document.getElementById('q-in-1').innerText = isCube ? 'd2' : 'q1';
+            }
+        }
+
+        function updateGateButtonsUI() {
+            const gates = ['X0', 'X1', 'CX10', 'CX01', 'C0X10', 'C0X01'];
+            gates.forEach(g => {
+                const btn = document.getElementById('gate-' + g.toLowerCase());
+                if (!btn) return;
+                if (!isQuantumMode) {
+                    btn.innerHTML = getMiniSquareSVG(g);
+                } else {
+                    let html = '<div class="wire-container">';
+                    if (g === 'X0') {
+                        html += '<div class="circuit-target" style="left: 50%; top: 25.5px;"></div>';
+                    } else if (g === 'X1') {
+                        html += '<div class="circuit-target" style="left: 50%; top: 53.5px;"></div>';
+                    } else if (g === 'CX01') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="left: 50%; top: 25.5px; background: #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 53.5px;"></div>';
+                    } else if (g === 'C0X01') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="box-sizing: border-box; left: 50%; top: 25.5px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 53.5px;"></div>';
+                    } else if (g === 'CX10') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="left: 50%; top: 53.5px; background: #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 25.5px;"></div>';
+                    } else if (g === 'C0X10') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="box-sizing: border-box; left: 50%; top: 53.5px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 25.5px;"></div>';
+                    }
+                    html += '</div>';
+                    btn.innerHTML = html;
+                }
+            });
+        }
+
+       
         window.onload = () => {
             initLabData();
+            updateLabels();
+            updateGateButtonsUI();
             recalculatePositions();
             finishMove();
+            
+            const circuitArea = document.getElementById('circuit-area');
             const cw = document.getElementById('circuit-content-wrapper');
+
+            // --- 統一在 circuit-area 處理 dragover，徹底消滅禁止符號 ---
+            if (circuitArea) {
+               circuitArea.addEventListener('dragover', (e) => {
+    e.preventDefault(); // 允許在此區域處理拖放
+    updateScrollSpeed(e.clientX);
+    if (draggedIndex === null) return;
+
+    // 全局清掃舊紅線，避免產生雙線
+    document.querySelectorAll('.circuit-unit').forEach(el => {
+        el.classList.remove('drag-target', 'right');
+    });
+
+    // --- 核心修改：判斷是否在禁止區域 (左側 d1, d2 標籤區) ---
+    const wrapper = document.getElementById('circuit-content-wrapper');
+    const wrapperRect = wrapper.getBoundingClientRect();
+    
+    // 如果滑鼠在 wrapper 的左側（標籤區），或是直接指在標籤上
+    if (e.clientX < wrapperRect.left || e.target.classList.contains('qubit-label')) {
+        e.dataTransfer.dropEffect = 'none'; // 顯示禁止符號
+        return; // 直接結束，這樣就不會畫出紅線，兩者不會同時出現
+    }
+
+    // 若滑鼠已經進入電路區塊，則正常顯示拖放圖示
+    e.dataTransfer.dropEffect = 'move'; 
+    // --------------------------------------------------------
+
+    // 找出滑鼠底下最靠近的 Gate
+    const units = Array.from(document.querySelectorAll('.circuit-unit'));
+    let closestUnit = null;
+    let minDx = Infinity;
+    
+    for (let u of units) {
+        if (u.offsetParent === null) continue; // 略過隱藏的元素
+        const rect = u.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const dx = Math.abs(e.clientX - cx);
+        if (dx < minDx) {
+            minDx = dx;
+            closestUnit = u;
+        }
+    }
+
+    if (closestUnit) {
+        // 若最靠近的剛好是正在拖移的自己，則不顯示紅線
+        if (closestUnit.dataset.type === 'gate' && parseInt(closestUnit.dataset.idx) === draggedIndex) {
+            // Do nothing
+        } else {
+            const rect = closestUnit.getBoundingClientRect();
+            const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+            
+            // 照常顯示紅線
+            if (closestUnit.dataset.type === 'start') {
+                closestUnit.classList.add('drag-target', 'right');
+            } else if (closestUnit.dataset.type === 'end') {
+                closestUnit.classList.add('drag-target');
+            } else {
+                if (isAfter) closestUnit.classList.add('drag-target', 'right');
+                else closestUnit.classList.add('drag-target');
+            }
+        }
+    }
+});
+		// 新增：支援一般滑鼠移動到邊緣時也能自動滑動
+        	circuitArea.addEventListener('mousemove', (e) => {
+                       updateScrollSpeed(e.clientX);
+        	});
+		
+                circuitArea.addEventListener('dragleave', (e) => {
+                    if (!circuitArea.contains(e.relatedTarget)) {
+                        document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'drag-target-right'));
+                        scrollSpeed = 0;
+                    }
+                });
+
+                // 統一處理放置 (Drop) 邏輯
+               circuitArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    scrollSpeed = 0;
+    document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'right'));
+
+    if (draggedIndex === null) return;
+
+    // --- 核心修改：防止放置在左側標籤區 ---
+    const wrapper = document.getElementById('circuit-content-wrapper');
+    const wrapperRect = wrapper.getBoundingClientRect();
+    if (e.clientX < wrapperRect.left || e.target.classList.contains('qubit-label')) {
+        draggedIndex = null;
+        return;
+    }
+    // -------------------------------------
+
+    const units = Array.from(document.querySelectorAll('.circuit-unit'));
+    let closestUnit = null;
+    let minDx = Infinity;
+    
+    for (let u of units) {
+        if (u.offsetParent === null) continue;
+        const rect = u.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const dx = Math.abs(e.clientX - cx);
+        if (dx < minDx) {
+            minDx = dx;
+            closestUnit = u;
+        }
+    }
+
+    if (closestUnit) {
+        // 若放置在自己身上，忽略
+        if (closestUnit.dataset.type === 'gate' && parseInt(closestUnit.dataset.idx) === draggedIndex) {
+            draggedIndex = null;
+            return;
+        }
+        
+        const rect = closestUnit.getBoundingClientRect();
+        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+        let finalIdx;
+        
+        if (closestUnit.dataset.type === 'start') {
+            finalIdx = 0;
+        } else if (closestUnit.dataset.type === 'end') {
+            finalIdx = gateHistory.length;
+        } else {
+            const idx = parseInt(closestUnit.dataset.idx);
+            finalIdx = isAfter ? idx + 1 : idx;
+        }
+
+        if (draggedIndex < finalIdx) finalIdx--;
+        
+        if (draggedIndex !== finalIdx) {
+            if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(err=>{}); }
+            const oldHistory = [...gateHistory];
+            const movedItem = gateHistory.splice(draggedIndex, 1)[0];
+            gateHistory.splice(finalIdx, 0, movedItem);
+            
+            actionStack.push({ type: 'replace', index: 0, oldGates: oldHistory, newGate: null });
+            selectedIndices = [];
+            if (desktopDragGhost) { desktopDragGhost.remove(); desktopDragGhost = null; }
+            recalculate();
+        }
+    }
+    draggedIndex = null;
+});
+            }
+
             cw.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                cw.scrollLeft += e.deltaY;
-            });
+                if (Math.abs(e.deltaY) > 0) {
+                    e.preventDefault();
+                    cw.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+
             const requestPermissions = async () => {
                 if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                     try {
@@ -273,18 +603,13 @@
                         if (permission === 'granted') gyroPermissionGranted = true;
                     } catch (error) { console.log("Gyro permission denied:", error); }
                 } else { gyroPermissionGranted = true; }
-                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                    try {
-                        const permission = await DeviceMotionEvent.requestPermission();
-                        if (permission === 'granted') window.addEventListener('devicemotion', handleMotion);
-                    } catch (e) { console.log("Motion permission denied:", e); }
-                } else { window.addEventListener('devicemotion', handleMotion); }
                 window.removeEventListener('click', requestPermissions);
                 window.removeEventListener('touchstart', requestPermissions);
             };
             window.addEventListener('click', requestPermissions);
             window.addEventListener('touchstart', requestPermissions);
         };
+
         function startMobileDrag(touch, el, index) {
             if (dragGhost) { dragGhost.remove(); dragGhost = null; }
             mobileDragging = true;
@@ -307,33 +632,73 @@
             const visuals = el.querySelector('.gate-visuals');
             if (visuals) visuals.style.opacity = '0.35';
         }
+
         function moveMobileDrag(touch) {
             if (!dragGhost) return;
             dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
             dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
         }
+
         function endMobileDrag(touch) {
             mobileDragging = false;
             if (dragGhost) { dragGhost.remove(); dragGhost = null; }
             document.querySelectorAll('.gate-visuals').forEach(v => v.style.opacity = '1');
-            document.querySelectorAll('.circuit-unit').forEach(u => u.style.opacity = '1');
-            const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-            let dropUnit = targetEl ? targetEl.closest('.circuit-unit') : null;
-            if (dropUnit) {
-                let children = Array.from(document.getElementById('circuit-content').children);
-                let targetIndex = children.indexOf(dropUnit) - 1;
-                if (targetIndex >= 0 && targetIndex <= gateHistory.length && targetIndex !== mDragIndex) {
-                    if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
-                    const movedItem = gateHistory.splice(mDragIndex, 1)[0];
-                    gateHistory.splice(targetIndex, 0, movedItem);
-                    pushHistory();
-                    selectedIndices = [];
-                    recalculatePositions();
-                    finishMove();
+            document.querySelectorAll('.circuit-unit').forEach(u => {
+                u.style.opacity = '1';
+                u.classList.remove('drag-target', 'drag-target-right');
+            });
+
+            if (mDragIndex === null) return;
+
+            // 手機版也使用最近元件的智慧判定，保證穩定
+            const units = Array.from(document.querySelectorAll('.circuit-unit'));
+            let closestUnit = null;
+            let minDx = Infinity;
+            for (let u of units) {
+                if (u.offsetParent === null) continue;
+                const rect = u.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const dx = Math.abs(touch.clientX - cx);
+                if (dx < minDx) {
+                    minDx = dx;
+                    closestUnit = u;
+                }
+            }
+
+            if (closestUnit) {
+                if (closestUnit.dataset.type === 'gate' && parseInt(closestUnit.dataset.idx) === mDragIndex) {
+                    // Do nothing
+                } else {
+                    const rect = closestUnit.getBoundingClientRect();
+                    const isAfter = (touch.clientX - rect.left) > (rect.width / 2);
+                    let finalIdx;
+                    
+                    if (closestUnit.dataset.type === 'start') {
+                        finalIdx = 0;
+                    } else if (closestUnit.dataset.type === 'end') {
+                        finalIdx = gateHistory.length;
+                    } else {
+                        const idx = parseInt(closestUnit.dataset.idx);
+                        finalIdx = isAfter ? idx + 1 : idx;
+                    }
+
+                    if (mDragIndex < finalIdx) finalIdx--;
+                    
+                    if (mDragIndex !== finalIdx) {
+                        if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                        const movedItem = gateHistory.splice(mDragIndex, 1)[0];
+                        gateHistory.splice(finalIdx, 0, movedItem);
+                        pushHistory();
+                        selectedIndices = [];
+                        recalculatePositions();
+                        finishMove();
+                    }
                 }
             }
             mDragIndex = null;
+            scrollSpeed = 0;
         }
+
         function initLabData() {
             const urlParams = new URLSearchParams(window.location.search);
             const sharedCircuit = urlParams.get('circuit');
@@ -348,6 +713,7 @@
                 }
             }
         }
+
         function toggleTraceMode() {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             isTraceMode = !isTraceMode;
@@ -361,6 +727,8 @@
                 gView.classList.add('hidden-el');
                 tView.classList.remove('hidden-el');
                 tCtrl.classList.remove('hidden-el', 'opacity-50', 'pointer-events-none');
+                
+                updateLabels();
                 updateTruthTable();
             } else {
                 btn.innerText = "Trace: OFF";
@@ -368,9 +736,12 @@
                 gView.classList.remove('hidden-el');
                 tView.classList.add('hidden-el');
                 tCtrl.classList.add('hidden-el', 'opacity-50', 'pointer-events-none');
+                
+                updateLabels();
                 exitTrace();
             }
         }
+
         function startTrace(inputIndex) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             activeTraceInput = inputIndex;
@@ -379,6 +750,7 @@
             updateTruthTable();
             renderTraceStep();
         }
+
         function traceMove(delta) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             currentTraceStep += delta;
@@ -386,19 +758,19 @@
             if (currentTraceStep > gateHistory.length) currentTraceStep = gateHistory.length;
             renderTraceStep();
         }
+
         function exitTrace() {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             activeTraceInput = null;
             document.getElementById('trace-controls').classList.add('opacity-50', 'pointer-events-none');
             document.querySelectorAll('.trace-line-active').forEach(el => el.classList.remove('trace-line-active'));
             document.querySelectorAll('.trace-fish-active').forEach(el => el.classList.remove('trace-fish-active'));
-            for(let i=0; i<2; i++) {
-                document.getElementById(`q-in-${i}`).innerText = `q${i}`;
-                document.getElementById(`q-out-${i}`).classList.add('hidden-el');
-            }
+            
+            updateLabels();
             updateTruthTable();
             finishMove();
         }
+
         function getLineId(n1, n2) {
             const min = Math.min(n1, n2), max = Math.max(n1, n2);
             if (min === 0 && max === 1) return 'line-h-0';
@@ -407,6 +779,7 @@
             if (min === 1 && max === 3) return 'line-v-1';
             return null;
         }
+
         function renderTraceStep() {
             if (activeTraceInput === null) return;
             let prevNode = activeTraceInput;
@@ -432,6 +805,7 @@
                 if (lineEl) lineEl.classList.add('trace-line-active');
             }
             updateFishVisibility();
+            
             let inBin = activeTraceInput.toString(2).padStart(2, '0');
             let finalNode = activeTraceInput;
             for(let k = 0; k < gateHistory.length; k++) {
@@ -439,11 +813,14 @@
                 finalNode = pm[finalNode];
             }
             let outBin = finalNode.toString(2).padStart(2, '0');
-            for(let i = 0; i < 2; i++) {
-                document.getElementById(`q-in-${i}`).innerText = inBin[i];
-                document.getElementById(`q-out-${i}`).innerText = outBin[i];
-                document.getElementById(`q-out-${i}`).classList.remove('hidden-el');
-            }
+            
+            document.getElementById('q-in-0').innerText = inBin[0];
+            document.getElementById('q-in-1').innerText = inBin[1];
+            document.getElementById('q-out-0').innerText = outBin[0];
+            document.getElementById('q-out-1').innerText = outBin[1];
+            
+            updateLabels();
+
             document.getElementById('trace-step-text').innerText = currentTraceStep;
             renderCircuit();
             const activeGate = document.querySelector('.circuit-unit.trace-active');
@@ -451,6 +828,7 @@
                 activeGate.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }
         }
+
         function updateFishVisibility() {
             for (let i = 0; i < 4; i++) {
                 let f = document.getElementById(`fish-${i}`);
@@ -470,6 +848,7 @@
                 }
             }
         }
+
         function updateTruthTable() {
             let stateMap = [0, 1, 2, 3];
             gateHistory.forEach(type => {
@@ -494,70 +873,64 @@
                     </tr>`;
             }
         }
+
         function toggleMode2() {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             isMode2 = !isMode2;
             const btn = document.getElementById('mode-2-btn');
             btn.innerText = isMode2 ? "Mode: 2" : "Mode: 1";
             btn.classList.toggle('mode2-active-btn', isMode2);
-            pendingMode2Dir = null;
             document.querySelectorAll('.connection-line').forEach(el => el.classList.remove('line-highlight'));
+            document.querySelectorAll('.btn-highlight').forEach(el => el.classList.remove('btn-highlight'));
         }
-        function syncHighlight(dir, isOn) {
-            if (!isMode2) return;
-            const lines = dir === 'H' ? ['line-h-0', 'line-h-1'] : ['line-v-0', 'line-v-1'];
-            lines.forEach(id => {
-                const el = document.getElementById(id);
-                if (isOn) {
-                    el.classList.add('line-highlight');
-                } else {
-                    if (pendingMode2Dir !== dir) {
-                        el.classList.remove('line-highlight');
-                    }
-                }
-            });
-        }
-        function syncGateHighlight(gate, isOn) {
-            let lineIds = [];
-            if (gate === 'X0') lineIds = ['line-v-0', 'line-v-1'];
-            else if (gate === 'X1') lineIds = ['line-h-0', 'line-h-1'];
-            else if (gate === 'C0X01') lineIds = ['line-h-0'];
-            else if (gate === 'CX01') lineIds = ['line-h-1'];
-            else if (gate === 'C0X10') lineIds = ['line-v-0'];
-            else if (gate === 'CX10') lineIds = ['line-v-1'];
+
+        function toggleLineHighlight(lineIds, isOn) {
             lineIds.forEach(id => {
                 const el = document.getElementById(id);
-                if (el) {
-                    if (isOn) el.classList.add('line-highlight');
-                    else el.classList.remove('line-highlight');
-                }
+                if (el) el.classList.toggle('line-highlight', isOn);
             });
         }
-        function handleLineClick(dir) {
+
+        function getGateForLine(lineId) {
             if (isMode2) {
-                if (pendingMode2Dir === dir) {
-                    const gate = (dir === 'H') ? 'X1' : 'X0';
-                    pendingMode2Dir = null;    
-                    syncHighlight(dir, false); 
-                    applyGate(gate);           
-                } else {
-                    if (pendingMode2Dir) {
-                        const oldDir = pendingMode2Dir;
-                        pendingMode2Dir = null;
-                        syncHighlight(oldDir, false);
-                    }
-                    pendingMode2Dir = dir;
-                    syncHighlight(dir, true);
-                }
+                if (lineId.includes('h')) return 'X1';
+                if (lineId.includes('v')) return 'X0';
             } else {
-                const eventId = event.currentTarget.id;
-                if (eventId === 'line-h-0') applyGate('C0X01');
-                if (eventId === 'line-h-1') applyGate('CX01');
-                if (eventId === 'line-v-0') applyGate('C0X10');
-                if (eventId === 'line-v-1') applyGate('CX10');
+                if (lineId === 'line-h-0') return 'C0X01';
+                if (lineId === 'line-h-1') return 'CX01';
+                if (lineId === 'line-v-0') return 'C0X10';
+                if (lineId === 'line-v-1') return 'CX10';
+            }
+            return null;
+        }
+
+        function syncHighlight(lineId, isOn) {
+            const gate = getGateForLine(lineId);
+            if (!gate) return;
+            toggleLineHighlight(gateLineMap[gate] || [], isOn);
+            const btn = document.getElementById('gate-' + gate.toLowerCase());
+            if (btn) {
+                if (isOn) btn.classList.add('btn-highlight');
+                else btn.classList.remove('btn-highlight');
             }
         }
+
+        function syncGateHighlight(gate, isOn) {
+            toggleLineHighlight(gateLineMap[gate] || [], isOn);
+            const btn = document.getElementById('gate-' + gate.toLowerCase());
+            if (btn) {
+                if (isOn) btn.classList.add('btn-highlight');
+                else btn.classList.remove('btn-highlight');
+            }
+        }
+
+        function handleLineClick(lineId) {
+            const gate = getGateForLine(lineId);
+            if (gate) applyGate(gate);
+        }
+
         function pushHistory() { historyStack.push([...gateHistory]); }
+
         function applyGate(g) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             
@@ -579,7 +952,20 @@
                 recalculatePositions();
                 finishMove();
             }
+
+            // === 新增：手機版點擊後，強制消除 Highlight 防止卡住 ===
+            if (isTouchDevice) {
+                setTimeout(() => {
+                    // 1. 強制關閉 Hypercube 線條與按鈕的 Highlight class
+                    syncGateHighlight(g, false);
+                    
+                    // 2. 取消焦點，避免按鈕維持 CSS 的預設 hover/active 狀態
+                    const btn = document.getElementById('gate-' + g.toLowerCase());
+                    if (btn) btn.blur();
+                }, 800); 
+            }
         }
+
         function getPermutationForGate(g) {
             return [0, 1, 2, 3].map(pos => {
                 let q0 = Math.floor(pos / 2), q1 = pos % 2;
@@ -592,6 +978,7 @@
                 return q0 * 2 + q1;
             });
         }
+
         function recalculatePositions() {
             let cp = [...initialFishAtNode]; 
             gateHistory.forEach(g => {
@@ -605,6 +992,7 @@
             });
             fishAtNode = cp;
         }
+
         function finishMove() {
             document.getElementById('step-count').innerText = gateHistory.length;
             updateTruthTable();
@@ -617,6 +1005,7 @@
                 renderCircuit();
             }
         }
+
         function updateFishUI() {
             for(let i=0; i<4; i++) {
                 const f = document.getElementById(`fish-${fishAtNode[i]}`);
@@ -627,6 +1016,7 @@
                 }
             }
         }
+
         function renderCircuit() {
             const c = document.getElementById('circuit-content');
             const wrapper = document.getElementById('circuit-content-wrapper');
@@ -641,14 +1031,15 @@
                 }
             }
             const drawWires = (parentUnit, stepIdx) => {
+                if (!isQuantumMode) return;
                 for (let q = 0; q < 2; q++) {
                     let wire = document.createElement('div');
                     wire.className = 'horizontal-wire';
                     wire.style.position = 'absolute';
-                    wire.style.left = '0';
-                    wire.style.width = '100%';
-                    wire.style.height = '4px';
-                    wire.style.top = (18.5 + q * 40) + 'px';
+                    wire.style.left = '-3px';
+                    wire.style.width = 'calc(100% + 6px)';
+                    wire.style.height = '3px';
+                    wire.style.top = (q === 0 ? 13 : 60) + 'px';
                     wire.style.zIndex = '1';
                     if (activeTraceInput !== null) {
                         if (stepIdx <= currentTraceStep) {
@@ -670,21 +1061,34 @@
                     parentUnit.appendChild(wire);
                 }
             };
+            
+            // --- 建立起點空間 (Start Unit) ---
             const startU = document.createElement('div');
             startU.className = 'circuit-unit';
             startU.style.minWidth = '30px';
             startU.style.cursor = 'default';
+            startU.dataset.type = 'start';
+            if (!isQuantumMode) startU.style.display = 'none';
             drawWires(startU, 0);
             c.appendChild(startU);
+            
             gateHistory.forEach((g, idx) => {
                 const u = document.createElement('div');
                 u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                u.dataset.type = 'gate';
+                u.dataset.idx = idx;
+                
+                const hex = getGateColorMap(g);
+                u.style.setProperty('--bg-hover', getRgba(hex, 0.35));
+                u.style.setProperty('--bg-selected', hex);
+                
                 u.draggable = !isTouchDevice && (activeTraceInput === null);
-                u.oncontextmenu = (e) => { e.preventDefault(); return false; };
                 drawWires(u, idx + 1);
+                
                 const sFrame = document.createElement('div');
                 sFrame.className = 'dragging-snapshot-frame';
                 u.appendChild(sFrame);
+                
                 const visuals = document.createElement('div');
                 visuals.className = 'gate-visuals';
                 visuals.style.position = 'absolute';
@@ -692,11 +1096,52 @@
                 visuals.style.width = '100%';
                 visuals.style.height = '100%';
                 visuals.style.pointerEvents = 'none';
+                
                 if (activeTraceInput !== null) {
                     if (idx === currentTraceStep - 1) u.classList.add('trace-active');
                     else if (idx >= currentTraceStep) visuals.style.opacity = '0.35';
                 }
+                
+                if (!isQuantumMode) {
+                    let traceState = (activeTraceInput !== null) ? states[idx + 1] : null;
+                    visuals.innerHTML = getMiniSquareSVG(g, traceState);
+                } else {
+                    if(g.startsWith('X')) {
+                        const tQ = g==='X0'?0:1, tY = tQ===0?14.5:61.5, t = document.createElement('div');
+                        t.className = 'circuit-target';
+                        t.style.left = '50%';
+                        t.style.top = (tY)+'px';
+                        visuals.appendChild(t);
+                    }
+                    else {
+                        const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01?14.5:61.5, tY = is01?61.5:14.5;
+                        const v = document.createElement('div');
+                        v.className = 'connection-v-line';
+                        v.style.left = '50%';
+                        v.style.top = Math.min(cY,tY)+'px';
+                        v.style.height = '47px';
+                        visuals.appendChild(v);
+                        const d = document.createElement('div');
+                        d.className = 'control-dot';
+                        d.style.left = '50%';
+                        d.style.top = (cY)+'px';
+                        if(is0){
+                            d.style.boxSizing = 'border-box';
+                            d.style.background = 'white'; 
+                            d.style.border = '2.5px solid #463438';
+                        }
+                        visuals.appendChild(d);
+                        
+                        const t = document.createElement('div');
+                        t.className = 'circuit-target';
+                        t.style.left = '50%';
+                        t.style.top = (tY)+'px';
+                        visuals.appendChild(t);
+                    }
+                }
+                
                 u.appendChild(visuals);
+                
                 if (!isTouchDevice && activeTraceInput === null) {
                     u.ondragstart = (e) => {
                         draggedIndex = idx;
@@ -713,49 +1158,101 @@
                             visuals.style.opacity = '0.35';
                         }, 0);
                     };
-                    u.ondragover = (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; return false; };
-                    u.ondrop = (e) => {
-                        if (draggedIndex === null || draggedIndex === idx) return;
-                        e.stopPropagation();
-                        if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(err=>{}); }
-                        const movedGate = gateHistory.splice(draggedIndex, 1)[0];
-                        gateHistory.splice(idx, 0, movedGate);
-                        pushHistory();
-                        selectedIndices = [];
-                        recalculatePositions();
-                        finishMove();
-                        draggedIndex = null;
-                    };
                     u.ondragend = (e) => { 
                         visuals.style.opacity = '1';
-                        draggedIndex = null; 
+                        draggedIndex = null;
+                        document.querySelectorAll('.circuit-unit').forEach(unit => {
+                            unit.classList.remove('drag-target', 'drag-target-right');
+                        });
                     };
                 }
+                
                 let touchTimer = null;
                 let startX, startY;
+                let swipeActionTriggered = false; // 防呆機制：滑動一次只觸發一次
+
                 u.addEventListener('touchstart', (e) => {
                     if (activeTraceInput !== null || e.touches.length > 1) return;
                     u.draggable = false; 
                     startX = e.touches[0].clientX;
                     startY = e.touches[0].clientY;
+                    swipeActionTriggered = false;
+                    
                     touchTimer = setTimeout(() => {
                         touchTimer = null;
                         startMobileDrag(e.touches[0], u, idx);
                     }, 300); 
                 }, {passive: true});
+
                 u.addEventListener('touchmove', (e) => {
                     if (mobileDragging) {
                         if (e.cancelable) e.preventDefault();
                         moveMobileDrag(e.touches[0]);
-                    } else if (touchTimer) {
-                        let dx = e.touches[0].clientX - startX;
-                        let dy = e.touches[0].clientY - startY;
+                        
+                        // 動態偵測是否回到 circuit-area 以決定要不要顯示禁止符號
+                        const wrapper = document.getElementById('circuit-content-wrapper');
+                        const wrapperRect = wrapper.getBoundingClientRect();
+                        
+                        if (e.touches[0].clientX < wrapperRect.left) {
+                            document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'drag-target-right'));
+                        } else {
+                            const targetEl = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+                            if (targetEl) {
+                                const targetUnit = targetEl.closest('.circuit-unit');
+                                if (targetUnit) {
+                                    const type = targetUnit.dataset.type;
+                                    const isSelf = type === 'gate' && parseInt(targetUnit.dataset.idx) === draggedIndex;
+                                    if (!isSelf) {
+                                        document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'drag-target-right'));
+                                        const rect = targetUnit.getBoundingClientRect();
+                                        const isAfter = (e.touches[0].clientX - rect.left) > (rect.width / 2);
+                                        
+                                        if (targetUnit.dataset.type === 'start') {
+                                            targetUnit.classList.add('drag-target-right');
+                                        } else if (targetUnit.dataset.type === 'end') {
+                                            targetUnit.classList.add('drag-target');
+                                        } else {
+                                            if (isAfter) targetUnit.classList.add('drag-target-right');
+                                            else targetUnit.classList.add('drag-target');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } else if (!swipeActionTriggered && (touchTimer !== null || startY !== undefined)) {
+                        const dx = e.touches[0].clientX - startX;
+                        const dy = e.touches[0].clientY - startY;
+
                         if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                            clearTimeout(touchTimer);
-                            touchTimer = null;
+                            if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                        }
+
+                        // 判斷上下滑動
+                        if (Math.abs(dy) > 30 && Math.abs(dy) > Math.abs(dx)) {
+                            if (e.cancelable) e.preventDefault();
+
+                            if (dy > 30) {
+                                // 往下拉 -> 選取 (Select)
+                                const sIdx = selectedIndices.indexOf(idx);
+                                if (sIdx > -1) selectedIndices.splice(sIdx, 1); 
+                                else selectedIndices.push(idx);
+                                renderCircuit();
+                                swipeActionTriggered = true;
+                                startY = undefined;
+                            } else if (dy < -30) {
+                                // 往上推 -> 刪除 (Delete)
+                                if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(err=>{}); }
+                                syncGateHighlight(g, false);
+                                selectedIndices = [];
+                                deleteGate(idx);
+                                swipeActionTriggered = true;
+                                startY = undefined;
+                            }
                         }
                     }
                 }, {passive: false});
+
                 u.addEventListener('touchend', (e) => {
                     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
                     if (mobileDragging) {
@@ -763,69 +1260,56 @@
                         endMobileDrag(e.changedTouches[0]);
                     }
                     if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                    swipeActionTriggered = false;
                 });
+
                 u.addEventListener('touchcancel', (e) => {
                     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
                     if (mobileDragging) endMobileDrag(e.changedTouches[0]);
                     if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                    swipeActionTriggered = false;
                 });
                 u.onmouseover = () => syncGateHighlight(g, true);
                 u.onmouseout = () => syncGateHighlight(g, false);
+                
+                // 左鍵刪除，右鍵多重選取
                 u.onclick = (e) => {
                     if (activeTraceInput !== null || mobileDragging) return;
-                    if (e.ctrlKey || e.metaKey || isShakeCtrlActive) {
-                        const sIdx = selectedIndices.indexOf(idx);
-                        if (sIdx > -1) selectedIndices.splice(sIdx, 1);
-                        else selectedIndices.push(idx);
-                        renderCircuit();
-                    } else {
-                        syncGateHighlight(g, false);
-                        selectedIndices = [];
-                        deleteGate(idx);
-                    }
+                    syncGateHighlight(g, false);
+                    selectedIndices = [];
+                    deleteGate(idx);
                 };
-                if(g.startsWith('X')) {
-                    const tQ = g==='X0'?0:1, tY = tQ===0?20:60, t = document.createElement('div');
-                    t.className = 'circuit-target';
-                    t.style.left = '50%';
-                    t.style.top = (tY+1.2)+'px';
-                    visuals.appendChild(t);
-                }
-                else {
-                    const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01?20:60, tY = is01?60:20;
-                    const v = document.createElement('div');
-                    v.className = 'connection-v-line';
-                    v.style.left = '50%';
-                    v.style.top = Math.min(cY,tY)+'px';
-                    v.style.height = '41px';
-                    visuals.appendChild(v);
-                    const d = document.createElement('div');
-                    d.className = 'control-dot';
-                    d.style.left = '50%';
-                    d.style.top = (cY)+'px';
-                    if(is0){d.style.background='white'; d.style.border='2.5px solid black';}
-                    visuals.appendChild(d);
-                    
-                    const t = document.createElement('div');
-                    t.className = 'circuit-target';
-                    t.style.left = '50%';
-                    t.style.top = (tY+1.2)+'px';
-                    visuals.appendChild(t);
-                }
+
+                u.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (activeTraceInput !== null || mobileDragging) return false;
+                    const sIdx = selectedIndices.indexOf(idx);
+                    if (sIdx > -1) selectedIndices.splice(sIdx, 1);
+                    else selectedIndices.push(idx);
+                    renderCircuit();
+                    return false;
+                };
+
                 c.appendChild(u);
             });
+            
+            // --- 建立結尾空間 (End Unit) ---
             const endU = document.createElement('div');
             endU.className = 'circuit-unit';
             endU.style.minWidth = '50px';
             endU.style.flexGrow = '1';
             endU.style.cursor = 'default';
+            endU.dataset.type = 'end';
+            if (!isQuantumMode) endU.style.display = 'none';
             drawWires(endU, states.length > 0 ? states.length - 1 : 0);
             c.appendChild(endU);
+
             updateUndoStatus();
             if (selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null && activeTraceInput === null) {
                 setTimeout(() => { if(wrapper) wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }); }, 100);
             }
         }
+
         function undo() {
             if (historyStack.length <= 1) return;
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
@@ -833,6 +1317,7 @@
             gateHistory = [...historyStack[historyStack.length - 1]];
             selectedIndices = []; recalculatePositions(); finishMove();
         }
+
         function resetCircuit() {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
             fishAtNode = [...initialFishAtNode];
@@ -841,6 +1326,7 @@
             selectedIndices = [];
             finishMove();
         }
+
         function deleteGate(idx) {
             if(typeof pop !== 'undefined' && pop.play) { pop.currentTime=0; pop.play().catch(e=>{}); }
             gateHistory.splice(idx,1);
@@ -848,6 +1334,7 @@
             recalculatePositions();
             finishMove();
         }
+
         function updateUndoStatus() {
             const isActive = (historyStack.length > 1);
             const ub = document.getElementById('undo-btn');
@@ -856,6 +1343,7 @@
                 else { ub.classList.remove('active'); ub.style.pointerEvents="none"; }
             }
         }
+
         function shareCircuit() {
             if (gateHistory.length === 0) {
                 alert("The circuit is empty and cannot be shared.");
@@ -870,6 +1358,7 @@
                 alert("Link: " + shareUrl);
             });
         }
+
         function navWithSound(url) {
             if (typeof pop !== 'undefined') {
                 pop.currentTime = 0;
