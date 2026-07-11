@@ -1,0 +1,1936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>Meowtopia - LAB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .preload * { transition: none !important; }
+        body { font-family: 'Arial', sans-serif; background-color: #FFF9F0; background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent); background-size: 100px 100px; color: #463438; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+        .hidden-el { display: none !important; }
+        .node { width: 140px; height: 140px; background: white; border: 6px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; box-shadow: 3px 3px 0 #463438; z-index: 20; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .node img { width: 110px; height: auto; pointer-events: none; }
+        .fixed-number { position: absolute; bottom: -5px; right: 50px; font-size: 22px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
+        .connection-line { position: absolute; background: #463438; cursor: pointer; z-index: 10; transition: all 0.2s ease; opacity: 1; }
+        .line-h::after { content: ''; position: absolute; top: -10px; bottom: -10px; left: 0; right: 0; background-color: transparent; }
+        .line-v::after { content: ''; position: absolute; top: 0; bottom: 0; left: -10px; right: -10px; background-color: transparent; }
+        .connection-line:hover { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8); z-index: 16; }
+        .line-highlight { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; z-index: 15; }
+        .line-h { height: 8px; width: 300px; }
+        .line-v { width: 8px; height: 250px; }
+        .trace-line-active { background: #99C44D !important; box-shadow: 0 0 15px rgba(153, 196, 77, 0.8) !important; z-index: 16 !important; opacity: 1 !important; }
+        .trace-fish-active { filter: drop-shadow(0 0 12px #FFB7C5) drop-shadow(0 0 20px #FFB7C5) !important; transform: scale(1.15) !important; z-index: 45 !important; }
+        .fish-wrapper { position: absolute; width: 80px; pointer-events: none; z-index: 30; display: flex; flex-direction: column; align-items: center; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        .fish-wrapper img { width: 70px; height: auto; }
+        .node.node-correct { background: #ebceff; }
+        .fish-label { background: #000000b6; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -35px; z-index: 5; position: relative; top: -20px; }
+        .game-btn { cursor: pointer; border: 5px solid #463438; border-radius: 60px; padding: 12px; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 2px 2px 0 #463438; box-shadow: 0 4px 0 #463438; position: relative; transition: all 0.1s; display: inline-block; }
+        .game-btn:active { top: 6px; box-shadow: 0 2px 0 #463438; }
+        .btn-red { background: #FFB7C5; }
+        .multi-toggle-btn { background: #e2de6e; border: 4px solid #463438; border-radius: 20px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: #fff; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; text-shadow: 2px 2px 0 #463438; }
+        .trace-active-btn { background: #FFB7C5 !important; border-color: #463438 !important; }
+        .mode2-active-btn { background: #629eed !important; border-color: #463438 !important; }
+        .view-btn { background: #3d6183; }
+        .multi-toggle-btn:hover, .mode-toggle-fixed:hover, .view-btn:hover, .game-btn:hover, .btn-share:hover {transform: translateY(-2px);box-shadow: 0 6px 0 #000; }
+        .multi-toggle-btn:active, .mode-toggle-fixed:active, .view-btn:active, .game-btn:active, .btn-share:active {transform: translateY(2px); box-shadow: 0 2px 0 #000;}
+        .gate-btn-v2 { position: relative; height: 76px; width: 72px; display: flex; align-items: center; justify-content: center; padding: 0; border: 2.5px solid #463438; border-radius: 8px; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); margin: auto; background-color: transparent;}
+        .btn-cnot { background-color: rgba(226, 222, 110, 0.35) !important; }
+        .btn-not { background-color: rgba(98, 158, 237, 0.35) !important; }
+        .gate-btn-v2:hover { background-color: #FFB7C5 !important; filter: brightness(1.05); transform: scale(1.05); z-index: 10; border-color: #463438; }
+        .btn-highlight { transform: scale(1.15) !important; box-shadow: 0 0 10px rgba(0,0,0,0.3) !important; border: 4px solid #99C44D !important; z-index: 10 !important; filter: brightness(1.1) !important; background-color: #FFB7C5 !important; }
+        .func-btn { width: 100%; margin-top: 5px; padding: 14px; border-radius: 35px; font-weight: 900; font-size: 16px; border: 2.5px solid #463438; cursor: pointer; box-shadow: 0 4px 0 rgba(70,52,56,0.1); transition: all 0.2s; }
+        .func-btn:hover { background-color: #ffb7c5 !important; border-color: #463438 !important; color: #fff !important; box-shadow: 0 3px 0 #463438 !important; transform: translateY(-2px); }
+        .btn-reset { background: #FFF9F0; color: #463438; }
+        .btn-undo { background: #FFB7C5 !important; color: #fff !important; border: 2.5px solid #463438 !important; opacity: 0.6; cursor: not-allowed; pointer-events: none; }
+        .btn-undo.active { background: #FFB7C5 !important; border-color: #463438 !important; color: #fff !important; opacity: 1; cursor: pointer; box-shadow: 0 4px 0 #463438; pointer-events: auto; }
+        #node-0, #node-2 { left: 65px !important; }
+        #node-1, #node-3 { left: 405px !important; }
+        .line-h { left: 130px !important; }
+        .line-v:nth-of-type(3) { left: 130px !important; }
+        .line-v:nth-of-type(4) { left: 470px !important; }
+        .circuit-title { text-align: center; font-weight: 900; font-size: 1.25rem; margin-bottom: 8px; color: #463438; }
+        .lab-shell { width: 915px; margin: 0 auto; }
+        .lab-topbar { width: 915px; margin: 0 auto 16px auto; display: flex; align-items: center; justify-content: space-between; }
+        .lab-topbar-right { display: flex; align-items: center; gap: 14px; }
+        .main-layout { width: 915px; margin: 0 auto; display: flex; align-items: flex-start; justify-content: flex-start; gap: 20px; }
+        #pro-panel { width: 270px; opacity: 1; height: 500px; background: #fff; border: 8px solid #463438; border-radius: 40px; padding: 16px 14px 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; box-sizing: border-box; transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 10px 10px 0px #99C44D; }
+        .panel-section-title { width: 100%; text-align: center; font-size: 20px; font-weight: 900; color: #463438; line-height: 1.1; margin: 0; white-space: nowrap; }
+        .panel-section-title.gate-title { margin-top: 2px; margin-bottom: 12px; }
+        .panel-section-title.control-title { margin-top: 12px; margin-bottom: 10px; }
+        .game-canvas { position: relative; width: 625px; height: 500px; background: #fffaf5; border: 8px solid #463438; border-radius: 40px; overflow: hidden; box-shadow: 15px 15px 0px #FFB7C5; }
+        #circuit-area { width: 915px; height: 170px; opacity: 1; background: #fff; border: 8px solid #463438; border-radius: 30px; margin: 20px auto 0 auto; position: relative; padding: 15px; overflow: hidden; box-sizing: border-box; box-shadow: 10px 10px 0px #FFB7C5; }
+        #circuit-content-wrapper { position: relative; height: 130px; overflow-x: auto !important; overflow-y: hidden; margin-left: 30px; margin-right: 30px; padding-top: 4px; scrollbar-width: none; }
+        #circuit-content { display: flex; height: 100%; padding: 0 7px; min-width: 100%; width: max-content; position: relative; }
+        .qubit-label { position: absolute; left: 4px; font-weight: 900; font-size: 16px; color: #463438; z-index: 5; text-align: center; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
+        .qubit-label.right-side { left: auto !important; right: 4px !important; z-index: 50; background-color: transparent !important; padding: 0 !important; }
+        .circuit-unit { min-width: 50px; height: 85px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; cursor: pointer; transition: all 0.2s ease, margin 0.2s cubic-bezier(0.16, 1, 0.3, 1); border: 3px solid transparent; }
+        .circuit-unit:hover { background-color: var(--bg-hover, rgba(239, 68, 68, 0.2)) !important; border-radius: 12px; }
+        .circuit-unit.selected { background-color: var(--bg-hover, rgba(153, 196, 77, 0.3)) !important; border: 3px solid var(--bg-selected, #99C44D) !important; border-radius: 12px; box-shadow: none; }
+        .circuit-unit.trace-active { background: #bdfc507a !important; box-shadow:  0 0 0 3px #99C44D !important; border-radius: 12px; z-index: 100 !important; }
+        .control-dot { width: 14px; height: 14px; background: #463438; border-radius: 50%; position: absolute; z-index: 5; transform: translate(-50%, -50%); }
+        .connection-v-line { position: absolute; width: 2.5px; background: #463438; z-index: 3; transform: translateX(-50%); }
+        .circuit-target { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2.5px solid #463438; display: flex; align-items: center; justify-content: center; z-index: 15; transform: translate(-50%, -50%); }
+        .circuit-target::before { content: ""; position: absolute; width: 2.5px; height: 100%; background-color: #463438; }
+        .circuit-target::after { content: ""; position: absolute; width: 100%; height: 2.5px; background-color: #463438; }
+        .wire-container { position: relative; width: 60%; max-width: 50px; height: 100%; background-image: linear-gradient(#463438, #463438), linear-gradient(#463438, #463438); background-size: 100% 3px; background-repeat: no-repeat; background-position: center 24px, center 52px; pointer-events: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        #tt-body { font-family: Arial, sans-serif; }
+        #tt-body tr { transition: all 0.2s ease; }
+        #tt-body td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        #tt-body td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+        #tt-body tr:hover td { background-color: rgba(0, 0, 0, 0.05); cursor: pointer; }
+        #tt-body tr.active-trace td { background-color: #a3cd5a9f !important; color: #463438 !important; font-weight: bold; }
+        #trace-controls { display: flex; align-items: center; justify-content: space-between; background: #e7e5dc; border-radius: 40px; padding: 10px 4px; gap: 4px; margin-top: 8px; margin-bottom: 10px; border: 2.5px solid #000; }
+        #trace-controls .func-btn { margin: 0; padding: 10px 8px; font-size: 11px; border-radius: 50px; background: #e7e5dc; color: white; }
+        #trace-controls .btn-red { background: #FFB7C5; border-color: #463438; }
+        #trace-step-text { color: #463438; font-family: 'Courier New', monospace; font-size: 24px; }
+        .btn-share { background: #99C44D; border: 4px solid #463438; border-radius: 30px; padding: 5px 15px; font-weight: 900; font-size: 20px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; min-width: 140px; }
+        .btn-share:hover { background-color: #99C44D !important; }
+        .nav-fab { position: fixed; top: 25px; right: 25px; width: 70px; height: 70px; background: #89CFF0; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 900; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 1000; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; }
+        .nav-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
+        .nav-fab:active { transform: translateY(4px); box-shadow: 0 0px 0 #463438; }
+        canvas, .game-canvas, .circuit-unit, .node { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+        .drag-target { margin-left: 25px !important; }
+        .drag-target-right { margin-right: 25px !important; }
+        .drag-target::before, .drag-target-right::after { content: ''; position: absolute; top: 10px; bottom: 10px; width: 4px; background-color: #FFB7C5; border-radius: 4px; z-index: 200; pointer-events: none; }
+        .drag-target::before { left: -14px; }
+        .drag-target-right::after { right: -14px; }
+        .horizontal-wire { transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+        .drag-target .horizontal-wire { left: -28px !important; width: calc(100% + 31px) !important; }
+        .drag-target-right .horizontal-wire { width: calc(100% + 31px) !important; }
+        .dragging-snapshot-frame { position: absolute; inset: 4px; border: 4px; border-radius: 12px; opacity: 0; z-index: 50; pointer-events: none; }
+        .circuit-unit.during-snapshot .dragging-snapshot-frame { opacity: 1 !important; }
+        .hyper-line { stroke: #463438; stroke-width: 2; opacity: 0.3; }
+        .hyper-line-hi { stroke: #FFB7C5; stroke-width: 4.5; opacity: 1; transition: stroke 0.2s; }
+        .gate-btn-v2 .hyper-line-hi { stroke: #f78790; }
+        .gate-btn-v2:hover .hyper-line-hi { stroke: #ffffff !important; }
+        .btn-highlight .hyper-line-hi { stroke: #ffffff !important; }
+        .circuit-unit:hover .hyper-line-hi, .circuit-unit.selected .hyper-line-hi { stroke: #99C44D !important; }
+        .mini-mode #circuit-content { background-image: none !important; }
+        .mini-mode .circuit-unit { min-width: 85px !important; width: 85px !important; max-width: 85px !important; flex: 0 0 85px !important; padding: 0 !important; }
+        .mode-toggle-fixed { position: fixed; top: 105px; right: 25px; width: 70px; height: 70px; background: white; border: 5px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; box-shadow: 0 4px 0 #463438; z-index: 500; transition: all 0.1s; }
+        .mode-toggle-inline { width: 44px; height: 44px; background: #ffffff; border: 3px solid #463438; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #463438; transition: all 0.1s; color: #463438; text-shadow: none; padding: 0; }
+        .mode-toggle-inline:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #463438; }
+        .mode-toggle-inline:active { transform: translateY(2px); box-shadow: 0 1px 0 #463438; }
+        .fixed-number, .fish-label { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .hide-labels .fixed-number, .hide-labels .fish-label { opacity: 0; transform: translateY(1px); pointer-events: none; }
+        .node img, .fish-wrapper img, .hat-img { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        body:not(.hide-labels) .node > img.encoded-img:not(.hat-img), body:not(.hide-labels) .node > img.skin-cat, body:not(.hide-labels) .node > img:not(.hat-img) { transform: translate(-2px, -7px) scale(0.94); }
+        body:not(.hide-labels) .fish-wrapper > img.fish-img, body:not(.hide-labels) .fish-wrapper > img.fish-bg-shape, body:not(.hide-labels) .fish-wrapper > img:not(.hat-img) { transform: scale(0.94) translateY(1px); }
+        body.skin-poto:not(.hide-labels) .node > img.skin-cat { transform: translateY(-7px) translateX(-2px) scale(0.94); }
+        body.skin-poto.hide-labels .node > img.skin-cat { transform: translateY(0px) translateX(-2px) scale(1); }
+        body.skin-mj:not(.hide-labels) .node > img.skin-cat { transform: translateX(-3px) translateY(-8px) scale(0.94); }
+        body.skin-rip:not(.hide-labels) .node > img.skin-cat { transform: translateX(0px) translateY(-8px) scale(0.94); }
+        body.skin-poto:not(.hide-labels) .fish-wrapper > img.fish-img, body.skin-poto:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translateY(-5px) translateX(2px) scale(1); }
+        body.skin-mj:not(.hide-labels) .fish-wrapper > img.fish-img, body.skin-mj:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translateY(6px) translateX(4px) scale(0.95); }
+        body.skin-rip:not(.hide-labels) .fish-wrapper > img.fish-img, body.skin-rip:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translateY(-20px) translateX(2px) scale(1); }
+        #lab-side-wrapper { position: fixed; left: -220px; top: 80px; display: flex; z-index: 700; transition: left 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        #lab-side-wrapper.expanded { left: 0; }
+        .side-panel-content { width: 220px; height: 450px; max-height: calc(100vh - 110px); background: white; border: 6px solid #463438; border-left: none; border-radius: 0 30px 30px 0; padding: 15px; display: flex; flex-direction: column; position: relative; z-index: 2; }
+        .bookmark-tab { position: absolute; right: -45px; top: 40px; width: 45px; height: 118px; background: #7d6961; border: 5px solid #463438; border-left: none; border-radius: 0 15px 15px 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, right 0.2s, width 0.2s; z-index: 1; }
+        .bookmark-tab:hover, #lab-side-wrapper.expanded .bookmark-tab { background: #FFB7C5; width: 55px; right: -55px; }
+        .bookmark-text { writing-mode: vertical-lr; color: white; font-weight: 900; font-size: 20px; text-shadow: 2px 2px 0 #463438; letter-spacing: 4px; user-select: none; }
+        .skin-gallery { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; align-content: start; gap: 10px; overflow-y: auto; padding: 2px 2px 8px 0; }
+        .skin-card { min-height: 106px; border: 3px solid #463438; border-radius: 12px; background: #fffaf5; color: #463438; cursor: pointer; font-size: 12px; font-weight: 900; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px; box-shadow: 0 4px 0 rgba(70,52,56,0.18); transition: transform 0.12s, background 0.12s, box-shadow 0.12s; }
+        .skin-card:hover { background: #fce4ec; transform: translateY(-2px); box-shadow: 0 6px 0 rgba(70,52,56,0.22); }
+        .skin-card.active { background: #FFB7C5; color: #fff; box-shadow: 0 4px 0 #463438; }
+        .skin-preview { width: 64px; height: 64px; border: 3px solid #463438; border-radius: 50%; background: #fff; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .skin-preview img.preview-cat { max-width: 54px; max-height: 54px; object-fit: contain; pointer-events: none; }
+        .skin-preview img.preview-cat-mj { max-width: 60px; max-height: 64px; transform: scale(1.12); }
+        .skin-preview img.preview-hat { position: absolute; width: 22px; top: 7px; left: 32px; transform: translateX(-50%); z-index: 2; pointer-events: none; }
+        .skin-card.active .skin-preview { border-color: #fff; }
+        .node img.skin-cat, .fish-wrapper img.fish-img, .fish-wrapper img.fish-bg-shape { object-fit: contain; }
+        .skin-rip .node img.skin-cat { width: 115px; transform: translateY(-4px); }
+        .skin-rip .fish-wrapper img.fish-img { width: 86px; }
+        .skin-poto .node img.skin-cat { width: 120px; transform: translateX(-4px); }
+        .skin-poto .fish-wrapper img.fish-img { width: 120px; transform: scale(1.1) translateY(4px) translateX(1px); }
+        .skin-mj .node img.skin-cat { width: 122px; transform: translateX(-3px) translateY(-2px); }
+        .fish-wrapper img.fish-bg-shape { display: block; position: absolute; z-index: 1; filter: brightness(0) invert(1); opacity: 1; }
+        .fish-wrapper img.fish-img { position: absolute; z-index: 2; }
+        .node img.cat-bg-shape { position: absolute; filter: brightness(0) invert(1); opacity: 1; z-index: 19; pointer-events: none; }
+        .node img.cat-bg-shape + img { position: relative; z-index: 20; }
+        .bit-faded { filter: grayscale(1) saturate(0) brightness(0.95) contrast(0.72); }
+        .feature-toggle-row .qubit-label { position: relative; left: auto; top: auto; font-weight: 900; font-size: 16px; color: #463438; transition: transform 0.2s; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; cursor: pointer; user-select: none; z-index: 5; }
+        .feature-toggle-row .qubit-label:hover { transform: translateY(-2px) scale(1.05); z-index: 50; }
+        .feature-toggle-row .qubit-label:active { transform: translateY(2px) scale(0.95); }
+        .feature-state-1 { border-color: #FFB800 !important; background-color: rgba(255, 184, 0, 0.2); box-shadow: 0 0 10px rgba(255, 184, 0, 0.8); transform: scale(1.1); transition: all 0.2s; }
+        .feature-state-0 { border-color: #463438 !important; background-color: rgba(70, 52, 56, 0.2); box-shadow: 0 0 8px rgba(70, 52, 56, 0.8); filter: grayscale(1) brightness(0.85); transform: scale(1.1); transition: all 0.2s; }
+        .node-dist-badge { position: absolute; top: -2px; right: -2px; background: #FFB800; color: #463438; width: 26px; height: 26px; border-radius: 50%; border: 3px solid #463438; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 900; box-shadow: 2px 2px 0 rgba(70,52,56,0.5); pointer-events: none; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 60; }
+        .node.feature-highlight { border-color: #FFB800 !important; box-shadow: 3px 3px 0 #FFB800 !important; z-index: 45 !important; }
+        .node.feature-dimmed { background-color: #fff !important; }
+        .node.feature-dimmed > img:not(.hat-bg-shape), .node.feature-dimmed > div:not(.node-dist-badge):not(.fixed-number) { opacity: 0.25 !important; }
+        .node.feature-dimmed > .fixed-number { opacity: 0 !important; visibility: hidden !important; }
+        .node.feature-dimmed > img.hat-bg-shape, .node.feature-dimmed > img.cat-bg-shape { opacity: 1 !important; }
+        .fish-wrapper.feature-highlight { z-index: 55 !important; }
+        .feature-filter-active .fish-wrapper { z-index: 90 !important; }
+        .fish-wrapper.feature-dimmed { opacity: 1 !important; }
+        .fish-wrapper.feature-dimmed img.fish-bg-shape { opacity: 1 !important; }
+        .fish-wrapper.feature-dimmed img.fish-img, .fish-wrapper.feature-dimmed img.hat-img:not(.hat-bg-shape), .fish-wrapper.feature-dimmed > img:not(.fish-bg-shape):not(.hat-bg-shape) { opacity: 0.25 !important; }
+        .fish-wrapper.feature-dimmed .fish-label { opacity: 0 !important; visibility: hidden !important; }
+        .fish-label { width: 32px; height: 22px; border-radius: 10px; font-size: 11px; position: absolute; top: -5px; right: auto; margin-bottom: 0; pointer-events: none; }
+        body:not(.hide-labels) .fish-wrapper > img.fish-img, body:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translateY(-50%); }
+        .hide-labels .fish-wrapper > img.fish-img, .hide-labels .fish-wrapper > img.fish-bg-shape { transform: translateY(-35%) translateX(4%) scale(1.05) !important; }
+        .skin-rip .fish-wrapper img.fish-bg-shape { width: 80px; }
+        body.skin-rip:not(.hide-labels) .fish-wrapper > img.fish-img, body.skin-rip:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translateY(-40%) translateX(4%) scale(1.05); }
+        .skin-rip.hide-labels .fish-wrapper > img.fish-img, .skin-rip.hide-labels .fish-wrapper > img.fish-bg-shape { transform: translateY(-30%) translateX(4%) scale(1.15) !important; }
+        .skin-rip .fish-label, .skin-poto .fish-label, .skin-mj .fish-label { width: auto; padding: 2px 5px; height: 22px; border-radius: 10px; gap: 1px; font-size: 10px; }
+        .skin-rip .fish-label { top: -10px; right: 33px; }
+        body.skin-poto:not(.hide-labels) .fish-wrapper > img.fish-img, body.skin-poto:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translateY(-32%) translateX(8%) scale(1.05); }
+        .skin-poto.hide-labels .fish-wrapper > img.fish-img, .skin-poto.hide-labels .fish-wrapper > img.fish-bg-shape { transform: translateY(-14%) translateX(10%) scale(1.15) !important; }
+        .skin-poto .fish-label { top: -6px; right: 30px; }
+        body.skin-mj:not(.hide-labels) .fish-wrapper > img.fish-img, body.skin-mj:not(.hide-labels) .fish-wrapper > img.fish-bg-shape { transform: translate(-5px, -38%); }
+        .skin-mj.hide-labels .fish-wrapper > img.fish-img, .skin-mj.hide-labels .fish-wrapper > img.fish-bg-shape { transform: translate(-5px, -21%) scale(1.05) !important; }
+        .skin-mj .fish-wrapper.large-node > img.fish-img, .skin-mj .fish-wrapper.large-node > img.fish-bg-shape { transform: translate(10px, -38%) scale(0.92)!important; }
+        .skin-mj.hide-labels .fish-wrapper.large-node > img.fish-img, .skin-mj.hide-labels .fish-wrapper.large-node > img.fish-bg-shape { transform: translate(10px, -24%) scale(1) !important; }
+        .skin-mj .fish-label { top: -5px; right: 33px; }
+        .skin-mj .fish-wrapper.large-node .fish-label { top: -3px !important; right: 20px !important; }
+        .truth-sprite { width: 44px; height: 36px; display: inline-flex; align-items: center; justify-content: center; position: relative; vertical-align: middle; }
+        .truth-sprite img { max-width: 42px; max-height: 36px; object-fit: contain; pointer-events: none; }
+        .skin-mj .truth-sprite.large-node { z-index: 10; position: relative; }
+        .skin-mj .truth-sprite.large-node img.skin-cat { transform: scale(1.25) translate(-2px, -2px) !important; }
+        .skin-mj .truth-sprite.large-node img.fish-img { transform: scale(0.95) translate(2px, 2px) !important; }
+        .truth-sprite img.cat-bg-shape, .truth-sprite img.fish-bg-shape { display: none !important; }
+        .truth-sprite img.skin-cat, .truth-sprite img.fish-img, .truth-sprite img.encoded-img:not(.cat-bg-shape):not(.fish-bg-shape) { position: relative; z-index: 2; }
+        @media (min-width: 1024px) {body {zoom: 0.9;} }
+        body.skin-rainbow .fish-label { top: -4px !important; right: 28px !important; }
+        body.skin-rainbow img.fish-img { top: 8px !important; right: 5px !important; }
+        body.skin-rainbow .node img.skin-cat { width: 120px; height: auto; }
+        body.skin-rainbow .fish-wrapper img.fish-img { width: 75px; height: auto; }
+    </style>
+</head>
+<body id="body-root" class="pro-active mini-mode preload hide-labels">
+    <div id="input-modal" class="hidden-el fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm bg-black/30 transition-opacity">
+        <div class="bg-[#fffaf5] p-6 rounded-[30px] border-[6px] border-[#463438] shadow-[10px_10px_0_#FFB7C5] w-96 flex flex-col gap-4">
+            <h3 class="text-2xl font-black text-[#463438] text-center mb-2">Edit Input</h3>
+            <p class="text-sm font-bold text-[#463438] text-center mb-2">Enter order (0-3, comma-separated):</p>
+            <input type="text" id="initial-input-field" class="border-4 border-[#463438] rounded-2xl p-3 text-xl font-black text-center text-[#463438] outline-none focus:border-[#99C44D] bg-white transition-colors" onkeydown="if(event.key === 'Enter') saveInitialInput()" />
+            <div class="flex gap-4 justify-center mt-4">
+                <button onclick="closeInputModal()" class="func-btn flex-1 text-white" style="background: #5BA4CF; border-width: 4px; border-color: #463438;">Cancel</button>
+                <button onclick="saveInitialInput()" class="func-btn flex-1 text-white border-[#463438]" style="background: #99C44D; border-width: 4px;">Save</button>
+            </div>
+        </div>
+    </div>
+    <button onclick="navWithSound('lab3.html')" class="nav-fab" title="Go to 3-Bit">3</button>
+    <div id="quantum-toggle" class="mode-toggle-fixed" onclick="toggleQuantumMode()" title="Quantum Mode" aria-label="Quantum Mode">⚛️</div>
+    <div id="rainbow-btn" class="mode-toggle-fixed" style="top: 265px; background: #fff;" onclick="toggleRainbowMode()" title="Rainbow Mode">🌈</div>
+    <div id="edit-input-btn" class="mode-toggle-fixed" style="top: 185px; background: #ffffff; color: white;" onclick="editInitialInput()" title="Edit Input">✏️</div>
+
+    <div id="lab-side-wrapper">
+        <div class="side-panel-content">
+            <h2 class="text-xl font-black mb-3 text-center" style="color: #463438;">SKINS</h2>
+            <div class="skin-gallery">
+                <button id="skin-option-default" class="skin-card active" onclick="selectSkin('default')">
+                    <div class="skin-preview">
+                        <img src="./svg/hat-c.svg" class="preview-hat" alt="">
+                        <img src="./svg/011-c.svg" class="preview-cat" alt="Default cat">
+                    </div>
+                    <span>DEFAULT</span>
+                </button>
+                <button id="skin-option-rip" class="skin-card" onclick="selectSkin('rip')">
+                    <div class="skin-preview">
+                        <img src="./RIP/Cat16.png" class="preview-cat" alt="RIP cat">
+                    </div>
+                    <span>RIP</span>
+                </button>
+                <button id="skin-option-poto" class="skin-card" onclick="selectSkin('poto')">
+                    <div class="skin-preview">
+                        <img src="./poto/cat15.png" class="preview-cat" alt="POTO cat">
+                    </div>
+                    <span>POTO</span>
+                </button>
+                <button id="skin-option-mj" class="skin-card" onclick="selectSkin('mj')">
+                    <div class="skin-preview">
+                        <img src="./mj/Cat15.png" class="preview-cat preview-cat-mj" alt="MJ cat">
+                    </div>
+                    <span>MJ</span>
+                </button>
+            </div>
+            <h3 class="text-xl font-black text-center text-[#463438] mb-3 mt-3">FEATURES</h3>
+            <div class="feature-toggle-row flex justify-center gap-3 w-full pb-2">
+                <div id="feat-toggle-0" class="qubit-label" onclick="toggleFeature(0)">d1</div>
+                <div id="feat-toggle-1" class="qubit-label" onclick="toggleFeature(1)">d2</div>
+            </div>
+        </div>
+        <div class="bookmark-tab" onclick="toggleSidePanel()">
+            <div class="bookmark-text">SKIN</div>
+        </div>
+    </div>
+    <div class="lab-shell">
+        <div class="lab-topbar">
+            <div class="text-3xl font-black">GATE COUNT: <span id="step-count">0</span></div>
+            <div class="lab-topbar-right">
+                <button id="label-toggle-btn" class="mode-toggle-inline" onclick="toggleLabels()" title="Toggle labels" aria-label="Toggle labels">&#127991;&#65039;</button>
+                <button id="view-toggle-btn" class="multi-toggle-btn view-btn" onclick="toggleTraceMode()">Trace: OFF</button>
+                <button id="mode-2-btn" class="multi-toggle-btn" onclick="toggleMode2()">Mode: 1</button>
+                <div class="text-3xl font-black" style="color: #7bc202;">LAB MODE</div>
+            </div>
+        </div>
+        <div class="main-layout">
+            <div id="pro-panel">
+                <div id="gate-view-container" class="w-full flex-col flex h-full min-h-0">
+                    <div class="panel-section-title gate-title">Transformations</div>
+                    <div class="grid grid-cols-2 gap-2 w-10/12 mx-auto" id="gate-container">
+                        <button id="gate-x0" class="gate-btn-v2 btn-not" onclick="applyGate('X0')" onmouseover="syncGateHighlight('X0', true)" onmouseout="syncGateHighlight('X0', false)"></button>
+                        <button id="gate-x1" class="gate-btn-v2 btn-not" onclick="applyGate('X1')" onmouseover="syncGateHighlight('X1', true)" onmouseout="syncGateHighlight('X1', false)"></button>
+                        <button id="gate-cx10" class="gate-btn-v2 btn-cnot" onclick="applyGate('CX10')" onmouseover="syncGateHighlight('CX10', true)" onmouseout="syncGateHighlight('CX10', false)"></button>
+                        <button id="gate-cx01" class="gate-btn-v2 btn-cnot" onclick="applyGate('CX01')" onmouseover="syncGateHighlight('CX01', true)" onmouseout="syncGateHighlight('CX01', false)"></button>
+                        <button id="gate-c0x10" class="gate-btn-v2 btn-cnot" onclick="applyGate('C0X10')" onmouseover="syncGateHighlight('C0X10', true)" onmouseout="syncGateHighlight('C0X10', false)"></button>
+                        <button id="gate-c0x01" class="gate-btn-v2 btn-cnot" onclick="applyGate('C0X01')" onmouseover="syncGateHighlight('C0X01', true)" onmouseout="syncGateHighlight('C0X01', false)"></button>
+                    </div>
+                    <div class="mt-auto w-full pt-2">
+                        <div class="panel-section-title control-title">Control</div>
+                        <button id="reset-btn" class="func-btn btn-reset" onclick="resetCircuit()">Reset Circuit</button>
+                        <button id="undo-btn" class="func-btn btn-undo" onclick="undo()">Undo Step</button>
+                    </div>
+                </div>
+                <div id="tt-view-container" class="w-full flex-col hidden-el h-full flex" style="max-height: 100%; overflow: hidden;">
+                    <div class="panel-section-title shrink-0 mt-2">Truth Table</div>
+                    <div id="tt-header-row" class="text-sm text-gray-400 mb-2 mt-4 font-bold flex justify-between px-2 shrink-0 border-b border-gray-300 pb-2 w-full mx-auto" style="box-sizing: border-box;">
+                        <span class="w-1/3 text-center text-black">NO.</span>
+                        <span id="tt-head-left" class="w-1/3 text-center text-black">IN</span>
+                        <span id="tt-head-right" class="w-1/3 text-center text-black">OUT</span>
+                    </div>
+                    <div class="overflow-y-auto w-full flex-grow px-2 mb-2 custom-scrollbar" style="scrollbar-width: none;">
+                        <table class="w-full text-center text-lg border-separate border-spacing-y-1">
+                            <tbody id="tt-body" class="font-bold"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="trace-controls" class="hidden-el shrink-0 w-full mt-auto flex gap-1 items-center bg-gray-100 p-2 rounded-2xl border-4 border-black shadow-[0_4px_0_0_rgba(0,0,0,0.1)] transition-opacity">
+                    <button id="trace-prev-btn" class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #000;" onclick="traceMove(-1)">◀</button>
+                    <div class="flex flex-col items-center justify-center px-1 min-w-[50px]">
+                        <span class="text-[14px] font-black leading-none" style="color: #99C44D;">STEP</span>
+                        <span id="trace-step-text" class="font-black text-lg leading-none">0</span>
+                    </div>
+                    <button id="trace-next-btn" class="func-btn btn-reset m-0 py-2 px-1 text-xs hover:bg-yellow-200 flex-1" style="box-shadow: 0 2px 0 #000;" onclick="traceMove(1)">▶</button>
+                    <button class="func-btn btn-red m-0 py-1 px-1 text-xs text-white border-black flex-1" style="box-shadow: 0 2px 0 #000; display:flex; align-items:center; justify-content:center;" onclick="restartTrace()">↻</button>
+                </div>
+            </div>
+            <div class="game-canvas" id="main-canvas">
+                <div id="line-h-0" class="connection-line line-h" style="top: 95px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                <div id="line-h-1" class="connection-line line-h" style="bottom: 90px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                <div id="line-v-0" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                <div id="line-v-1" class="connection-line line-v" style="top: 150px;" onclick="handleLineClick(this.id)" onmouseover="syncHighlight(this.id, true)" onmouseout="syncHighlight(this.id, false)"></div>
+                
+                <div class="node" id="node-0" style="top: 25px;"></div>
+                <div class="node" id="node-1" style="top: 25px;"></div>
+                <div class="node" id="node-2" style="bottom: 25px;"></div>
+                <div class="node" id="node-3" style="bottom: 25px;"></div>
+                <div id="fish-0" class="fish-wrapper"></div>
+                <div id="fish-1" class="fish-wrapper"></div>
+                <div id="fish-2" class="fish-wrapper"></div>
+                <div id="fish-3" class="fish-wrapper"></div>
+            </div>
+        </div>
+        <div id="circuit-area" class="mx-auto">
+            <div class="circuit-title">Paths</div>
+            <div id="q-in-0" class="qubit-label" style="top: 73px; transform: translateY(-50%);"></div>
+            <div id="q-in-1" class="qubit-label" style="top: 120px; transform: translateY(-50%);"></div>
+            <div id="q-out-0" class="qubit-label right-side hidden-el" style="top: 73px; transform: translateY(-50%);"></div>
+            <div id="q-out-1" class="qubit-label right-side hidden-el" style="top: 120px; transform: translateY(-50%);"></div>
+            <div id="circuit-content-wrapper"><div id="circuit-content"></div></div>
+        </div>
+        <div class="w-full flex justify-center items-center gap-6 mt-6 mb-6">
+            <a href="index.html" class="game-btn btn-red px-16">EXIT LAB</a>
+            <button class="btn-share" onclick="shareCircuit()" style="padding: 12px 24px;">Share Circuit</button>
+        </div>
+    </div>
+    <script>
+        let initialFishAtNode = [0, 1, 2, 3];
+        let fishAtNode = [0, 1, 2, 3];
+        let gateHistory = [], historyStack = [[]];
+        let selectedIndices = [], draggedIndex = null;
+        let isMode2 = false;
+        let isQuantumMode = false; 
+        let isTraceMode = false;
+        let isRainbowMode = false;
+        let activeTraceInput = null;
+        let currentTraceStep = 0;
+        const pop = new Audio('pop.m4a');
+        let isTouchDevice = false;
+        let mobileDragging = false;
+        let mDragIndex = null;
+        let dragGhost = null;
+        let gyroPermissionGranted = false;
+        window.addEventListener('touchstart', () => { isTouchDevice = true; }, {once: true});
+        
+        let autoScrollRAF = null;
+        let scrollSpeed = 0;
+        let labelsOpen = false;
+        const LAB_TOTAL = 4;
+        const LAB_BITS = 2;
+        const SKIN_STORAGE_KEY = 'meowtopiaSkin';
+        const AVAILABLE_SKINS = ['default', 'rip', 'poto', 'mj'];
+        let currentSkin = 'default';
+        let featureStates = Array(LAB_BITS).fill(null);
+
+        function playPopSound() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+        }
+
+        function editInitialInput() {
+            playPopSound();
+            const modal = document.getElementById('input-modal');
+            const inputField = document.getElementById('initial-input-field');
+            if (!modal || !inputField) return;
+            inputField.value = initialFishAtNode.join(', ');
+            modal.classList.remove('hidden-el');
+            setTimeout(() => inputField.focus(), 0);
+        }
+
+        function closeInputModal() {
+            playPopSound();
+            const modal = document.getElementById('input-modal');
+            if (modal) modal.classList.add('hidden-el');
+        }
+
+        function saveInitialInput() {
+            playPopSound();
+            const inputField = document.getElementById('initial-input-field');
+            const res = inputField ? inputField.value : '';
+            if (!res) return;
+            const parsed = res.replace(/\s/g, '').split(',').map(Number);
+            const isValid = parsed.length === LAB_TOTAL &&
+                new Set(parsed).size === LAB_TOTAL &&
+                parsed.every(n => Number.isInteger(n) && n >= 0 && n < LAB_TOTAL);
+            if (!isValid) {
+                alert(`Invalid format. Enter ${LAB_TOTAL} unique numbers from 0 to ${LAB_TOTAL - 1}, for example: ${Array.from({ length: LAB_TOTAL }, (_, i) => i).join(',')}`);
+                return;
+            }
+            initialFishAtNode = parsed;
+            activeTraceInput = null;
+            currentTraceStep = 0;
+            recalculatePositions();
+            updateLabels();
+            finishMove();
+            closeInputModal();
+        }
+
+        function toggleRainbowMode() {
+            playPopSound();
+            isRainbowMode = !isRainbowMode;
+            if (isRainbowMode) {
+                featureStates.fill(null);
+            }
+            updateFeatureToggleLabels();
+            updateFeatureHighlights();
+
+            refreshSkinAssets();
+            updateTruthTable();
+            updateFishUI();
+        }
+
+        function getSkinBits(index, count = LAB_TOTAL) {
+            return index.toString(2).padStart(count > 8 ? 4 : count > 4 ? 3 : 2, '0');
+        }
+
+        function defaultSkinCode(index, count = LAB_TOTAL) {
+            const bits = getSkinBits(index, count);
+            if (count > 8) return '0' + bits.slice(2);
+            if (count > 4) return bits;
+            return '0' + bits;
+        }
+
+        function defaultSkinHat(kind, index, count = LAB_TOTAL) {
+            if (count <= 8) return '';
+            const bits = getSkinBits(index, count);
+            if (bits[1] !== '1') return '';
+            const asset = kind === 'cat' ? 'hat-c' : 'hat-f';
+            const cls = kind === 'cat' ? 'cat-hat' : 'fish-hat';
+            return '<img src="./svg/' + asset + '.svg" class="hat-img ' + cls + ' hat-bg-shape" alt=""><img src="./svg/' + asset + '.svg" class="hat-img ' + cls + '" alt="">';
+        }
+
+        function defaultSkinFaded(index, count = LAB_TOTAL) {
+            return count > 8 && getSkinBits(index, count)[0] === '1' ? ' bit-faded' : '';
+        }
+
+        function catLayerHtml(src, className, alt) {
+            return '<img src="' + src + '" class="' + className + ' cat-bg-shape" alt=""><img src="' + src + '" class="' + className + '" alt="' + alt + '">';
+        }
+
+        function fishLayerHtml(src, faded, alt) {
+            return '<img src="' + src + '" class="fish-bg-shape encoded-img' + faded + '" alt=""><img src="' + src + '" class="fish-img encoded-img' + faded + '" alt="' + alt + '">';
+        }
+
+        function skinAssetHtml(kind, index, count = LAB_TOTAL, label) {
+            const text = label || getSkinBits(index, count);
+            
+            if (isRainbowMode) {
+                const src = './image/' + (kind === 'cat' ? 'Cat' : 'Fish') + (index + 1) + '.svg';
+                return kind === 'cat'
+                    ? '<img src="' + src + '" class="skin-cat" alt="' + text + ' cat">'
+                    : '<img src="' + src + '" class="fish-img" alt="' + text + ' fish">';
+            }
+
+            if (currentSkin === 'rip') {
+                const src = './RIP/' + (kind === 'cat' ? 'Cat' : 'Fish') + (index + 1) + '.png';
+                return kind === 'cat' ? catLayerHtml(src, 'skin-cat encoded-img', text + ' cat') : fishLayerHtml(src, '', text + ' fish');
+            }
+            if (currentSkin === 'poto') {
+                const src = './poto/' + (kind === 'cat' ? 'cat' : 'fish') + index + '.png';
+                return kind === 'cat' ? catLayerHtml(src, 'skin-cat encoded-img', text + ' cat') : fishLayerHtml(src, '', text + ' fish');
+            }
+            if (currentSkin === 'mj') {
+                const src = './mj/' + (kind === 'cat' ? 'Cat' : 'Fish') + index + '.png';
+                return kind === 'cat' ? catLayerHtml(src, 'skin-cat encoded-img', text + ' cat') : fishLayerHtml(src, '', text + ' fish');
+            }
+            const code = defaultSkinCode(index, count);
+            const faded = defaultSkinFaded(index, count);
+            if (kind === 'cat') {
+                return defaultSkinHat('cat', index, count) + catLayerHtml('./svg/' + code + '-c.svg', 'skin-cat encoded-img' + faded, text + ' cat');
+            }
+            return defaultSkinHat('fish', index, count) + fishLayerHtml('./svg/' + code + '-f.svg', faded, text + ' fish');
+        }
+
+        function truthSpriteHtml(kind, index) {
+            const isMjLarge = (currentSkin === 'mj' && index % 2 === 1 && !isRainbowMode);
+            const extraClass = isMjLarge ? ' large-node' : '';
+            return '<span class="truth-sprite' + extraClass + '">' + skinAssetHtml(kind, index, LAB_TOTAL, getSkinBits(index)) + '</span>';
+        }
+
+        function initSkinFromUser(urlParams) {
+            const passedSkin = urlParams.get('skin') || sessionStorage.getItem(SKIN_STORAGE_KEY);
+            currentSkin = AVAILABLE_SKINS.includes(passedSkin) ? passedSkin : 'default';
+            sessionStorage.setItem(SKIN_STORAGE_KEY, currentSkin);
+        }
+
+        function applySkinClass() {
+            const root = document.getElementById('body-root') || document.body;
+            ['default', 'rip', 'poto', 'mj'].forEach(skin => {
+                root.classList.toggle('skin-' + skin, !isRainbowMode && currentSkin === skin && skin !== 'default');
+                const option = document.getElementById('skin-option-' + skin);
+                if (option) option.classList.toggle('active', currentSkin === skin);
+            });
+            root.classList.toggle('skin-rainbow', isRainbowMode);
+        }
+
+        function refreshSkinAssets() {
+            applySkinClass();
+            for (let i = 0; i < LAB_TOTAL; i++) {
+                const node = document.getElementById('node-' + i);
+                const fish = document.getElementById('fish-' + i);
+                const isMjLarge = (currentSkin === 'mj' && i % 2 === 1 && !isRainbowMode);
+                if (node) {
+                    node.classList.toggle('large-node', isMjLarge);
+                    node.innerHTML = '<div class="fixed-number">' + getSkinBits(i) + '</div>' + skinAssetHtml('cat', i);
+                }
+                if (fish) {
+                    fish.classList.toggle('large-node', isMjLarge);
+                    fish.innerHTML = '<div class="fish-label">' + getSkinBits(i) + '</div>' + skinAssetHtml('fish', i);
+                }
+            }
+            ensureDistanceBadges();
+        }
+
+        function getFeatureImageIndex(index) {
+            return LAB_BITS === 2 ? index + 2 : index + 1;
+        }
+
+        function getFeatureSkinFolder() {
+            if (currentSkin === 'rip') return './RIP/';
+            if (currentSkin === 'poto') return './poto/';
+            if (currentSkin === 'mj') return './mj/';
+            return './svg/';
+        }
+
+        function updateCircuitLabels() {
+            let inBin = null;
+            let outBin = null;
+
+            if (isTraceMode && activeTraceInput !== null) {
+                const startNode = initialFishAtNode.indexOf(activeTraceInput);
+                if (startNode !== -1) {
+                    let currNode = startNode;
+                    for (let k = 0; k < currentTraceStep; k++) {
+                        currNode = getPermutationForGate(gateHistory[k])[currNode];
+                    }
+                    inBin = startNode.toString(2).padStart(LAB_BITS, '0');
+                    outBin = currNode.toString(2).padStart(LAB_BITS, '0');
+                }
+            }
+
+            const makeNumBox = (val, color) => `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; color: ${color}; font-weight: 900; font-size: 28px;">${val}</div>`;
+            const makeDifBox = (imgIndex, borderColor) => `<div style="width: 48px; height: 48px; border: 4px solid ${borderColor}; border-radius: 12px; background: white; display: flex; align-items: center; justify-content: center; box-sizing: border-box; flex-shrink: 0;"><img src="${getFeatureSkinFolder()}dif${imgIndex}.png" style="width: 38px; height: 38px; object-fit: contain;" alt="dif${imgIndex}"></div>`;
+
+            for (let i = 0; i < LAB_BITS; i++) {
+                const qIn = document.getElementById(`q-in-${i}`);
+                const qOut = document.getElementById(`q-out-${i}`);
+                if (!qIn) continue;
+
+                if (isTraceMode && isQuantumMode) {
+                    if (labelsOpen) {
+                        if (inBin && outBin) {
+                            const inColor = inBin[i] === '1' ? '#FFB7C5' : '#7d6961';
+                            const outColor = outBin[i] === '1' ? '#FFB7C5' : '#7d6961';
+                            qIn.innerHTML = makeNumBox(inBin[i], inColor);
+                            if (qOut) {
+                                qOut.innerHTML = makeNumBox(outBin[i], outColor);
+                                qOut.classList.remove('hidden-el');
+                            }
+                        } else {
+                            qIn.innerHTML = `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px;">q${i}</div>`;
+                            if (qOut) qOut.classList.add('hidden-el');
+                        }
+                    } else {
+                        const imgIndex = getFeatureImageIndex(i);
+                        if (inBin && outBin) {
+                            const inBorderColor = inBin[i] === '1' ? '#FFB7C5' : '#7d6961';
+                            const outBorderColor = outBin[i] === '1' ? '#FFB7C5' : '#7d6961';
+                            qIn.innerHTML = makeDifBox(imgIndex, inBorderColor);
+                            if (qOut) {
+                                qOut.innerHTML = makeDifBox(imgIndex, outBorderColor);
+                                qOut.classList.remove('hidden-el');
+                            }
+                        } else {
+                            qIn.innerHTML = makeDifBox(imgIndex, 'transparent');
+                            if (qOut) qOut.classList.add('hidden-el');
+                        }
+                    }
+                } else {
+                    if (labelsOpen) {
+                        qIn.innerHTML = `<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px;">${isQuantumMode ? `q${i}` : `d${i + 1}`}</div>`;
+                    } else {
+                        const imgIndex = getFeatureImageIndex(i);
+                        qIn.innerHTML = makeDifBox(imgIndex, 'transparent');
+                    }
+                    if (qOut) qOut.classList.add('hidden-el');
+                }
+            }
+        }
+
+        function updateFeatureToggleLabels() {
+            for (let i = 0; i < LAB_BITS; i++) {
+                const label = document.getElementById(`feat-toggle-${i}`);
+                if (!label) continue;
+                let badge = '';
+                let styleClass = '';
+                if (featureStates[i] === 1) {
+                    styleClass = 'feature-state-1';
+                    badge = `<div style="position:absolute; top:-5px; right:-5px; background:#FFB800; color:#fff; font-size:10px; font-weight:900; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; z-index:10; box-shadow: 1px 1px 0 rgba(70,52,56,0.3);">1</div>`;
+                } else if (featureStates[i] === 0) {
+                    styleClass = 'feature-state-0';
+                    badge = `<div style="position:absolute; top:-5px; right:-5px; background:#463438; color:#fff; font-size:10px; font-weight:900; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; border:1.5px solid #fff; z-index:10; box-shadow: 1px 1px 0 rgba(70,52,56,0.3);">0</div>`;
+                }
+                
+                if (labelsOpen) {
+                    label.innerHTML = `<div style="position:relative;"><span class="${styleClass}" style="display: flex; align-items: center; justify-content: center; border-radius: 8px; border:3px solid transparent; width: 36px; height: 36px; box-sizing: border-box; font-size: 18px;">d${i + 1}</span>${badge}</div>`;
+                } else {
+                    const imgIndex = getFeatureImageIndex(i);
+                    label.innerHTML = `<div style="position:relative;"><div class="${styleClass}" style="width: 36px; height: 36px; border-radius: 8px; border:3px solid transparent; display: flex; align-items: center; justify-content: center; box-sizing: border-box; background: white;"><img src="${getFeatureSkinFolder()}dif${imgIndex}.png" style="width: 28px; height: 28px; object-fit: contain;" alt="dif${imgIndex}"></div>${badge}</div>`;
+                }
+            }
+        }
+
+        function toggleLabels() {
+            playPopSound();
+            labelsOpen = !labelsOpen;
+            const root = document.getElementById('body-root') || document.body;
+            const btn = document.getElementById('label-toggle-btn');
+            root.classList.toggle('hide-labels', !labelsOpen);
+            if (btn) btn.innerHTML = labelsOpen ? '&#128683;' : '&#127991;&#65039;';
+            updateLabels();
+            updateFeatureToggleLabels();
+            updateTruthTable();
+        }
+
+        function toggleSidePanel() {
+            playPopSound();
+            const wrapper = document.getElementById('lab-side-wrapper');
+            if (wrapper) wrapper.classList.toggle('expanded');
+        }
+
+        function selectSkin(skin) {
+            playPopSound();
+            if (isRainbowMode) {
+                isRainbowMode = false;
+            }
+            if (!AVAILABLE_SKINS.includes(skin)) skin = 'default';
+            currentSkin = skin;
+            sessionStorage.setItem(SKIN_STORAGE_KEY, skin);
+            refreshSkinAssets();
+            updateLabels();
+            updateFeatureToggleLabels();
+            updateFeatureHighlights();
+            updateTruthTable();
+            updateFishUI();
+        }
+
+        function getHammingDistance(a, b) {
+            const s1 = a.toString(2).padStart(LAB_BITS, '0');
+            const s2 = b.toString(2).padStart(LAB_BITS, '0');
+            let dist = 0;
+            for (let i = 0; i < LAB_BITS; i++) if (s1[i] !== s2[i]) dist++;
+            return dist;
+        }
+
+        function ensureDistanceBadges() {
+            for (let i = 0; i < LAB_TOTAL; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (!node || document.getElementById(`dist-badge-${i}`)) continue;
+                node.insertAdjacentHTML('beforeend', `<div class="node-dist-badge hidden-el" id="dist-badge-${i}"></div>`);
+            }
+        }
+
+        function toggleFeature(qIndex) {
+            playPopSound();
+            if (isRainbowMode) {
+                isRainbowMode = false;
+                refreshSkinAssets();
+                updateTruthTable();
+                updateFishUI();
+            }
+
+            if (featureStates[qIndex] === null) featureStates[qIndex] = 1;
+            else if (featureStates[qIndex] === 1) featureStates[qIndex] = 0;
+            else featureStates[qIndex] = null;
+            updateLabels();
+            updateFeatureToggleLabels();
+            updateFeatureHighlights();
+        }
+
+        function updateFeatureHighlights() {
+            ensureDistanceBadges();
+            const anyActive = featureStates.some(f => f !== null);
+            const root = document.getElementById('body-root') || document.body;
+            root.classList.toggle('feature-filter-active', anyActive);
+            for (let i = 0; i < LAB_TOTAL; i++) {
+                const node = document.getElementById(`node-${i}`);
+                const fish = document.getElementById(`fish-${i}`);
+                const badge = document.getElementById(`dist-badge-${i}`);
+                if (!node) continue;
+                if (!anyActive) {
+                    node.classList.remove('feature-highlight', 'feature-dimmed');
+                    if (fish) fish.classList.remove('feature-highlight', 'feature-dimmed');
+                    if (badge) badge.classList.add('hidden-el');
+                    continue;
+                }
+                const bits = i.toString(2).padStart(LAB_BITS, '0');
+                let match = true;
+                for (let q = 0; q < LAB_BITS; q++) {
+                    if (featureStates[q] === 1 && bits[q] !== '1') match = false;
+                    if (featureStates[q] === 0 && bits[q] !== '0') match = false;
+                }
+                if (match) {
+                    node.classList.add('feature-highlight');
+                    node.classList.remove('feature-dimmed');
+                    if (fish) {
+                        fish.classList.add('feature-highlight');
+                        fish.classList.remove('feature-dimmed');
+                    }
+                    if (badge) {
+                        const fishNodeIndex = fishAtNode.indexOf(i);
+                        badge.innerText = getHammingDistance(i, fishNodeIndex < 0 ? i : fishNodeIndex);
+                        badge.classList.remove('hidden-el');
+                    }
+                } else {
+                    node.classList.remove('feature-highlight');
+                    node.classList.add('feature-dimmed');
+                    if (fish) {
+                        fish.classList.remove('feature-highlight');
+                        fish.classList.add('feature-dimmed');
+                    }
+                    if (badge) badge.classList.add('hidden-el');
+                }
+            }
+        }
+
+        const gateLineMap = {
+            X0: ['line-v-0', 'line-v-1'],
+            X1: ['line-h-0', 'line-h-1'],
+            C0X01: ['line-h-0'],
+            CX01: ['line-h-1'],
+            C0X10: ['line-v-0'],
+            CX10: ['line-v-1']
+        };
+
+        function updateScrollSpeed(clientX) {
+            const wrapper = document.getElementById('circuit-content-wrapper');
+            if (!wrapper) return;
+            const rect = wrapper.getBoundingClientRect();
+            const edgeThreshold = 120;
+            const maxSpeed = 13;
+
+            if (clientX - rect.left < edgeThreshold) {
+                let intensity = 1 - Math.max(0, clientX - rect.left) / edgeThreshold;
+                scrollSpeed = -(maxSpeed * Math.pow(intensity, 1.5));
+                if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else if (rect.right - clientX < edgeThreshold) {
+                let intensity = 1 - Math.max(0, rect.right - clientX) / edgeThreshold;
+                scrollSpeed = maxSpeed * Math.pow(intensity, 1.5);
+                if (!autoScrollRAF) autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else {
+                scrollSpeed = 0;
+            }
+        }
+
+        function scrollLoop() {
+            const wrapper = document.getElementById('circuit-content-wrapper');
+            if (scrollSpeed !== 0) {
+                wrapper.scrollLeft += scrollSpeed;
+                autoScrollRAF = requestAnimationFrame(scrollLoop);
+            } else {
+                autoScrollRAF = null;
+            }
+        }
+
+        function getRgba(hex, alpha) {
+            hex = hex.replace('#', '');
+            const r = parseInt(hex.substring(0,2), 16), g = parseInt(hex.substring(2,4), 16), b = parseInt(hex.substring(4,6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+        
+        function getGateColorMap(type) {
+            if (type.startsWith('X')) return '#629eed'; 
+            return '#e2de6e'; 
+        }
+
+        function getHighlightPairsForGate(type) {
+            let pairs = [];
+            if (type === 'X0') pairs = [[0,2], [1,3]];
+            else if (type === 'X1') pairs = [[0,1], [2,3]];
+            else if (type === 'CX01') pairs = [[2,3]];
+            else if (type === 'C0X01') pairs = [[0,1]];
+            else if (type === 'CX10') pairs = [[1,3]];
+            else if (type === 'C0X10') pairs = [[0,2]];
+            return pairs;
+        }
+
+        function getMiniSquareSVG(type, activeState = null) {
+            let pairs = getHighlightPairsForGate(type);
+            const miniNodes = [
+                { x: 20, y: 20 }, 
+                { x: 80, y: 20 }, 
+                { x: 20, y: 80 }, 
+                { x: 80, y: 80 }  
+            ];
+            let svg = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; pointer-events:none; display: block;" preserveAspectRatio="xMidYMid meet">`;
+            const edges = [ [0, 1], [0, 2], [1, 3], [2, 3] ];
+            edges.forEach(([i, j]) => {
+                let n1 = miniNodes[i], n2 = miniNodes[j];
+                let isHighlighted = pairs.some(p => (p[0] === i && p[1] === j) || (p[0] === j && p[1] === i));
+                let lineClass = isHighlighted ? 'hyper-line-hi' : 'hyper-line';
+                let strokeW = isHighlighted ? 4.5 : 2;
+                svg += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" class="${lineClass}" style="stroke-width: ${strokeW}" stroke-linecap="round"/>`;
+            });
+            for(let i=0; i<4; i++) {
+                let n = miniNodes[i];
+                let isTraceNode = (activeState !== null && i === activeState);
+                if (isTraceNode) {
+                    svg += `<circle cx="${n.x}" cy="${n.y}" r="9" fill="#f78790" stroke="#FFF9F0" stroke-width="2"/>`;
+                } else {
+                    svg += `<circle cx="${n.x}" cy="${n.y}" r="6" fill="#463438"/>`;
+                }
+            }
+            svg += `</svg>`;
+            return svg;
+        }
+
+        function toggleQuantumMode() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            isQuantumMode = !isQuantumMode;
+            document.getElementById('body-root').classList.toggle('mini-mode', !isQuantumMode);
+            
+            const qToggle = document.getElementById('quantum-toggle');
+            if (qToggle) {
+                qToggle.title = isQuantumMode ? "Hypercube Mode" : "Quantum Mode";
+                qToggle.setAttribute('aria-label', qToggle.title);
+            }
+            qToggle.innerText = isQuantumMode ? "🧊" : "⚛️";
+
+            updateLabels();
+            updateGateButtonsUI();
+            updateTruthTable();
+            
+            if (isTraceMode) {
+                renderTraceStep();
+            } else {
+                renderCircuit();
+            }
+        }
+
+        function updateLabels() {
+            const isCube = !isQuantumMode;
+            document.querySelector('.gate-title').innerText = isCube ? 'Transformations' : 'Quantum Gates';
+            document.querySelector('.circuit-title').innerText = isCube ? 'Paths' : 'Circuit Diagram';
+            const qIn0 = document.getElementById('q-in-0');
+            const qIn1 = document.getElementById('q-in-1');
+            const qOut0 = document.getElementById('q-out-0');
+            const qOut1 = document.getElementById('q-out-1');
+            if (qIn0) qIn0.classList.remove('hidden-el');
+            if (qIn1) qIn1.classList.remove('hidden-el');
+            if (qOut0) qOut0.classList.add('hidden-el');
+            if (qOut1) qOut1.classList.add('hidden-el');
+
+            if (isTraceMode && isQuantumMode && activeTraceInput !== null) {
+                if (qOut0) qOut0.classList.remove('hidden-el');
+                if (qOut1) qOut1.classList.remove('hidden-el');
+            }
+            updateCircuitLabels();
+            updateFeatureToggleLabels();
+        }
+
+        function updateGateButtonsUI() {
+            const gates = ['X0', 'X1', 'CX10', 'CX01', 'C0X10', 'C0X01'];
+            gates.forEach(g => {
+                const btn = document.getElementById('gate-' + g.toLowerCase());
+                if (!btn) return;
+                if (!isQuantumMode) {
+                    btn.innerHTML = getMiniSquareSVG(g);
+                } else {
+                    let html = '<div class="wire-container">';
+                    if (g === 'X0') {
+                        html += '<div class="circuit-target" style="left: 50%; top: 25.5px;"></div>';
+                    } else if (g === 'X1') {
+                        html += '<div class="circuit-target" style="left: 50%; top: 53.5px;"></div>';
+                    } else if (g === 'CX01') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="left: 50%; top: 25.5px; background: #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 53.5px;"></div>';
+                    } else if (g === 'C0X01') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="box-sizing: border-box; left: 50%; top: 25.5px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 53.5px;"></div>';
+                    } else if (g === 'CX10') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="left: 50%; top: 53.5px; background: #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 25.5px;"></div>';
+                    } else if (g === 'C0X10') {
+                        html += '<div class="connection-v-line" style="left: 50%; top: 25.5px; height: 28px; transform: translateX(-50%);"></div><div class="control-dot" style="box-sizing: border-box; left: 50%; top: 53.5px; background: white; border: 2.5px solid #463438; transform: translate(-50%, -50%);"></div><div class="circuit-target" style="left: 50%; top: 25.5px;"></div>';
+                    }
+                    html += '</div>';
+                    btn.innerHTML = html;
+                }
+            });
+        }
+        
+        window.onload = () => {
+            initLabData();
+            refreshSkinAssets();
+            updateLabels();
+            updateGateButtonsUI();
+            updateFeatureToggleLabels();
+            recalculatePositions();
+            finishMove();
+            
+            setTimeout(() => {
+                const root = document.getElementById('body-root');
+                if(root) root.classList.remove('preload');
+            }, 50);
+            
+            const circuitArea = document.getElementById('circuit-area');
+            const cw = document.getElementById('circuit-content-wrapper');
+
+            if (circuitArea) {
+               circuitArea.addEventListener('dragover', (e) => {
+                e.preventDefault(); 
+                updateScrollSpeed(e.clientX);
+                if (draggedIndex === null) return;
+
+                document.querySelectorAll('.circuit-unit').forEach(el => {
+                    el.classList.remove('drag-target', 'right');
+                });
+
+                const wrapper = document.getElementById('circuit-content-wrapper');
+                const wrapperRect = wrapper.getBoundingClientRect();
+                
+                if (e.clientX < wrapperRect.left || e.target.classList.contains('qubit-label')) {
+                    e.dataTransfer.dropEffect = 'none'; 
+                    return; 
+                }
+
+                e.dataTransfer.dropEffect = 'move'; 
+
+                const units = Array.from(document.querySelectorAll('.circuit-unit'));
+                let closestUnit = null;
+                let minDx = Infinity;
+                
+                for (let u of units) {
+                    if (u.offsetParent === null) continue; 
+                    const rect = u.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const dx = Math.abs(e.clientX - cx);
+                    if (dx < minDx) {
+                        minDx = dx;
+                        closestUnit = u;
+                    }
+                }
+
+                if (closestUnit) {
+                    if (closestUnit.dataset.type === 'gate' && parseInt(closestUnit.dataset.idx) === draggedIndex) {
+                    } else {
+                        const rect = closestUnit.getBoundingClientRect();
+                        const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                        
+                        if (closestUnit.dataset.type === 'start') {
+                            closestUnit.classList.add('drag-target', 'right');
+                        } else if (closestUnit.dataset.type === 'end') {
+                            closestUnit.classList.add('drag-target');
+                        } else {
+                            if (isAfter) closestUnit.classList.add('drag-target', 'right');
+                            else closestUnit.classList.add('drag-target');
+                        }
+                    }
+                }
+            });
+            circuitArea.addEventListener('mousemove', (e) => {
+                updateScrollSpeed(e.clientX);
+            });
+        
+            circuitArea.addEventListener('dragleave', (e) => {
+                if (!circuitArea.contains(e.relatedTarget)) {
+                    document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'drag-target-right'));
+                    scrollSpeed = 0;
+                }
+            });
+
+            circuitArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                scrollSpeed = 0;
+                document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'right'));
+
+                if (draggedIndex === null) return;
+
+                const wrapper = document.getElementById('circuit-content-wrapper');
+                const wrapperRect = wrapper.getBoundingClientRect();
+                if (e.clientX < wrapperRect.left || e.target.classList.contains('qubit-label')) {
+                    draggedIndex = null;
+                    return;
+                }
+
+                const units = Array.from(document.querySelectorAll('.circuit-unit'));
+                let closestUnit = null;
+                let minDx = Infinity;
+                
+                for (let u of units) {
+                    if (u.offsetParent === null) continue;
+                    const rect = u.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const dx = Math.abs(e.clientX - cx);
+                    if (dx < minDx) {
+                        minDx = dx;
+                        closestUnit = u;
+                    }
+                }
+
+                if (closestUnit) {
+                    if (closestUnit.dataset.type === 'gate' && parseInt(closestUnit.dataset.idx) === draggedIndex) {
+                        draggedIndex = null;
+                        return;
+                    }
+                    
+                    const rect = closestUnit.getBoundingClientRect();
+                    const isAfter = (e.clientX - rect.left) > (rect.width / 2);
+                    let finalIdx;
+                    
+                    if (closestUnit.dataset.type === 'start') {
+                        finalIdx = 0;
+                    } else if (closestUnit.dataset.type === 'end') {
+                        finalIdx = gateHistory.length;
+                    } else {
+                        const idx = parseInt(closestUnit.dataset.idx);
+                        finalIdx = isAfter ? idx + 1 : idx;
+                    }
+
+                    if (draggedIndex < finalIdx) finalIdx--;
+                    
+                    if (draggedIndex !== finalIdx) {
+                        if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(err=>{}); }
+                        const movedItem = gateHistory.splice(draggedIndex, 1)[0];
+                        gateHistory.splice(finalIdx, 0, movedItem);
+                        pushHistory();
+                        selectedIndices = [];
+                        recalculatePositions();
+                        finishMove();
+                    }
+                }
+                draggedIndex = null;
+            });
+            }
+
+            cw.addEventListener('wheel', (e) => {
+                if (Math.abs(e.deltaY) > 0) {
+                    e.preventDefault();
+                    cw.scrollLeft += e.deltaY;
+                }
+            }, { passive: false });
+
+            const requestPermissions = async () => {
+                if (!gyroPermissionGranted && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const permission = await DeviceOrientationEvent.requestPermission();
+                        if (permission === 'granted') gyroPermissionGranted = true;
+                    } catch (error) { console.log("Gyro permission denied:", error); }
+                } else { gyroPermissionGranted = true; }
+                window.removeEventListener('click', requestPermissions);
+                window.removeEventListener('touchstart', requestPermissions);
+            };
+            window.addEventListener('click', requestPermissions);
+            window.addEventListener('touchstart', requestPermissions);
+        };
+
+        function startMobileDrag(touch, el, index) {
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            mobileDragging = true;
+            mDragIndex = index;
+            if (navigator.vibrate) navigator.vibrate(50);
+            dragGhost = el.cloneNode(true);
+            dragGhost.style.position = 'fixed';
+            dragGhost.style.zIndex = '999999';
+            dragGhost.style.opacity = '0.9';
+            dragGhost.style.pointerEvents = 'none';
+            dragGhost.style.transition = 'none';
+            dragGhost.classList.remove('selected');
+            dragGhost.style.background = 'transparent';
+            dragGhost.style.border = 'none';
+            dragGhost.querySelectorAll('.horizontal-wire').forEach(w => w.remove());
+            const rect = el.getBoundingClientRect();
+            dragGhost.style.left = (touch.clientX - rect.width / 2) + 'px';
+            dragGhost.style.top = (touch.clientY - rect.height / 2) + 'px';
+            document.body.appendChild(dragGhost);
+            const visuals = el.querySelector('.gate-visuals');
+            if (visuals) visuals.style.opacity = '0.35';
+        }
+
+        function moveMobileDrag(touch) {
+            if (!dragGhost) return;
+            dragGhost.style.left = (touch.clientX - dragGhost.offsetWidth/2) + 'px';
+            dragGhost.style.top = (touch.clientY - dragGhost.offsetHeight/2) + 'px';
+        }
+
+        function endMobileDrag(touch) {
+            mobileDragging = false;
+            if (dragGhost) { dragGhost.remove(); dragGhost = null; }
+            document.querySelectorAll('.gate-visuals').forEach(v => v.style.opacity = '1');
+            document.querySelectorAll('.circuit-unit').forEach(u => {
+                u.style.opacity = '1';
+                u.classList.remove('drag-target', 'drag-target-right');
+            });
+
+            if (mDragIndex === null) return;
+
+            const units = Array.from(document.querySelectorAll('.circuit-unit'));
+            let closestUnit = null;
+            let minDx = Infinity;
+            for (let u of units) {
+                if (u.offsetParent === null) continue;
+                const rect = u.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const dx = Math.abs(touch.clientX - cx);
+                if (dx < minDx) {
+                    minDx = dx;
+                    closestUnit = u;
+                }
+            }
+
+            if (closestUnit) {
+                if (closestUnit.dataset.type === 'gate' && parseInt(closestUnit.dataset.idx) === mDragIndex) {
+                } else {
+                    const rect = closestUnit.getBoundingClientRect();
+                    const isAfter = (touch.clientX - rect.left) > (rect.width / 2);
+                    let finalIdx;
+                    
+                    if (closestUnit.dataset.type === 'start') {
+                        finalIdx = 0;
+                    } else if (closestUnit.dataset.type === 'end') {
+                        finalIdx = gateHistory.length;
+                    } else {
+                        const idx = parseInt(closestUnit.dataset.idx);
+                        finalIdx = isAfter ? idx + 1 : idx;
+                    }
+
+                    if (mDragIndex < finalIdx) finalIdx--;
+                    
+                    if (mDragIndex !== finalIdx) {
+                        if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+                        const movedItem = gateHistory.splice(mDragIndex, 1)[0];
+                        gateHistory.splice(finalIdx, 0, movedItem);
+                        pushHistory();
+                        selectedIndices = [];
+                        recalculatePositions();
+                        finishMove();
+                    }
+                }
+            }
+            mDragIndex = null;
+            scrollSpeed = 0;
+        }
+
+        function initLabData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            initSkinFromUser(urlParams);
+            
+            const sharedInput = urlParams.get('input');
+            if (sharedInput) {
+                let parsed = sharedInput.split(',').map(Number);
+                if (parsed.length === 4 && new Set(parsed).size === 4 && parsed.every(n => !isNaN(n) && n >= 0 && n <= 3)) {
+                    initialFishAtNode = parsed;
+                }
+            }
+
+            const sharedCircuit = urlParams.get('circuit');
+            if (sharedCircuit) {
+                gateHistory = sharedCircuit.split(',').filter(g => g !== "");
+                historyStack.push([...gateHistory]);
+            } else {
+                const savedCircuit = sessionStorage.getItem('labCircuit');
+                if (savedCircuit) {
+                    gateHistory = savedCircuit.split(',').filter(g => g !== "");
+                    historyStack.push([...gateHistory]);
+                }
+            }
+        }
+
+        function toggleTraceMode() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            isTraceMode = !isTraceMode;
+            const btn = document.getElementById('view-toggle-btn');
+            const gView = document.getElementById('gate-view-container');
+            const tView = document.getElementById('tt-view-container');
+            const tCtrl = document.getElementById('trace-controls');
+            if (isTraceMode) {
+                btn.innerText = "Trace: ON";
+                btn.classList.add('trace-active-btn');
+                gView.classList.add('hidden-el');
+                tView.classList.remove('hidden-el');
+                tCtrl.classList.remove('hidden-el');
+                
+                activeTraceInput = null;
+                currentTraceStep = 0;
+                
+                updateLabels();
+                updateTruthTable();
+                renderTraceStep();
+            } else {
+                btn.innerText = "Trace: OFF";
+                btn.classList.remove('trace-active-btn');
+                gView.classList.remove('hidden-el');
+                tView.classList.add('hidden-el');
+                tCtrl.classList.add('hidden-el');
+                
+                activeTraceInput = null;
+                document.querySelectorAll('.trace-line-active').forEach(el => el.classList.remove('trace-line-active'));
+                document.querySelectorAll('.trace-fish-active').forEach(el => el.classList.remove('trace-fish-active'));
+                
+                updateLabels();
+                updateTruthTable();
+                finishMove();
+            }
+        }
+
+        function restartTrace() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            currentTraceStep = 0;
+            renderTraceStep();
+        }
+
+        function startTrace(inputIndex) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            if (activeTraceInput === inputIndex) {
+                activeTraceInput = null;
+                currentTraceStep = 0;
+            } else {
+                activeTraceInput = inputIndex;
+                currentTraceStep = 0;
+            }
+            updateTruthTable();
+            renderTraceStep();
+        }
+
+        function traceMove(delta) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            currentTraceStep += delta;
+            if (currentTraceStep < 0) currentTraceStep = 0;
+            if (currentTraceStep > gateHistory.length) currentTraceStep = gateHistory.length;
+            renderTraceStep();
+        }
+
+        function getLineId(n1, n2) {
+            const min = Math.min(n1, n2), max = Math.max(n1, n2);
+            if (min === 0 && max === 1) return 'line-h-0';
+            if (min === 2 && max === 3) return 'line-h-1';
+            if (min === 0 && max === 2) return 'line-v-0';
+            if (min === 1 && max === 3) return 'line-v-1';
+            return null;
+        }
+
+        function renderTraceStep() {
+            let currentBoardState = [...initialFishAtNode];
+            for (let k = 0; k < currentTraceStep; k++) {
+                let pm = getPermutationForGate(gateHistory[k]);
+                let next = new Array(4);
+                for (let i = 0; i < 4; i++) next[pm[i]] = currentBoardState[i];
+                currentBoardState = next;
+            }
+
+            for (let i = 0; i < 4; i++) {
+                let f = document.getElementById(`fish-${currentBoardState[i]}`);
+                let n = document.getElementById(`node-${i}`);
+                if (f && n) {
+                    f.style.top = (n.offsetTop + 75) + "px";
+                    f.style.left = (n.offsetLeft + 30) + "px";
+                }
+                const nodeEl = document.getElementById(`node-${i}`);
+                if (nodeEl) nodeEl.classList.toggle('node-correct', currentBoardState[i] === i);
+            }
+
+            document.querySelectorAll('.trace-line-active').forEach(el => el.classList.remove('trace-line-active'));
+            document.querySelectorAll('.trace-fish-active').forEach(el => el.classList.remove('trace-fish-active'));
+
+            if (activeTraceInput !== null) {
+                let f = document.getElementById(`fish-${activeTraceInput}`);
+                if (f) f.classList.add('trace-fish-active');
+
+                let trackedFishId = activeTraceInput;
+                let startNode = initialFishAtNode.indexOf(trackedFishId);
+                let prevNode = startNode;
+                let currNode = startNode;
+                for(let k = 0; k < currentTraceStep; k++) {
+                    prevNode = currNode;
+                    let pm = getPermutationForGate(gateHistory[k]);
+                    currNode = pm[currNode];
+                }
+                if (currentTraceStep > 0 && prevNode !== currNode) {
+                    let lineId = getLineId(prevNode, currNode);
+                    let lineEl = document.getElementById(lineId);
+                    if (lineEl) lineEl.classList.add('trace-line-active');
+                }
+            } else {
+                if (currentTraceStep > 0) {
+                    let lastGate = gateHistory[currentTraceStep - 1];
+                    let lines = gateLineMap[lastGate] || [];
+                    lines.forEach(id => {
+                        let lineEl = document.getElementById(id);
+                        if (lineEl) lineEl.classList.add('trace-line-active');
+                    });
+                }
+            }
+
+            updateFishVisibility();
+            updateLabels();
+            document.getElementById('trace-step-text').innerText = currentTraceStep;
+            renderCircuit();
+            
+            const activeGate = document.querySelector('.circuit-unit.trace-active');
+            if (activeGate) {
+                activeGate.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }
+            updateFeatureHighlights();
+
+            const prevBtn = document.getElementById('trace-prev-btn');
+            const nextBtn = document.getElementById('trace-next-btn');
+            if (prevBtn) {
+                prevBtn.disabled = false;
+                prevBtn.style.opacity = '1';
+                prevBtn.style.cursor = 'pointer';
+            }
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                nextBtn.style.opacity = '1';
+                nextBtn.style.cursor = 'pointer';
+            }
+            updateTruthTable();
+        }
+
+        function updateFishVisibility() {
+            for (let i = 0; i < 4; i++) {
+                let f = document.getElementById(`fish-${i}`);
+                if (!f) continue;
+                if (activeTraceInput !== null) {
+                    let trackedFishId = activeTraceInput;
+                    if (i === trackedFishId) {
+                        f.style.setProperty('opacity', '1', 'important');
+                        f.style.zIndex = 40;
+                    } else {
+                        f.style.setProperty('opacity', '0', 'important');
+                        f.style.zIndex = 30;
+                    }
+                } else {
+                    f.style.removeProperty('opacity');
+                    f.style.zIndex = 30;
+                }
+            }
+        }
+
+        function updateTruthTable() {
+            const isCustom = initialFishAtNode.some((val, idx) => val !== idx);
+            const headerRow = document.getElementById('tt-header-row');
+            if (headerRow) {
+                if (isCustom) {
+                    headerRow.innerHTML = `
+                        <span class="w-1/4 text-center text-black">${labelsOpen ? 'ID' : 'FISH'}</span>
+                        <span id="tt-head-left" class="w-1/4 text-center text-black">${labelsOpen ? 'IN' : 'START'}</span>
+                        <span id="tt-head-right" class="w-1/4 text-center text-black">${labelsOpen ? 'OUT' : 'NOW'}</span>
+                        <span class="w-1/4 text-center text-black">${labelsOpen ? 'TARGET' : 'HOME'}</span>
+                    `;
+                } else {
+                    headerRow.innerHTML = `
+                        <span class="w-1/3 text-center text-black">${labelsOpen ? 'ID' : 'FISH'}</span>
+                        <span id="tt-head-left" class="w-1/3 text-center text-black">${labelsOpen ? 'IN' : 'START'}</span>
+                        <span id="tt-head-right" class="w-1/3 text-center text-black">${labelsOpen ? 'OUT' : 'NOW'}</span>
+                    `;
+                }
+            }
+
+            const tbody = document.getElementById('tt-body');
+            tbody.innerHTML = '';
+            for (let i = 0; i < LAB_TOTAL; i++) {
+                const startNode = initialFishAtNode.indexOf(i);
+                if (startNode === -1) continue;
+
+                let currNode = startNode;
+                const stepLimit = isTraceMode ? currentTraceStep : gateHistory.length;
+                for (let k = 0; k < stepLimit; k++) {
+                    currNode = getPermutationForGate(gateHistory[k])[currNode];
+                }
+
+                const targetNode = i;
+                const inStr = i.toString(2).padStart(LAB_BITS, '0');
+                const outStr = currNode.toString(2).padStart(LAB_BITS, '0');
+                const targetStr = targetNode.toString(2).padStart(LAB_BITS, '0');
+                const isActive = activeTraceInput === i;
+                const isChanged = startNode !== currNode;
+                const outColor = isActive ? '' : (isChanged ? 'text-[#99C44D] font-bold' : 'text-gray-300');
+                const rowClasses = [];
+                if (isActive) rowClasses.push('active-trace');
+
+                let indexCell, inputCell, outputCell, targetCell;
+                if (labelsOpen) {
+                    indexCell = i;
+                    inputCell = inStr;
+                    outputCell = outStr;
+                    targetCell = targetStr;
+                } else {
+                    indexCell = truthSpriteHtml('fish', i);
+                    inputCell = truthSpriteHtml('cat', i);
+                    outputCell = truthSpriteHtml('cat', currNode);
+                    targetCell = truthSpriteHtml('cat', targetNode);
+                }
+
+                if (isCustom) {
+                    tbody.innerHTML += `
+                        <tr class="${rowClasses.join(' ')}" onclick="startTrace(${i})">
+                            <td class="py-2 text-base w-1/4 text-center align-middle">${indexCell}</td>
+                            <td class="py-2 text-base w-1/4 text-center align-middle">${inputCell}</td>
+                            <td class="py-2 text-base w-1/4 text-center align-middle ${outColor}">${outputCell}</td>
+                            <td class="py-2 text-base w-1/4 text-center align-middle font-bold text-gray-400">${targetCell}</td>
+                        </tr>`;
+                } else {
+                    tbody.innerHTML += `
+                        <tr class="${rowClasses.join(' ')}" onclick="startTrace(${i})">
+                            <td class="py-2 text-base w-1/3 text-center align-middle">${indexCell}</td>
+                            <td class="py-2 text-base w-1/3 text-center align-middle">${inputCell}</td>
+                            <td class="py-2 text-base w-1/3 text-center align-middle ${outColor}">${outputCell}</td>
+                        </tr>`;
+                }
+            }
+        }
+
+        function toggleMode2() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            isMode2 = !isMode2;
+            const btn = document.getElementById('mode-2-btn');
+            btn.innerText = isMode2 ? "Mode: 2" : "Mode: 1";
+            btn.classList.toggle('mode2-active-btn', isMode2);
+            document.querySelectorAll('.connection-line').forEach(el => el.classList.remove('line-highlight'));
+            document.querySelectorAll('.btn-highlight').forEach(el => el.classList.remove('btn-highlight'));
+        }
+
+        function toggleLineHighlight(lineIds, isOn) {
+            lineIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.toggle('line-highlight', isOn);
+            });
+        }
+
+        function getGateForLine(lineId) {
+            if (isMode2) {
+                if (lineId.includes('h')) return 'X1';
+                if (lineId.includes('v')) return 'X0';
+            } else {
+                if (lineId === 'line-h-0') return 'C0X01';
+                if (lineId === 'line-h-1') return 'CX01';
+                if (lineId === 'line-v-0') return 'C0X10';
+                if (lineId === 'line-v-1') return 'CX10';
+            }
+            return null;
+        }
+
+        function syncHighlight(lineId, isOn) {
+            const gate = getGateForLine(lineId);
+            if (!gate) return;
+            toggleLineHighlight(gateLineMap[gate] || [], isOn);
+            const btn = document.getElementById('gate-' + gate.toLowerCase());
+            if (btn) {
+                if (isOn) btn.classList.add('btn-highlight');
+                else btn.classList.remove('btn-highlight');
+            }
+        }
+
+        function syncGateHighlight(gate, isOn) {
+            toggleLineHighlight(gateLineMap[gate] || [], isOn);
+            const btn = document.getElementById('gate-' + gate.toLowerCase());
+            if (btn) {
+                if (isOn) btn.classList.add('btn-highlight');
+                else btn.classList.remove('btn-highlight');
+            }
+        }
+
+        function handleLineClick(lineId) {
+            const gate = getGateForLine(lineId);
+            if (gate) applyGate(gate);
+        }
+
+        function pushHistory() { historyStack.push([...gateHistory]); }
+
+        function applyGate(g) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            
+            if (selectedIndices.length > 0) {
+                let targetIdx = Math.min(...selectedIndices);
+                let newHistory = [];
+                for(let i=0; i<gateHistory.length; i++) {
+                    if (i === targetIdx) newHistory.push(g);
+                    else if (!selectedIndices.includes(i)) newHistory.push(gateHistory[i]);
+                }
+                gateHistory = newHistory;
+                selectedIndices = [];
+                pushHistory();
+                recalculatePositions();
+                finishMove();
+            } else {
+                gateHistory.push(g);
+                pushHistory();
+                recalculatePositions();
+                finishMove();
+            }
+
+            if (isTouchDevice) {
+                setTimeout(() => {
+                    syncGateHighlight(g, false);
+                    const btn = document.getElementById('gate-' + g.toLowerCase());
+                    if (btn) btn.blur();
+                }, 800); 
+            }
+        }
+
+        function getPermutationForGate(g) {
+            return [0, 1, 2, 3].map(pos => {
+                let q0 = Math.floor(pos / 2), q1 = pos % 2;
+                if (g === 'X0') q0 = 1 - q0;
+                else if (g === 'X1') q1 = 1 - q1;
+                else if (g === 'CX01' && q0 === 1) q1 = 1 - q1;
+                else if (g === 'C0X01' && q0 === 0) q1 = 1 - q1;
+                else if (g === 'CX10' && q1 === 1) q0 = 1 - q0;
+                else if (g === 'C0X10' && q1 === 0) q0 = 1 - q0;
+                return q0 * 2 + q1;
+            });
+        }
+
+        function recalculatePositions() {
+            let cp = [...initialFishAtNode]; 
+            gateHistory.forEach(g => {
+                const pm = getPermutationForGate(g); 
+                const next = new Array(4);
+                for (let oldNode = 0; oldNode < 4; oldNode++) {
+                    const newNode = pm[oldNode];
+                    next[newNode] = cp[oldNode];
+                }
+                cp = next;
+            });
+            fishAtNode = cp;
+        }
+
+        function finishMove() {
+            document.getElementById('step-count').innerText = gateHistory.length;
+            updateTruthTable();
+            for (let i = 0; i < 4; i++) {
+                const nodeEl = document.getElementById(`node-${i}`);
+                if (nodeEl) nodeEl.classList.toggle('node-correct', fishAtNode[i] === i);
+            }
+            if (isTraceMode) {
+                if (currentTraceStep > gateHistory.length) currentTraceStep = gateHistory.length;
+                renderTraceStep();
+            } else {
+                updateFishUI();
+                updateFishVisibility();
+                renderCircuit();
+            }
+        }
+
+        function updateFishUI() {
+            for(let i=0; i<4; i++) {
+                const f = document.getElementById(`fish-${fishAtNode[i]}`);
+                const n = document.getElementById(`node-${i}`);
+                if(f && n) {
+                    f.style.top = (n.offsetTop + 75) + "px";
+                    f.style.left = (n.offsetLeft + 30) + "px";
+                }
+                const nodeEl = document.getElementById(`node-${i}`);
+                if (nodeEl) nodeEl.classList.toggle('node-correct', fishAtNode[i] === i);
+            }
+            updateFeatureHighlights();
+        }
+
+        function renderCircuit() {
+            const c = document.getElementById('circuit-content');
+            const wrapper = document.getElementById('circuit-content-wrapper');
+            c.innerHTML = '';
+            let states = [];
+            if (activeTraceInput !== null) {
+                let curr = initialFishAtNode.indexOf(activeTraceInput);
+                if (curr !== -1) {
+                    states.push(curr);
+                    for (let k = 0; k < gateHistory.length; k++) {
+                        curr = getPermutationForGate(gateHistory[k])[curr];
+                        states.push(curr);
+                    }
+                }
+            }
+            const drawWires = (parentUnit, stepIdx) => {
+                if (!isQuantumMode) return;
+                for (let q = 0; q < 2; q++) {
+                    let wire = document.createElement('div');
+                    wire.className = 'horizontal-wire';
+                    wire.style.position = 'absolute';
+                    wire.style.left = '-3px';
+                    wire.style.width = 'calc(100% + 6px)';
+                    wire.style.height = '3px';
+                    wire.style.top = (q === 0 ? 13 : 60) + 'px';
+                    wire.style.zIndex = '1';
+                    if (isTraceMode) {
+                        if (activeTraceInput !== null) {
+                            if (stepIdx <= currentTraceStep) {
+                                let bit = (states[stepIdx] >> (1 - q)) & 1;
+                                if (bit === 1) {
+                                    wire.style.background = '#FFB7C5';
+                                    wire.style.boxShadow = '0 0 8px #FFB7C5';
+                                } else {
+                                    wire.style.background = '#8a6d1c';
+                                    wire.style.boxShadow = 'none';
+                                }
+                            } else {
+                                wire.style.background = '#d1d5db';
+                                wire.style.boxShadow = 'none';
+                            }
+                        } else {
+                            if (stepIdx <= currentTraceStep) {
+                                wire.style.background = '#463438';
+                                wire.style.boxShadow = 'none';
+                            } else {
+                                wire.style.background = '#d1d5db';
+                                wire.style.boxShadow = 'none';
+                            }
+                        }
+                    } else {
+                        wire.style.background = '#463438';
+                    }
+                    parentUnit.appendChild(wire);
+                }
+            };
+            
+            const startU = document.createElement('div');
+            startU.className = 'circuit-unit';
+            startU.style.minWidth = '30px';
+            startU.style.cursor = 'default';
+            startU.dataset.type = 'start';
+            if (!isQuantumMode) startU.style.display = 'none';
+            drawWires(startU, 0);
+            c.appendChild(startU);
+            
+            gateHistory.forEach((g, idx) => {
+                const u = document.createElement('div');
+                u.className = 'circuit-unit' + (selectedIndices.includes(idx) ? ' selected' : '');
+                u.dataset.type = 'gate';
+                u.dataset.idx = idx;
+                
+                const hex = getGateColorMap(g);
+                u.style.setProperty('--bg-hover', getRgba(hex, 0.35));
+                u.style.setProperty('--bg-selected', hex);
+                
+                u.draggable = !isTouchDevice;
+                drawWires(u, idx + 1);
+                
+                const sFrame = document.createElement('div');
+                sFrame.className = 'dragging-snapshot-frame';
+                u.appendChild(sFrame);
+                
+                const visuals = document.createElement('div');
+                visuals.className = 'gate-visuals';
+                visuals.style.position = 'absolute';
+                visuals.style.inset = '0';
+                visuals.style.width = '100%';
+                visuals.style.height = '100%';
+                visuals.style.pointerEvents = 'none';
+                visuals.style.zIndex = '10';
+                
+                if (isTraceMode) {
+                    if (idx === currentTraceStep - 1) u.classList.add('trace-active');
+                    else if (idx >= currentTraceStep) visuals.style.opacity = '0.35';
+                }
+                
+                if (!isQuantumMode) {
+                    let traceState = (isTraceMode && activeTraceInput !== null) ? states[idx + 1] : null;
+                    visuals.innerHTML = getMiniSquareSVG(g, traceState);
+                } else {
+                    if(g.startsWith('X')) {
+                        const tQ = g==='X0'?0:1, tY = tQ===0?14.5:61.5, t = document.createElement('div');
+                        t.className = 'circuit-target';
+                        t.style.left = '50%';
+                        t.style.top = (tY)+'px';
+                        visuals.appendChild(t);
+                    }
+                    else {
+                        const is01 = g.includes('01'), is0 = g.includes('C0'), cY = is01?14.5:61.5, tY = is01?61.5:14.5;
+                        const v = document.createElement('div');
+                        v.className = 'connection-v-line';
+                        v.style.left = '50%';
+                        v.style.top = Math.min(cY,tY)+'px';
+                        v.style.height = '47px';
+                        visuals.appendChild(v);
+                        const d = document.createElement('div');
+                        d.className = 'control-dot';
+                        d.style.left = '50%';
+                        d.style.top = (cY)+'px';
+                        if(is0){
+                            d.style.boxSizing = 'border-box';
+                            d.style.background = 'white'; 
+                            d.style.border = '2.5px solid #463438';
+                        }
+                        visuals.appendChild(d);
+                        
+                        const t = document.createElement('div');
+                        t.className = 'circuit-target';
+                        t.style.left = '50%';
+                        t.style.top = (tY)+'px';
+                        visuals.appendChild(t);
+                    }
+                }
+                
+                u.appendChild(visuals);
+                
+                if (!isTouchDevice) {
+                    u.ondragstart = (e) => {
+                        draggedIndex = idx;
+                        e.dataTransfer.effectAllowed = 'move';
+                        u.classList.add('during-snapshot'); 
+                        const wires = u.querySelectorAll('.horizontal-wire');
+                        wires.forEach(w => w.style.opacity = '0');
+                        u.style.background = 'transparent'; 
+                        visuals.style.opacity = '1';
+                        setTimeout(() => {
+                            u.classList.remove('during-snapshot'); 
+                            wires.forEach(w => w.style.opacity = '1');
+                            u.style.background = '';
+                            visuals.style.opacity = '0.35';
+                        }, 0);
+                    };
+                    u.ondragend = (e) => { 
+                        visuals.style.opacity = '1';
+                        draggedIndex = null;
+                        document.querySelectorAll('.circuit-unit').forEach(unit => {
+                            unit.classList.remove('drag-target', 'drag-target-right');
+                        });
+                    };
+                }
+                
+                let touchTimer = null;
+                let startX, startY;
+                let swipeActionTriggered = false;
+
+                u.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) return;
+                    u.draggable = false; 
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                    swipeActionTriggered = false;
+                    
+                    touchTimer = setTimeout(() => {
+                        touchTimer = null;
+                        startMobileDrag(e.touches[0], u, idx);
+                    }, 300); 
+                }, {passive: true});
+
+                u.addEventListener('touchmove', (e) => {
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        moveMobileDrag(e.touches[0]);
+                        
+                        const wrapper = document.getElementById('circuit-content-wrapper');
+                        const wrapperRect = wrapper.getBoundingClientRect();
+                        
+                        if (e.touches[0].clientX < wrapperRect.left) {
+                            document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'drag-target-right'));
+                        } else {
+                            const targetEl = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+                            if (targetEl) {
+                                const targetUnit = targetEl.closest('.circuit-unit');
+                                if (targetUnit) {
+                                    const type = targetUnit.dataset.type;
+                                    const isSelf = type === 'gate' && parseInt(targetUnit.dataset.idx) === draggedIndex;
+                                    if (!isSelf) {
+                                        document.querySelectorAll('.circuit-unit').forEach(el => el.classList.remove('drag-target', 'drag-target-right'));
+                                        const rect = targetUnit.getBoundingClientRect();
+                                        const isAfter = (e.touches[0].clientX - rect.left) > (rect.width / 2);
+                                        
+                                        if (targetUnit.dataset.type === 'start') {
+                                            targetUnit.classList.add('drag-target-right');
+                                        } else if (targetUnit.dataset.type === 'end') {
+                                            targetUnit.classList.add('drag-target');
+                                        } else {
+                                            if (isAfter) targetUnit.classList.add('drag-target-right');
+                                            else targetUnit.classList.add('drag-target');
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    } else if (!swipeActionTriggered && (touchTimer !== null || startY !== undefined)) {
+                        const dx = e.touches[0].clientX - startX;
+                        const dy = e.touches[0].clientY - startY;
+
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                            if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                        }
+
+                        if (Math.abs(dy) > 30 && Math.abs(dy) > Math.abs(dx)) {
+                            if (e.cancelable) e.preventDefault();
+
+                            if (dy > 30) {
+                                const sIdx = selectedIndices.indexOf(idx);
+                                if (sIdx > -1) selectedIndices.splice(sIdx, 1); 
+                                else selectedIndices.push(idx);
+                                renderCircuit();
+                                swipeActionTriggered = true;
+                                startY = undefined;
+                            } else if (dy < -30) {
+                                if (typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(err=>{}); }
+                                syncGateHighlight(g, false);
+                                selectedIndices = [];
+                                deleteGate(idx);
+                                swipeActionTriggered = true;
+                                startY = undefined;
+                            }
+                        }
+                    }
+                }, {passive: false});
+
+                u.addEventListener('touchend', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (mobileDragging) {
+                        if (e.cancelable) e.preventDefault();
+                        endMobileDrag(e.changedTouches[0]);
+                    }
+                    if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                    swipeActionTriggered = false;
+                });
+
+                u.addEventListener('touchcancel', (e) => {
+                    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+                    if (mobileDragging) endMobileDrag(e.changedTouches[0]);
+                    if (activeTraceInput === null) setTimeout(() => { u.draggable = true; }, 100);
+                    swipeActionTriggered = false;
+                });
+                u.onmouseover = () => syncGateHighlight(g, true);
+                u.onmouseout = () => syncGateHighlight(g, false);
+                
+                u.onclick = (e) => {
+                    if (mobileDragging) return;
+                    syncGateHighlight(g, false);
+                    selectedIndices = [];
+                    deleteGate(idx);
+                };
+
+                u.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    if (mobileDragging) return false;
+                    const sIdx = selectedIndices.indexOf(idx);
+                    if (sIdx > -1) selectedIndices.splice(sIdx, 1);
+                    else selectedIndices.push(idx);
+                    renderCircuit();
+                    return false;
+                };
+
+                c.appendChild(u);
+            });
+            
+            const endU = document.createElement('div');
+            endU.className = 'circuit-unit';
+            endU.style.minWidth = '50px';
+            endU.style.flexGrow = '1';
+            endU.style.cursor = 'default';
+            endU.dataset.type = 'end';
+            if (!isQuantumMode) endU.style.display = 'none';
+            drawWires(endU, states.length > 0 ? states.length - 1 : 0);
+            c.appendChild(endU);
+
+            updateUndoStatus();
+            if (!isTraceMode && selectedIndices.length === 0 && gateHistory.length > 0 && draggedIndex === null && activeTraceInput === null) {
+                setTimeout(() => { if(wrapper) wrapper.scrollTo({ left: wrapper.scrollWidth, behavior: 'smooth' }); }, 100);
+            }
+        }
+
+        function undo() {
+            if (historyStack.length <= 1) return;
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            historyStack.pop();
+            gateHistory = [...historyStack[historyStack.length - 1]];
+            selectedIndices = []; recalculatePositions(); finishMove();
+        }
+
+        function resetCircuit() {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime = 0; pop.play().catch(e=>{}); }
+            fishAtNode = [...initialFishAtNode];
+            gateHistory = [];
+            historyStack = [[]];
+            selectedIndices = [];
+            finishMove();
+        }
+
+        function deleteGate(idx) {
+            if(typeof pop !== 'undefined' && pop.play) { pop.currentTime=0; pop.play().catch(e=>{}); }
+            gateHistory.splice(idx,1);
+            pushHistory();
+            recalculatePositions();
+            finishMove();
+        }
+
+        function updateUndoStatus() {
+            const isActive = (historyStack.length > 1);
+            const ub = document.getElementById('undo-btn');
+            if(ub) {
+                if(isActive){ ub.classList.add('active'); ub.style.pointerEvents="auto"; }
+                else { ub.classList.remove('active'); ub.style.pointerEvents="none"; }
+            }
+        }
+
+        function shareCircuit() {
+            if (gateHistory.length === 0 && initialFishAtNode.join(',') === '0,1,2,3') {
+                alert("The circuit is empty and cannot be shared.");
+                return;
+            }
+            const circuitData = gateHistory.join(',');
+            let shareUrl = `${window.location.origin}${window.location.pathname}?circuit=${encodeURIComponent(circuitData)}`;
+            
+            if (initialFishAtNode.join(',') !== '0,1,2,3') {
+                shareUrl += `&input=${initialFishAtNode.join(',')}`;
+            }
+
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert("Circuit sharing link copied! Send it to a friend to open this circuit.");
+            }).catch(err => {
+                console.error('Failed to copy link', err);
+                alert("Link: " + shareUrl);
+            });
+        }
+
+        function navWithSound(url) {
+            if (typeof pop !== 'undefined') {
+                pop.currentTime = 0;
+                pop.play(); 
+            }
+            setTimeout(() => {
+                window.location.href = url;
+            }, 150); 
+        }
+    </script>
+</body>
+</html>
