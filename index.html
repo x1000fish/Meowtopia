@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200">
+  <title>Meowtopia</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Titan+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #FFB7C5;
+      --green: #99C44D;
+      --dark: #463438;
+      --cream: #FFF9F0;
+      --blue: #5BA4CF;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--cream);
+      background-image: linear-gradient(45deg, #fce4ec 25%, transparent 25%, transparent 50%, #fce4ec 50%, #fce4ec 75%, transparent 75%, transparent);
+      background-size: 100px 100px;
+      color: var(--dark);
+    }
+
+    .page-shell {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 28px 18px;
+    }
+
+    .game-title {
+      font-family: 'Titan One', cursive;
+      font-size: clamp(3.8rem, 9vw, 5.5rem);
+      color: white;
+      -webkit-text-stroke: 3px var(--dark);
+      text-shadow: 0 0 6px rgba(255, 133, 161, 0.7);
+      letter-spacing: 4px;
+      line-height: 0.95;
+      text-align: center;
+      animation: glow 2s ease-in-out infinite alternate;
+      margin-bottom: 34px;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 8px #FF85A1, 0 0 18px #FF85A1; transform: translateY(0); }
+      to { text-shadow: 0 0 18px #A3D36C, 0 0 30px #A3D36C; transform: translateY(10px); }
+    }
+
+    .hidden { display: none !important; }
+
+    .flip-card {
+      width: min(500px, 100%);
+      height: 560px;
+      perspective: 1000px;
+    }
+
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-style: preserve-3d;
+    }
+
+    .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+
+    .flip-card-front,
+    .flip-card-back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border: 8px solid var(--dark);
+      border-radius: 35px;
+      background: rgba(255, 255, 255, 0.96);
+      overflow: hidden;
+    }
+
+    .flip-card-front {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 15px 15px 0 var(--pink);
+    }
+
+    .flip-card-back {
+      transform: rotateY(180deg);
+      display: flex;
+      flex-direction: column;
+      box-shadow: 15px 15px 0 var(--green);
+    }
+
+    .pass-header {
+      background: var(--pink);
+      padding: 20px;
+      border-bottom: 5px dashed var(--dark);
+      text-align: center;
+    }
+
+    .pass-header h2 {
+      color: white;
+      font-weight: 900;
+      font-size: 1.5rem;
+      text-shadow: 2px 2px 0 var(--dark);
+      letter-spacing: 1px;
+    }
+
+    .pass-body {
+      padding: 30px 30px 70px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .flip-card-back .input-box-group { margin-bottom: 16px; }
+    .flip-card-back #btn-reg { margin-top: 6px !important; }
+    .flip-card-back .switch-link { margin-top: 10px !important; }
+
+    .card-heading {
+      font-weight: 900;
+      font-style: italic;
+      font-size: 2.2rem;
+      text-align: left;
+      margin-bottom: 1.5rem;
+      color: var(--dark);
+    }
+
+    .input-box-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      border: 4px solid var(--dark);
+      border-radius: 15px;
+      overflow: hidden;
+      background: white;
+      transition: all 0.2s;
+    }
+
+    .input-box-group:focus-within {
+      border-color: var(--green);
+      transform: scale(1.02);
+    }
+
+    .side-label {
+      background: var(--dark);
+      color: white;
+      padding: 14px 12px;
+      font-size: 16px;
+      font-weight: 900;
+      min-width: 120px;
+      text-align: center;
+      white-space: nowrap;
+      clip-path: polygon(0% 0%, 100% 0%, 85% 100%, 0% 100%);
+      margin-right: -10px;
+      padding-right: 35px;
+      flex-shrink: 0;
+    }
+
+    .label-green { background: var(--green); }
+    .label-pink { background: var(--pink); }
+
+    .game-input {
+      width: 100%;
+      padding: 10px 15px;
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--dark);
+      min-width: 0;
+    }
+
+    .photo-input {
+      padding-top: 14px;
+      padding-bottom: 14px;
+      font-size: 0.85rem;
+    }
+
+    .game-btn {
+      cursor: pointer;
+      border: 5px solid var(--dark);
+      border-radius: 60px;
+      padding: 12px;
+      font-size: 26px;
+      font-weight: 900;
+      color: white;
+      text-shadow: 2px 2px 0 var(--dark);
+      box-shadow: 0 6px 0 var(--dark);
+      position: relative;
+      transition: transform 0.15s, box-shadow 0.15s, top 0.1s;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .game-btn:not(:disabled):hover {
+      transform: translateY(-5px) scale(1.03);
+      box-shadow: 0 11px 0 var(--dark);
+    }
+
+    .game-btn:active {
+      top: 4px;
+      box-shadow: 0 2px 0 var(--dark);
+      transform: translateY(0);
+    }
+
+    .game-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .btn-red { background: var(--pink); }
+    .btn-green { background: var(--green); }
+    .btn-blue { background: var(--blue); }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 15px;
+    }
+
+    .switch-link {
+      font-size: 14px;
+      font-weight: bold;
+      text-decoration: underline;
+      cursor: pointer;
+      color: var(--dark);
+      text-align: center;
+    }
+
+    .stamp {
+      position: absolute;
+      bottom: 58px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border: 4px solid var(--green);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(-15deg);
+      color: var(--green);
+      font-weight: 900;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    #meow-map {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .player-bar {
+      width: 100%;
+      max-width: 700px;
+      background: white;
+      border: 5px solid var(--dark);
+      border-radius: 20px;
+      padding: 15px 25px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 10px 10px 0 var(--pink);
+    }
+
+    .player-side {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mini-btn {
+      width: auto;
+      min-width: 76px;
+      padding: 7px 16px;
+      font-size: 14px;
+      border-width: 4px;
+      box-shadow: 0 4px 0 var(--dark);
+    }
+
+    .mini-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 7px 0 var(--dark);
+    }
+
+    .player-avatar {
+      width: 92px;
+      height: 92px;
+      background: var(--cream);
+      border: 5px solid var(--dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 900;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .player-avatar img,
+    .profile-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform-origin: center;
+    }
+
+    .map-container {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .level-node {
+      width: 100px;
+      height: 100px;
+      background: white;
+      border: 5px solid var(--dark);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 900;
+      box-shadow: 0 6px 0 var(--green);
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+      color: var(--dark);
+    }
+
+    .level-node:hover:not(.locked) {
+      transform: rotate(5deg) scale(1.1);
+      background: var(--pink);
+      color: white;
+    }
+
+    .level-node.locked {
+      background: #eee;
+      color: #bbb;
+      cursor: not-allowed;
+      box-shadow: 0 6px 0 #ccc;
+      border-color: #ccc;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(70, 52, 56, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 10000;
+    }
+
+    .profile-modal {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255, 255, 255, 0.98);
+      border: 7px solid var(--dark);
+      border-radius: 28px;
+      box-shadow: 14px 14px 0 var(--dark);
+      padding: 30px;
+    }
+
+    .profile-modal h2 {
+      font-size: 1.7rem;
+      font-weight: 900;
+      margin-bottom: 18px;
+      color: var(--dark);
+    }
+
+    .profile-modal .input-box-group {
+      margin-bottom: 14px;
+    }
+
+    .profile-modal .side-label {
+      padding: 12px 12px;
+      font-size: 14px;
+      min-width: 110px;
+      padding-right: 32px;
+    }
+
+    .profile-modal .game-input {
+      padding: 9px 14px;
+      font-size: 16px;
+    }
+
+    .profile-preview {
+      width: 132px;
+      height: 132px;
+      border: 6px solid var(--dark);
+      border-radius: 50%;
+      background: var(--cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      font-size: 3rem;
+      margin: 0 auto 18px;
+    }
+
+    .photo-controls {
+      display: grid;
+      gap: 12px;
+      margin: -4px 0 18px;
+    }
+
+    .photo-controls label {
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+      font-weight: 900;
+      color: var(--dark);
+    }
+
+    .photo-controls input { accent-color: var(--green); }
+
+    @media (max-width: 760px) {
+      .page-shell { justify-content: flex-start; padding-top: 34px; }
+      .game-title { margin-bottom: 26px; }
+      .flip-card { height: 590px; }
+      .flip-card-front { padding: 30px 22px; }
+      .pass-body { padding: 26px 22px 78px; }
+      .flip-card-back .input-box-group { margin-bottom: 14px; }
+      .stamp { bottom: 62px; }
+      .side-label { min-width: 100px; font-size: 14px; padding-right: 28px; }
+      .game-input { font-size: 16px; }
+      .switch-row { flex-direction: column; gap: 10px; }
+      .player-bar { flex-direction: column; gap: 16px; align-items: stretch; }
+      .player-side { justify-content: space-between; }
+      .map-container { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .level-node { width: 88px; height: 88px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page-shell">
+    <h1 class="game-title">MEOWTOPIA</h1>
+
+    <div class="flip-card" id="auth-card">
+      <div class="flip-card-inner">
+        <section class="flip-card-front">
+          <div class="flex-grow flex flex-col justify-center">
+            <h2 class="card-heading">LOGIN_</h2>
+            <div class="input-box-group">
+              <div class="side-label">NAME</div>
+              <input type="text" id="login-user" class="game-input" placeholder="Your name..." autocomplete="username">
+            </div>
+            <div class="input-box-group">
+              <div class="side-label label-green">PASS</div>
+              <input type="password" id="login-pass" class="game-input" placeholder="Password" autocomplete="current-password">
+            </div>
+          </div>
+
+          <button id="btn-login" onclick="handleLogin()" class="game-btn btn-red w-full">START!</button>
+
+          <div class="switch-row">
+            <p class="switch-link" onclick="handleGuestLogin()">Just visiting? Guest</p>
+            <p class="switch-link" onclick="toggleAuth()">New cat? Register</p>
+          </div>
+        </section>
+
+        <section class="flip-card-back">
+          <div class="pass-header"><h2>ADVENTURE PASS</h2></div>
+          <div class="pass-body">
+            <div class="stamp">APPROVED</div>
+            <div class="input-box-group">
+              <div class="side-label label-pink">IDENTITY</div>
+              <input type="text" id="reg-user" class="game-input" placeholder="Name your cat" autocomplete="username">
+            </div>
+            <div class="input-box-group">
+              <div class="side-label">SECRET</div>
+              <input type="password" id="reg-pass" class="game-input" placeholder="Enter password" autocomplete="new-password">
+            </div>
+            <div class="input-box-group">
+              <div class="side-label">CONFIRM</div>
+              <input type="password" id="reg-confirm" class="game-input" placeholder="Repeat password" autocomplete="new-password">
+            </div>
+            <div class="input-box-group">
+              <div class="side-label label-green">PHOTO</div>
+              <input type="file" id="reg-photo" class="game-input photo-input" accept="image/*">
+            </div>
+            <button id="btn-reg" onclick="handleRegister()" class="game-btn btn-green w-full mt-4">JOIN NOW!</button>
+            <p class="switch-link mt-4" onclick="toggleAuth()">Go back to login</p>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div id="meow-map" class="hidden">
+      <div class="player-bar mb-5">
+        <div class="flex items-center gap-4">
+          <div id="meow-player-avatar" class="player-avatar">🐱</div>
+          <div>
+            <div id="meow-display-username" class="text-2xl font-black">User</div>
+            <div class="text-sm font-bold text-gray-400 uppercase tracking-widest">Cat Explorer</div>
+          </div>
+        </div>
+        <div class="player-side">
+          <button id="edit-profile-btn" onclick="openProfileEditor()" class="game-btn btn-blue mini-btn">EDIT</button>
+          <div class="text-right">
+            <div class="text-sm font-black" style="color:#99C44D">PROGRESS</div>
+            <div id="meow-display-level" class="text-4xl font-black">LV. 1</div>
+          </div>
+        </div>
+      </div>
+      <div class="map-container" id="level-grid"></div>
+      <div class="flex justify-center gap-4 mt-4">
+        <button onclick="playPopThen(() => location.href='https://youtu.be/e55u71mLU1Y')" class="game-btn btn-blue px-10" style="font-size:18px">VIDEO</button>
+        <button onclick="playPopThen(handleLogout)" class="game-btn btn-red px-10" style="font-size:18px">LOGOUT</button>
+        <button onclick="playPopThen(() => location.href='lab2.html')" class="game-btn btn-green px-10" style="font-size:18px">LAB</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="profile-modal" class="modal-overlay hidden">
+    <div class="profile-modal">
+      <h2>EDIT PROFILE_</h2>
+      <div id="edit-photo-preview" class="profile-preview">🐱</div>
+      <div class="photo-controls">
+        <label for="edit-photo-x">X POS<input type="range" id="edit-photo-x" min="0" max="100" value="50"></label>
+        <label for="edit-photo-y">Y POS<input type="range" id="edit-photo-y" min="0" max="100" value="50"></label>
+        <label for="edit-photo-scale">ZOOM<input type="range" id="edit-photo-scale" min="1" max="2.5" step="0.05" value="1"></label>
+      </div>
+      <div class="input-box-group">
+        <div class="side-label">NAME</div>
+        <input type="text" id="edit-user" class="game-input" placeholder="Your name...">
+      </div>
+      <div class="input-box-group">
+        <div class="side-label">PASS</div>
+        <input type="password" id="edit-pass" class="game-input" placeholder="New password">
+      </div>
+      <div class="input-box-group">
+        <div class="side-label">CONFIRM</div>
+        <input type="password" id="edit-confirm" class="game-input" placeholder="Repeat new password">
+      </div>
+      <div class="input-box-group">
+        <div class="side-label">PHOTO</div>
+        <input type="file" id="edit-photo" class="game-input photo-input" accept="image/*">
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button id="btn-profile-save" onclick="handleProfileSave()" class="game-btn btn-green w-full" style="font-size:18px;">SAVE</button>
+        <button onclick="closeProfileEditor()" class="game-btn btn-red w-full" style="font-size:18px;">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsOdnjfzdpZPaLEojtMJFNjs8t2EJaoPYib4kVj6GrCXKMwt9Fj6iV6swJbicaM28QOw/exec';
+    const PHOTO_KEY = 'playerPhoto';
+    const PHOTO_X_KEY = 'playerPhotoX';
+    const PHOTO_Y_KEY = 'playerPhotoY';
+    const PHOTO_SCALE_KEY = 'playerPhotoScale';
+    const GUEST_KEY = 'isGuest';
+    const popAudio = new Audio('pop.m4a');
+    let pendingEditPhoto = '';
+
+    window.addEventListener('load', () => {
+      setupProfileEditor();
+      const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+      const level = parseInt(sessionStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel') || localStorage.getItem('meow_level') || localStorage.getItem('currentLevel'));
+      if (user && !isNaN(level)) showMeowMap(user);
+      else showAuth();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'Enter') return;
+      const active = document.activeElement;
+      if (!active || !active.closest('#auth-card')) return;
+      if (active.tagName === 'BUTTON') return;
+      event.preventDefault();
+      if (document.getElementById('auth-card').classList.contains('flipped')) {
+        handleRegister();
+      } else {
+        handleLogin();
+      }
+    });
+
+    document.addEventListener('click', event => {
+      if (event.target.closest('.level-node:not(.locked)')) playSound(popAudio);
+    }, true);
+
+    function playSound(audio) {
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    }
+
+    function playPopThen(callback) {
+      playSound(popAudio);
+      setTimeout(callback, 120);
+    }
+
+    function toggleAuth() {
+      document.getElementById('auth-card').classList.toggle('flipped');
+    }
+
+    function showAuth() {
+      document.getElementById('meow-map').classList.add('hidden');
+      document.getElementById('auth-card').classList.remove('hidden');
+      document.getElementById('profile-modal').classList.add('hidden');
+      document.getElementById('auth-card').classList.remove('flipped');
+    }
+
+    function getPhotoX() { return parseInt(sessionStorage.getItem(PHOTO_X_KEY) || localStorage.getItem(PHOTO_X_KEY) || '50') || 50; }
+    function getPhotoY() { return parseInt(sessionStorage.getItem(PHOTO_Y_KEY) || localStorage.getItem(PHOTO_Y_KEY) || '50') || 50; }
+    function getPhotoScale() {
+      const scale = parseFloat(sessionStorage.getItem(PHOTO_SCALE_KEY) || localStorage.getItem(PHOTO_SCALE_KEY) || '1');
+      return isNaN(scale) ? 1 : Math.min(2.5, Math.max(1, scale));
+    }
+
+    function renderAvatar(targetId, photo = sessionStorage.getItem(PHOTO_KEY) || localStorage.getItem(PHOTO_KEY), photoX = getPhotoX(), photoY = getPhotoY(), photoScale = getPhotoScale()) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      target.innerHTML = photo ? `<img src="${photo}" alt="Player photo" style="object-position:${photoX}% ${photoY}%;transform-origin:${photoX}% ${photoY}%;transform:scale(${photoScale});">` : '🐱';
+    }
+
+    function setStoredProfile(username, meowLv, photo = '', photoX = 50, photoY = 50, photoScale = 1) {
+      const normalizedLevel = Math.min(Math.max(parseInt(meowLv) || 1, 1), 18);
+      sessionStorage.removeItem(GUEST_KEY);
+      sessionStorage.setItem('currentUser', username);
+      sessionStorage.setItem('meow_level', String(normalizedLevel));
+      sessionStorage.setItem('currentLevel', String(normalizedLevel));
+      if (photo) {
+        sessionStorage.setItem(PHOTO_KEY, photo);
+        localStorage.setItem(PHOTO_KEY, photo);
+      } else {
+        sessionStorage.removeItem(PHOTO_KEY);
+        localStorage.removeItem(PHOTO_KEY);
+      }
+      sessionStorage.setItem(PHOTO_X_KEY, photoX);
+      sessionStorage.setItem(PHOTO_Y_KEY, photoY);
+      sessionStorage.setItem(PHOTO_SCALE_KEY, photoScale);
+      localStorage.setItem(PHOTO_X_KEY, photoX);
+      localStorage.setItem(PHOTO_Y_KEY, photoY);
+      localStorage.setItem(PHOTO_SCALE_KEY, photoScale);
+    }
+
+    function setGuestProfile() {
+      sessionStorage.clear();
+      sessionStorage.setItem(GUEST_KEY, 'true');
+      sessionStorage.setItem('currentUser', 'Guest');
+      sessionStorage.setItem('meow_level', '1');
+      sessionStorage.setItem('currentLevel', '1');
+      sessionStorage.setItem(PHOTO_X_KEY, '50');
+      sessionStorage.setItem(PHOTO_Y_KEY, '50');
+      sessionStorage.setItem(PHOTO_SCALE_KEY, '1');
+      localStorage.removeItem(PHOTO_KEY);
+      localStorage.removeItem(PHOTO_X_KEY);
+      localStorage.removeItem(PHOTO_Y_KEY);
+      localStorage.removeItem(PHOTO_SCALE_KEY);
+    }
+
+    function readPhotoInput(input) {
+      const file = input?.files?.[0];
+      if (!file) return Promise.resolve('');
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.onload = () => {
+            const canvas = document.createElement('canvas');
+            const maxSize = 420;
+            const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+            const width = Math.max(1, Math.round(image.width * scale));
+            const height = Math.max(1, Math.round(image.height * scale));
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
+          };
+          image.onerror = reject;
+          image.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function setupProfileEditor() {
+      document.getElementById('edit-photo')?.addEventListener('change', async event => {
+        const photo = await readPhotoInput(event.target);
+        pendingEditPhoto = photo;
+        if (photo) {
+          renderAvatar('edit-photo-preview', photo, document.getElementById('edit-photo-x').value, document.getElementById('edit-photo-y').value, document.getElementById('edit-photo-scale').value);
+        }
+      });
+      ['edit-photo-x', 'edit-photo-y', 'edit-photo-scale'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', () => {
+          renderAvatar('edit-photo-preview', pendingEditPhoto || sessionStorage.getItem(PHOTO_KEY) || localStorage.getItem(PHOTO_KEY), document.getElementById('edit-photo-x').value, document.getElementById('edit-photo-y').value, document.getElementById('edit-photo-scale').value);
+        });
+      });
+    }
+
+    async function handleLogin() {
+      const username = document.getElementById('login-user').value.trim();
+      const password = document.getElementById('login-pass').value.trim();
+      if (!username || !password) return alert('Please enter both username and password!');
+
+      const btn = document.getElementById('btn-login');
+      btn.innerText = 'WAITING...';
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'auth', username, password })
+        });
+        const data = await res.json();
+
+        if (data.status === 'success') {
+          const meowLevel = parseInt(data.meowtopiaLevel ?? data.level ?? 1) || 1;
+          setStoredProfile(username, meowLevel, data.photo || '', data.photoX || 50, data.photoY || 50, data.photoScale || 1);
+          showMeowMap(username);
+        } else if (data.status === 'wrong_password') {
+          alert('Wrong password!');
+        } else {
+          alert('Account not found! Please register first.');
+          if (!document.getElementById('auth-card').classList.contains('flipped')) toggleAuth();
+        }
+      } catch {
+        alert('Connection failed!');
+      } finally {
+        btn.innerText = 'START!';
+        btn.disabled = false;
+      }
+    }
+
+    async function handleRegister() {
+      const username = document.getElementById('reg-user').value.trim();
+      const password = document.getElementById('reg-pass').value.trim();
+      const confirm = document.getElementById('reg-confirm').value.trim();
+      if (!username || !password || !confirm) return alert('Please fill all fields!');
+      if (password !== confirm) return alert('Passwords do not match!');
+
+      const btn = document.getElementById('btn-reg');
+      btn.innerText = 'WAITING...';
+      btn.disabled = true;
+
+      try {
+        const photo = await readPhotoInput(document.getElementById('reg-photo'));
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'register', username, password, photo })
+        });
+        const text = await res.text();
+        let status;
+        try { status = JSON.parse(text).status; } catch { status = text.trim(); }
+
+        if (status === 'success') {
+          alert('Registration successful! Please login.');
+          toggleAuth();
+          document.getElementById('login-user').value = username;
+          document.getElementById('login-pass').focus();
+        } else if (status === 'exists') {
+          alert('Username already taken!');
+        } else {
+          alert('Registration failed.');
+        }
+      } catch {
+        alert('Connection failed!');
+      } finally {
+        btn.innerText = 'JOIN NOW!';
+        btn.disabled = false;
+      }
+    }
+
+    function handleGuestLogin() {
+      setGuestProfile();
+      showMeowMap('Guest');
+    }
+
+    function showMeowMap(user) {
+      const storedUser = user || sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || 'Guest';
+      const meowLv = Math.min(
+        Math.max(
+          parseInt(sessionStorage.getItem('meow_level') || localStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel') || localStorage.getItem('currentLevel')) || 1,
+          1
+        ),
+        18
+      );
+
+      document.getElementById('auth-card').classList.add('hidden');
+      document.getElementById('meow-map').classList.remove('hidden');
+      document.getElementById('meow-display-username').innerText = storedUser;
+      document.getElementById('meow-display-level').innerText = `LV. ${meowLv}`;
+      document.getElementById('edit-profile-btn').style.display = sessionStorage.getItem(GUEST_KEY) === 'true' ? 'none' : '';
+      renderAvatar('meow-player-avatar');
+
+      const grid = document.getElementById('level-grid');
+      grid.innerHTML = '';
+      for (let i = 1; i <= 18; i++) {
+        const node = document.createElement('a');
+        node.className = 'level-node';
+        node.innerText = i;
+        if (i === 1 || i <= meowLv) {
+          node.href = `level${i}.html`;
+        } else {
+          node.classList.add('locked');
+          node.onclick = event => {
+            event.preventDefault();
+            alert('Level Locked! Complete previous stages first.');
+          };
+        }
+        grid.appendChild(node);
+      }
+    }
+
+    function openProfileEditor() {
+      if (sessionStorage.getItem(GUEST_KEY) === 'true') {
+        alert('Guest profiles are temporary. Please register to edit and save a profile.');
+        return;
+      }
+      document.getElementById('edit-user').value = sessionStorage.getItem('currentUser') || '';
+      document.getElementById('edit-pass').value = '';
+      document.getElementById('edit-confirm').value = '';
+      document.getElementById('edit-photo').value = '';
+      pendingEditPhoto = '';
+      document.getElementById('edit-photo-x').value = getPhotoX();
+      document.getElementById('edit-photo-y').value = getPhotoY();
+      document.getElementById('edit-photo-scale').value = getPhotoScale();
+      renderAvatar('edit-photo-preview');
+      document.getElementById('profile-modal').classList.remove('hidden');
+    }
+
+    function closeProfileEditor() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    async function handleProfileSave() {
+      const currentUsername = sessionStorage.getItem('currentUser') || '';
+      const username = document.getElementById('edit-user').value.trim();
+      const password = document.getElementById('edit-pass').value.trim();
+      const confirm = document.getElementById('edit-confirm').value.trim();
+      if (!username) return alert('Please enter a username!');
+      if (password !== confirm) return alert('Passwords do not match!');
+
+      const btn = document.getElementById('btn-profile-save');
+      btn.innerText = 'WAITING...';
+      btn.disabled = true;
+      try {
+        const newPhoto = await readPhotoInput(document.getElementById('edit-photo'));
+        const oldPhoto = sessionStorage.getItem(PHOTO_KEY) || localStorage.getItem(PHOTO_KEY) || '';
+        const photoX = parseInt(document.getElementById('edit-photo-x').value) || 50;
+        const photoY = parseInt(document.getElementById('edit-photo-y').value) || 50;
+        const photoScale = parseFloat(document.getElementById('edit-photo-scale').value) || 1;
+        const payload = {
+          action: 'updateProfile',
+          currentUsername,
+          username,
+          password,
+          photo: newPhoto || oldPhoto,
+          photoX,
+          photoY,
+          photoScale
+        };
+        const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.status === 'success') {
+          const meowLv = parseInt(sessionStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel')) || 1;
+          setStoredProfile(data.username || username, meowLv, data.photo || payload.photo, data.photoX || photoX, data.photoY || photoY, data.photoScale || photoScale);
+          showMeowMap(data.username || username);
+          closeProfileEditor();
+        } else if (data.status === 'exists') {
+          alert('Username already taken!');
+        } else {
+          alert('Update failed.');
+        }
+      } catch {
+        alert('Connection failed!');
+      } finally {
+        btn.innerText = 'SAVE';
+        btn.disabled = false;
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.clear();
+      localStorage.removeItem(PHOTO_KEY);
+      localStorage.removeItem(PHOTO_X_KEY);
+      localStorage.removeItem(PHOTO_Y_KEY);
+      localStorage.removeItem(PHOTO_SCALE_KEY);
+      showAuth();
+    }
+  </script>
+</body>
+</html>
