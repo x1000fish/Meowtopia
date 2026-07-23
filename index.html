@@ -795,6 +795,7 @@
 
     function showMeowMap(user) {
       const storedUser = user || sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || 'Guest';
+      const isGuest = sessionStorage.getItem(GUEST_KEY) === 'true';
       const meowLv = Math.min(
         Math.max(
           parseInt(sessionStorage.getItem('meow_level') || localStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel') || localStorage.getItem('currentLevel')) || 1,
@@ -802,11 +803,12 @@
         ),
         18
       );
+      const unlockedLv = isGuest ? 18 : meowLv;
 
       document.getElementById('auth-card').classList.add('hidden');
       document.getElementById('meow-map').classList.remove('hidden');
       document.getElementById('meow-display-username').innerText = storedUser;
-      document.getElementById('meow-display-level').innerText = `LV. ${meowLv}`;
+      document.getElementById('meow-display-level').innerText = `LV. ${unlockedLv}`;
       document.getElementById('edit-profile-btn').style.display = sessionStorage.getItem(GUEST_KEY) === 'true' ? 'none' : '';
       renderAvatar('meow-player-avatar');
 
@@ -816,7 +818,7 @@
         const node = document.createElement('a');
         node.className = 'level-node';
         node.innerText = i;
-        if (i === 1 || i <= meowLv) {
+        if (i === 1 || i <= unlockedLv) {
           node.href = `level${i}.html`;
         } else {
           node.classList.add('locked');
