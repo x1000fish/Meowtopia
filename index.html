@@ -581,10 +581,36 @@
     window.addEventListener('load', () => {
       setupProfileEditor();
       const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
-      const level = parseInt(sessionStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel') || localStorage.getItem('meow_level') || localStorage.getItem('currentLevel'));
-      if (user && !isNaN(level)) showMeowMap(user);
+      const hasSession = sessionStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel') || localStorage.getItem('meow_level') || localStorage.getItem('currentLevel');
+      if (user && hasSession) showMeowMap(user);
       else showAuth();
     });
+
+    // 過關頁 (level1.html ~ level18.html) 只會更新 sessionStorage 的 currentLevel，
+    // 不會更新 meow_level，所以同一個登入 session 內要取這兩者的較大值。
+    //
+    // 注意：絕對不能把 localStorage 也一起拿來取最大值！
+    // localStorage 是「記住我」用的跨登入快取，只有在登入/註冊/存檔時才會被資料庫的值覆寫，
+    // 登出時並不會清除等級欄位，所以裡面可能殘留很久以前、甚至別的帳號測試時留下的高等級。
+    // 一旦跟 sessionStorage 取最大值，資料庫真正的等級（例如 7）就會被這個過期快取（例如 18）蓋過去。
+    // 因此規則是：這次 session 有資料就完全以 session 為準（它是登入當下資料庫回傳寫入的）；
+    // 只有在 sessionStorage 完全是空的（例如瀏覽器重開、只靠 localStorage 記住登入狀態）時，
+    // 才退回使用 localStorage 上一次登入時資料庫回傳的等級。
+    function getUnlockedLevel() {
+      const sessionCandidates = [
+        sessionStorage.getItem('meow_level'),
+        sessionStorage.getItem('currentLevel')
+      ].map(v => parseInt(v)).filter(v => !isNaN(v));
+      if (sessionCandidates.length) return Math.min(Math.max(...sessionCandidates), 18);
+
+      const localCandidates = [
+        localStorage.getItem('meow_level'),
+        localStorage.getItem('currentLevel')
+      ].map(v => parseInt(v)).filter(v => !isNaN(v));
+      if (localCandidates.length) return Math.min(Math.max(...localCandidates), 18);
+
+      return 1;
+    }
 
     document.addEventListener('keydown', event => {
       if (event.key !== 'Enter') return;
@@ -796,13 +822,7 @@
     function showMeowMap(user) {
       const storedUser = user || sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || 'Guest';
       const isGuest = sessionStorage.getItem(GUEST_KEY) === 'true';
-      const meowLv = Math.min(
-        Math.max(
-          parseInt(sessionStorage.getItem('meow_level') || localStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel') || localStorage.getItem('currentLevel')) || 1,
-          1
-        ),
-        18
-      );
+      const meowLv = getUnlockedLevel();
       const unlockedLv = isGuest ? 18 : meowLv;
 
       document.getElementById('auth-card').classList.add('hidden');
@@ -882,7 +902,7 @@
         const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
         const data = await res.json();
         if (data.status === 'success') {
-          const meowLv = parseInt(sessionStorage.getItem('meow_level') || sessionStorage.getItem('currentLevel')) || 1;
+          const meowLv = getUnlockedLevel();
           setStoredProfile(data.username || username, meowLv, data.photo || payload.photo, data.photoX || photoX, data.photoY || photoY, data.photoScale || photoScale);
           showMeowMap(data.username || username);
           closeProfileEditor();
@@ -905,6 +925,9 @@
       localStorage.removeItem(PHOTO_X_KEY);
       localStorage.removeItem(PHOTO_Y_KEY);
       localStorage.removeItem(PHOTO_SCALE_KEY);
+      localStorage.removeItem('meow_level');
+      localStorage.removeItem('currentLevel');
+      localStorage.removeItem('currentUser');
       showAuth();
     }
   </script>
