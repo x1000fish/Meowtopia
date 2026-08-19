@@ -33,10 +33,14 @@
         .fish-ready { display: flex; }
         .fish-ready.animate-move { transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1), left 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 75px; height: auto; }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -50px; z-index: 5; position: relative; top: -30px; left: -10px;}
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -50px; z-index: 5; position: relative; top: -15px; }
         .fixed-number { position: absolute; bottom: -2px; right: 65px; font-size: 24px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 2000; pointer-events: auto; }
         .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; z-index: 2001; }
+        .skin-toggle-btn { position: fixed; top: 20px; left: 20px; width: 58px; height: 58px; background: #fff; border: 4px solid #463438; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.1s; z-index: 1000; padding: 5px; }
+        .skin-toggle-btn:hover { transform: translateY(-2px); }
+        .skin-toggle-btn:active { transform: translateY(2px); }
+        .skin-toggle-btn img { max-width: 46px; max-height: 46px; object-fit: contain; pointer-events: none; }
         .help-btn { background: #FFB7C5; border: 3px solid #463438; border-radius: 50%; width: 34px; height: 34px; font-weight: 900; font-size: 18px; color: white; cursor: pointer; box-shadow: 0 4px 0 #463438; transition: all 0.1s; text-shadow: 2px 2px 0 #463438; display: flex; align-items: center; justify-content: center; padding-bottom: 2px; }
         .help-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #463438; }
         .help-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #463438; }
@@ -54,6 +58,7 @@
         .cat-node > img, .fish-wrapper > img { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); transform: scale(1.15) translateY(0px) translateX(-2px); }
         body:not(.hide-labels) .cat-node > img { transform: scale(1.05) translateY(-5px) translateX(-2px); }
         body:not(.hide-labels) .fish-wrapper > img { transform: scale(1.05) translateY(-8px); }
+        body.skin-poto .fish-label { top: -30px; left: -10px; }
         .fixed-number, .fish-label { transition: opacity 0.3s ease, transform 0.3s ease; }
         .hide-labels .fixed-number, .hide-labels .fish-label { opacity: 0; transform: translateY(1px); pointer-events: none; }
         @keyframes tut-hand-anim { 0%, 75%, 100% { transform: translateY(30px); opacity: 0; } 6% { transform: translateY(30px); opacity: 1; } 18% { transform: translateY(0px) scale(0.9); opacity: 1; } 28% { transform: translateY(30px); opacity: 0; } }
@@ -68,21 +73,24 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 hide-labels">
-    <div id="tutorialModal" class="modal-overlay" style="display: none;">
+    <button id="skin-toggle-btn" class="skin-toggle-btn" onclick="toggleSkin()" aria-label="Toggle poto skin" title="Toggle poto skin">
+        <img id="skin-toggle-img" src="./poto/cat7.png" alt="">
+    </button>
+    <div id="tutorialModal" class="modal-overlay" style="display: flex;">
         <div class="modal-content" id="tut-page" style="width: 520px; position: relative;">
             <div id="tut-step-1">
                 <h2 class="text-3xl font-black mb-4" style="color: #463438;">HOW TO PLAY</h2>
                 <div class="tut-card">
                     <div class="tut-title">CLICK / TAP TO SWAP</div>
                     <div class="tut-anim-area">
-                        <div class="tut-node left"><img src="./poto/cat0.png" alt=""></div>
-                        <div class="tut-node right"><img src="./poto/cat1.png" alt=""></div>
+                        <div class="tut-node left"><img id="tut-cat-0" src="./svg/000-c.svg" alt=""></div>
+                        <div class="tut-node right"><img id="tut-cat-1" src="./svg/001-c.svg" alt=""></div>
                         <div style="position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 8px; border-radius: 4px; z-index: 2; animation: tut-line-anim 3.5s infinite;"></div>
-                        <div style="position: absolute; top: 53%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-1 3.5s infinite;">
-                            <img src="./poto/fish1.png" style="width: 50px;">
+                        <div id="tut-swap-fish-1-wrap" style="position: absolute; top: 50%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-1 3.5s infinite;">
+                            <img id="tut-swap-fish-1" src="./svg/001-f.svg" style="width: 50px;">
                         </div>
-                        <div style="position: absolute; top: 53%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-2 3.5s infinite;">
-                            <img src="./poto/fish0.png" style="width: 50px;">
+                        <div id="tut-swap-fish-0-wrap" style="position: absolute; top: 50%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-2 3.5s infinite;">
+                            <img id="tut-swap-fish-0" src="./svg/000-f.svg" style="width: 50px;">
                         </div>
                         <div style="position: absolute; top: 50%; left: 50%; margin-top: -9px; margin-left: -16px; font-size: 36px; z-index: 10; animation: tut-hand-anim 3.5s infinite;">👆🏻</div>
                     </div>
@@ -97,8 +105,8 @@
                     <div class="tut-anim-area">
                         <div style="position: absolute; left: 80px; top: 50%; transform: translateY(-50%);">
                             <div style="position: relative;">
-                                <div style="background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; position: absolute; top: 0px; left: 12px; z-index: 5; opacity: 0; animation: tut-icon-2 3.5s infinite;">1</div>
-                                <img src="./poto/fish0.png" style="width: 50px; position: relative; z-index: 4; transform: scale(1.15); animation: tut-fish-scale 3.5s infinite;">
+                                <div id="tut-label-demo" style="background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; position: absolute; top: 6px; left: 14px; z-index: 5; opacity: 0; animation: tut-icon-2 3.5s infinite;">1</div>
+                                <img id="tut-label-fish" src="./svg/000-f.svg" style="width: 50px; position: relative; z-index: 4; transform: scale(1.15); animation: tut-fish-scale 3.5s infinite;">
                             </div>
                         </div>
                         <div style="position: absolute; right: 100px; top: 45%; transform: translateY(-50%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #fff; border: 4px solid #463438; border-radius: 50%; box-shadow: 0 4px 0 #463438; z-index: 2;">
@@ -124,10 +132,10 @@
         </div>
         <div class="game-canvas">
             <div id="main-line" class="connection-line" style="width: 300px;" onclick="swapFish()"></div>
-            <div class="cat-node" id="node-0"><div class="fixed-number">0</div><img src="./poto/cat0.png" class="w-32"></div>
-            <div class="cat-node" id="node-1"><div class="fixed-number">1</div><img src="./poto/cat1.png" class="w-32"></div>
-            <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label">0</div><img id="fish-0" src="./poto/fish0.png"></div>
-            <div id="fish-wrap-1" class="fish-wrapper"><div id="label-1" class="fish-label">1</div><img id="fish-1" src="./poto/fish1.png"></div>
+            <div class="cat-node" id="node-0"><div class="fixed-number">0</div><img id="cat-0" src="./svg/000-c.svg" class="w-32"></div>
+            <div class="cat-node" id="node-1"><div class="fixed-number">1</div><img id="cat-1" src="./svg/001-c.svg" class="w-32"></div>
+            <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label">0</div><img id="fish-0" src="./svg/000-f.svg"></div>
+            <div id="fish-wrap-1" class="fish-wrapper"><div id="label-1" class="fish-label">1</div><img id="fish-1" src="./svg/001-f.svg"></div>
         </div>
         <div class="w-full text-center mt-6"><a href="index.html" class="game-btn btn-red px-16">GIVE UP</a></div>
     </div>
@@ -153,9 +161,37 @@
         let currentSteps = 0, fishAtNode = [1, 0], startTime, timerInterval = null;
         let isGameOver = false;
         let labelsOpen = false;
+        let isPotoSkin = false;
+        const SKINS = {
+            default: {
+                toggleIcon: './poto/cat7.png',
+                cats: ['./svg/000-c.svg', './svg/001-c.svg'],
+                fish: ['./svg/000-f.svg', './svg/001-f.svg'],
+                tutorialCats: ['./svg/000-c.svg', './svg/001-c.svg'],
+                tutorialFish: ['./svg/000-f.svg', './svg/001-f.svg'],
+                tutorialFishTop: '50%',
+                tutorialLabelTop: '6px',
+                tutorialLabelLeft: '14px',
+                fishOffsetTop: 32,
+                fishOffsetLeft: 75
+            },
+            poto: {
+                toggleIcon: './svg/111-c.svg',
+                cats: ['./poto/cat0.png', './poto/cat1.png'],
+                fish: ['./poto/fish0.png', './poto/fish1.png'],
+                tutorialCats: ['./poto/cat0.png', './poto/cat1.png'],
+                tutorialFish: ['./poto/fish0.png', './poto/fish1.png'],
+                tutorialFishTop: '53%',
+                tutorialLabelTop: '0px',
+                tutorialLabelLeft: '12px',
+                fishOffsetTop: 38,
+                fishOffsetLeft: 83
+            }
+        };
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3aQZO44pLQ7rr10pv0cOeJs-vdZehlABjrcJhQNQi9AWsGUutM7KXNFKPbFliqjWLA/exec';
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => {
+            setSkin(false);
             updateFishUI();
             const fish0 = document.getElementById('fish-wrap-0');
             const fish1 = document.getElementById('fish-wrap-1');
@@ -165,18 +201,50 @@
                 fish0.classList.add('animate-move');
                 fish1.classList.add('animate-move');
             }, 50);
-            startTimer();
         };
+        function setImgSrc(id, src) {
+            const img = document.getElementById(id);
+            if (img) img.src = src;
+        }
+        function setSkin(usePotoSkin) {
+            isPotoSkin = usePotoSkin;
+            const skin = isPotoSkin ? SKINS.poto : SKINS.default;
+            document.body.classList.toggle('skin-poto', isPotoSkin);
+            setImgSrc('skin-toggle-img', skin.toggleIcon);
+            setImgSrc('cat-0', skin.cats[0]);
+            setImgSrc('cat-1', skin.cats[1]);
+            setImgSrc('fish-0', skin.fish[0]);
+            setImgSrc('fish-1', skin.fish[1]);
+            setImgSrc('tut-cat-0', skin.tutorialCats[0]);
+            setImgSrc('tut-cat-1', skin.tutorialCats[1]);
+            setImgSrc('tut-swap-fish-0', skin.tutorialFish[0]);
+            setImgSrc('tut-swap-fish-1', skin.tutorialFish[1]);
+            setImgSrc('tut-label-fish', skin.tutorialFish[0]);
+            ['tut-swap-fish-0-wrap', 'tut-swap-fish-1-wrap'].forEach(id => {
+                const wrap = document.getElementById(id);
+                if (wrap) wrap.style.top = skin.tutorialFishTop;
+            });
+            const labelDemo = document.getElementById('tut-label-demo');
+            if (labelDemo) {
+                labelDemo.style.top = skin.tutorialLabelTop;
+                labelDemo.style.left = skin.tutorialLabelLeft;
+            }
+            updateFishUI();
+        }
+        function toggleSkin() {
+            if (typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
+            setSkin(!isPotoSkin);
+        }
         function toggleLabels() {
             if (typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
             labelsOpen = !labelsOpen;
             const btn = document.getElementById('label-toggle-btn');
             if (labelsOpen) {
                 document.body.classList.remove('hide-labels');
-                btn.innerText = '🚫';
+                btn.innerHTML = '&#128683;';
             } else {
                 document.body.classList.add('hide-labels');
-                btn.innerText = '🏷️';
+                btn.innerHTML = '&#127991;&#65039;';
             }
         }
         function nextTutPage() {
@@ -237,11 +305,12 @@
             updateFishUI(); checkWin();
         }
         function updateFishUI() {
+            const skin = isPotoSkin ? SKINS.poto : SKINS.default;
             for(let i=0; i<2; i++) {
                 const f = document.getElementById(`fish-wrap-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`);
                 if(f && n) {
-                    f.style.top = (n.offsetTop + 38) + "px";
-                    f.style.left = (n.offsetLeft + 83) + "px";
+                    f.style.top = (n.offsetTop + skin.fishOffsetTop) + "px";
+                    f.style.left = (n.offsetLeft + skin.fishOffsetLeft) + "px";
                 }
                 const nodeEl = document.getElementById(`node-${i}`);
                 if (nodeEl) nodeEl.classList.toggle('node-correct', fishAtNode[i] === i);
@@ -258,7 +327,7 @@
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
                     document.getElementById('victoryModal').style.display = 'flex';
-                }, 3800);
+                }, 800);
                 if (u && sessionStorage.getItem('isGuest') !== 'true') {
                     const currentLvInSession = parseInt(sessionStorage.getItem('currentLevel') || "1");
                     if (currentLvInSession <= 1) {
