@@ -1474,15 +1474,16 @@
                     onmouseleave="clearHighlight()"
                     onclick="applyGate('${type}')">${getGateContent(type)}</button>`;
             };
-            html += `<div class="flex flex-wrap justify-center gap-2 w-full">`;
-            gateOrderX.forEach(g => { html += wrapBtn(g); });
-            html += `</div>`;
-            html += `<div class="flex flex-wrap justify-center gap-2 w-full">`;
-            gateOrderCX.forEach(g => { html += wrapBtn(g); });
-            html += `</div>`;
-            html += `<div class="flex flex-wrap justify-center gap-2 w-full">`;
-            gateOrderSWAP.forEach(g => { html += wrapBtn(g); });
-            html += `</div>`;
+            const appendRows = (gateOrder) => {
+                for (let i = 0; i < gateOrder.length; i += 3) {
+                    html += `<div class="flex justify-center gap-2 w-full">`;
+                    gateOrder.slice(i, i + 3).forEach(g => { html += wrapBtn(g); });
+                    html += `</div>`;
+                }
+            };
+            appendRows(gateOrderX);
+            appendRows(gateOrderCX);
+            appendRows(gateOrderSWAP);
             grid.innerHTML = html;
         }
         function flashGateLines(type) {
