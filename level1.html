@@ -162,6 +162,8 @@
         let isGameOver = false;
         let labelsOpen = false;
         let isPotoSkin = false;
+        const SKIN_STORAGE_KEY = 'meowtopiaSkin';
+        let currentSkin = 'default';
         const SKINS = {
             default: {
                 toggleIcon: './poto/cat7.png',
@@ -191,7 +193,7 @@
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyv3aQZO44pLQ7rr10pv0cOeJs-vdZehlABjrcJhQNQi9AWsGUutM7KXNFKPbFliqjWLA/exec';
         const pop = new Audio('pop.m4a'), meow = new Audio('meow.m4a');
         window.onload = () => {
-            setSkin(false);
+            setSkin(getSyncedSkinForLv1());
             updateFishUI();
             const fish0 = document.getElementById('fish-wrap-0');
             const fish1 = document.getElementById('fish-wrap-1');
@@ -206,9 +208,14 @@
             const img = document.getElementById(id);
             if (img) img.src = src;
         }
-        function setSkin(usePotoSkin) {
-            isPotoSkin = usePotoSkin;
-            const skin = isPotoSkin ? SKINS.poto : SKINS.default;
+        function getSyncedSkinForLv1() {
+            return sessionStorage.getItem(SKIN_STORAGE_KEY) === 'poto' ? 'poto' : 'default';
+        }
+        function setSkin(skinName, syncStorage = false) {
+            currentSkin = skinName === 'poto' ? 'poto' : 'default';
+            isPotoSkin = currentSkin === 'poto';
+            const skin = SKINS[currentSkin];
+            if (syncStorage) sessionStorage.setItem(SKIN_STORAGE_KEY, currentSkin);
             document.body.classList.toggle('skin-poto', isPotoSkin);
             setImgSrc('skin-toggle-img', skin.toggleIcon);
             setImgSrc('cat-0', skin.cats[0]);
@@ -233,7 +240,7 @@
         }
         function toggleSkin() {
             if (typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
-            setSkin(!isPotoSkin);
+            setSkin(isPotoSkin ? 'default' : 'poto', true);
         }
         function toggleLabels() {
             if (typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
@@ -305,7 +312,7 @@
             updateFishUI(); checkWin();
         }
         function updateFishUI() {
-            const skin = isPotoSkin ? SKINS.poto : SKINS.default;
+            const skin = SKINS[currentSkin];
             for(let i=0; i<2; i++) {
                 const f = document.getElementById(`fish-wrap-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`);
                 if(f && n) {
