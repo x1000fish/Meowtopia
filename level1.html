@@ -33,7 +33,7 @@
         .fish-ready { display: flex; }
         .fish-ready.animate-move { transition: top 0.5s cubic-bezier(0.16, 1, 0.3, 1), left 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
         .fish-wrapper img { width: 75px; height: auto; }
-        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -50px; z-index: 5; position: relative; top: -15px; }
+        .fish-label { background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; margin-bottom: -50px; z-index: 5; position: relative; top: -30px; left: -10px;}
         .fixed-number { position: absolute; bottom: -2px; right: 65px; font-size: 24px; font-weight: 900; color: #463438; pointer-events: none; z-index: 25; }
         .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); display: none; align-items: center; justify-content: center; z-index: 2000; pointer-events: auto; }
         .modal-content { background: #FFF9F0; border: 8px solid #463438; border-radius: 40px; padding: 30px; text-align: center; width: 380px; box-shadow: 0 10px 0 #FFB7C5; color: #463438; z-index: 2001; }
@@ -68,21 +68,21 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 hide-labels">
-    <div id="tutorialModal" class="modal-overlay" style="display: flex;">
+    <div id="tutorialModal" class="modal-overlay" style="display: none;">
         <div class="modal-content" id="tut-page" style="width: 520px; position: relative;">
             <div id="tut-step-1">
                 <h2 class="text-3xl font-black mb-4" style="color: #463438;">HOW TO PLAY</h2>
                 <div class="tut-card">
                     <div class="tut-title">CLICK / TAP TO SWAP</div>
                     <div class="tut-anim-area">
-                        <div class="tut-node left"><img src="./svg/000-c.svg" alt=""></div>
-                        <div class="tut-node right"><img src="./svg/001-c.svg" alt=""></div>
+                        <div class="tut-node left"><img src="./poto/cat0.png" alt=""></div>
+                        <div class="tut-node right"><img src="./poto/cat1.png" alt=""></div>
                         <div style="position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 8px; border-radius: 4px; z-index: 2; animation: tut-line-anim 3.5s infinite;"></div>
-                        <div style="position: absolute; top: 50%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-1 3.5s infinite;">
-                            <img src="./svg/001-f.svg" style="width: 50px;">
+                        <div style="position: absolute; top: 53%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-1 3.5s infinite;">
+                            <img src="./poto/fish1.png" style="width: 50px;">
                         </div>
-                        <div style="position: absolute; top: 50%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-2 3.5s infinite;">
-                            <img src="./svg/000-f.svg" style="width: 50px;">
+                        <div style="position: absolute; top: 53%; left: 50%; margin-top: -10px; margin-left: -25px; z-index: 4; animation: tut-fish-2 3.5s infinite;">
+                            <img src="./poto/fish0.png" style="width: 50px;">
                         </div>
                         <div style="position: absolute; top: 50%; left: 50%; margin-top: -9px; margin-left: -16px; font-size: 36px; z-index: 10; animation: tut-hand-anim 3.5s infinite;">👆🏻</div>
                     </div>
@@ -97,8 +97,8 @@
                     <div class="tut-anim-area">
                         <div style="position: absolute; left: 80px; top: 50%; transform: translateY(-50%);">
                             <div style="position: relative;">
-                                <div style="background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; position: absolute; top: 6px; left: 14px; z-index: 5; opacity: 0; animation: tut-icon-2 3.5s infinite;">1</div>
-                                <img src="./svg/000-f.svg" style="width: 50px; position: relative; z-index: 4; transform: scale(1.15); animation: tut-fish-scale 3.5s infinite;">
+                                <div style="background: rgba(70, 52, 56, 0.8); color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; position: absolute; top: 0px; left: 12px; z-index: 5; opacity: 0; animation: tut-icon-2 3.5s infinite;">1</div>
+                                <img src="./poto/fish0.png" style="width: 50px; position: relative; z-index: 4; transform: scale(1.15); animation: tut-fish-scale 3.5s infinite;">
                             </div>
                         </div>
                         <div style="position: absolute; right: 100px; top: 45%; transform: translateY(-50%); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: #fff; border: 4px solid #463438; border-radius: 50%; box-shadow: 0 4px 0 #463438; z-index: 2;">
@@ -124,10 +124,10 @@
         </div>
         <div class="game-canvas">
             <div id="main-line" class="connection-line" style="width: 300px;" onclick="swapFish()"></div>
-            <div class="cat-node" id="node-0"><div class="fixed-number">0</div><img src="./svg/000-c.svg" class="w-32"></div>
-            <div class="cat-node" id="node-1"><div class="fixed-number">1</div><img src="./svg/001-c.svg" class="w-32"></div>
-            <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label">0</div><img id="fish-0" src="./svg/000-f.svg"></div>
-            <div id="fish-wrap-1" class="fish-wrapper"><div id="label-1" class="fish-label">1</div><img id="fish-1" src="./svg/001-f.svg"></div>
+            <div class="cat-node" id="node-0"><div class="fixed-number">0</div><img src="./poto/cat0.png" class="w-32"></div>
+            <div class="cat-node" id="node-1"><div class="fixed-number">1</div><img src="./poto/cat1.png" class="w-32"></div>
+            <div id="fish-wrap-0" class="fish-wrapper"><div id="label-0" class="fish-label">0</div><img id="fish-0" src="./poto/fish0.png"></div>
+            <div id="fish-wrap-1" class="fish-wrapper"><div id="label-1" class="fish-label">1</div><img id="fish-1" src="./poto/fish1.png"></div>
         </div>
         <div class="w-full text-center mt-6"><a href="index.html" class="game-btn btn-red px-16">GIVE UP</a></div>
     </div>
@@ -165,6 +165,7 @@
                 fish0.classList.add('animate-move');
                 fish1.classList.add('animate-move');
             }, 50);
+            startTimer();
         };
         function toggleLabels() {
             if (typeof pop !== 'undefined') { pop.currentTime = 0; pop.play(); }
@@ -239,8 +240,8 @@
             for(let i=0; i<2; i++) {
                 const f = document.getElementById(`fish-wrap-${i}`), n = document.getElementById(`node-${fishAtNode[i]}`);
                 if(f && n) {
-                    f.style.top = (n.offsetTop + 32) + "px";
-                    f.style.left = (n.offsetLeft + 75) + "px";
+                    f.style.top = (n.offsetTop + 38) + "px";
+                    f.style.left = (n.offsetLeft + 83) + "px";
                 }
                 const nodeEl = document.getElementById(`node-${i}`);
                 if (nodeEl) nodeEl.classList.toggle('node-correct', fishAtNode[i] === i);
@@ -257,7 +258,7 @@
                     if(typeof meow !== 'undefined') { meow.currentTime = 0; meow.play(); }
                     document.getElementById('victoryMsg').innerText = `STEP：${st} | TIME：${ft}s`;
                     document.getElementById('victoryModal').style.display = 'flex';
-                }, 800);
+                }, 3800);
                 if (u && sessionStorage.getItem('isGuest') !== 'true') {
                     const currentLvInSession = parseInt(sessionStorage.getItem('currentLevel') || "1");
                     if (currentLvInSession <= 1) {
