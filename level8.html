@@ -820,30 +820,54 @@
         }
         function initGates() {
             const grid = document.getElementById('gate-grid');
-            let html = '';
-            let gateOrderX = [], gateOrderCX = [], gateOrderSWAP = [], added = new Set();
+            let html = '';       
+            let gateOrderX = [];
+            let gateOrderCX = [];
+            let gateOrderSWAP = [];
+            let added = new Set();
             let edges = [];
-            for (let dim=0; dim<3; dim++) for (let i=0; i<8; i++) { let j = i ^ (1<<dim); if (i < j) edges.push({i, j, dim}); }
-            for(let dim=0; dim<3; dim++) { let g = `X${2-dim}`; if(!added.has(g)) { gateOrderX.push(g); added.add(g); } }
+            for (let dim=0; dim<3; dim++) {
+                for (let i=0; i<8; i++) {
+                    let j = i ^ (1<<dim);
+                    if (i < j) edges.push({i, j, dim});
+                }
+            }
+            for(let dim=0; dim<3; dim++) {
+                let g = `X${2-dim}`;
+                if(!added.has(g)) { gateOrderX.push(g); added.add(g); }
+            }
             edges.forEach(edge => {
-                const targetQ = 2 - edge.dim;
-                const ctrlPool = [0,1,2].filter(q=>q!==targetQ);
+                const targetQ = 2 - edge.dim; 
+                const ctrlPool = [0,1,2].filter(q=>q!==targetQ); 
                 ctrlPool.forEach(c => { 
-                    const val = (edge.i >> (2-c)) & 1;
+                    const val = (edge.i >> (2-c)) & 1; 
                     let g = `CX${val}${c}${targetQ}`;
                     if(!added.has(g)) { gateOrderCX.push(g); added.add(g); }
                 });
             });
-            edges.forEach(edge => { let g = `SWAP_${edge.i}_${edge.j}`; if(!added.has(g)) { gateOrderSWAP.push(g); added.add(g); } });
+            edges.forEach(edge => { 
+                let g = `SWAP_${edge.i}_${edge.j}`;
+                if(!added.has(g)) { gateOrderSWAP.push(g); added.add(g); }
+            });
             const wrapBtn = (type) => {
                 const hex = getGateColorMap(type);
-                const rgbaLight = getRgba(hex, 0.35);
+                const rgbaLight = getRgba(hex, 0.35); 
                 const bgImage = isQuantumMode ? `linear-gradient(#463438,#463438), linear-gradient(#463438,#463438), linear-gradient(#463438,#463438)` : `none`;
-                return `<button id="gate-btn-${type}" class="gate-btn-v2" style="background-color: ${rgbaLight}; background-image: ${bgImage};" onmouseenter="highlightByGate('${type}')" onmouseleave="clearHighlight()" onclick="applyGate('${type}')">${getGateContent(type)}</button>`;
+                return `<button id="gate-btn-${type}" class="gate-btn-v2" style="background-color: ${rgbaLight}; background-image: ${bgImage};"
+                    onmouseenter="highlightByGate('${type}')"
+                    onmouseleave="clearHighlight()"
+                    onclick="applyGate('${type}')">${getGateContent(type)}</button>`;
             };
-            html += `<div class="flex flex-wrap justify-center gap-2 w-full">` + gateOrderX.map(g => wrapBtn(g)).join('') + `</div>`;
-            html += `<div class="flex flex-wrap justify-center gap-2 w-full">` + gateOrderCX.map(g => wrapBtn(g)).join('') + `</div>`;
-            html += `<div class="flex flex-wrap justify-center gap-2 w-full">` + gateOrderSWAP.map(g => wrapBtn(g)).join('') + `</div>`;
+            const appendRows = (gateOrder) => {
+                for (let i = 0; i < gateOrder.length; i += 3) {
+                    html += `<div class="flex justify-center gap-2 w-full">`;
+                    gateOrder.slice(i, i + 3).forEach(g => { html += wrapBtn(g); });
+                    html += `</div>`;
+                }
+            };
+            appendRows(gateOrderX);
+            appendRows(gateOrderCX);
+            appendRows(gateOrderSWAP);
             grid.innerHTML = html;
         }
         function flashGateLines(type) {
